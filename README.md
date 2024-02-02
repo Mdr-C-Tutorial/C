@@ -20,11 +20,11 @@ int main(int argc, char **argv){
 
 ## 鸣谢名单
 
-**huan201**
-**JuaJuanchi**
-**Enoch.驊**
++ **huan201**
++ **JuaJuanchi**
++ **Enoch.驊**
 
 ## 参考资料
 
-***C Primer Plus***
-***算法导论***
++ ***C Primer Plus***
++ ***算法导论***
