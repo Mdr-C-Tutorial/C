@@ -1,3 +1,6 @@
+#ifndef MDR_SEQLIST_H
+#define MDR_SEQLIST_H
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
@@ -87,7 +90,7 @@ void curtailSeqList(SeqList *l)
     l->arr = newArr;
 }
 
-void insertBack2SeqList(SeqList *l, int x)
+void insertBack2SeqList(SeqList *l, ElementType x)
 {
     if (l->size == l->capacity)
     {
@@ -97,7 +100,7 @@ void insertBack2SeqList(SeqList *l, int x)
     l->size += 1;
 }
 
-void insert2SeqList(SeqList *l, int i, int x)
+void insert2SeqList(SeqList *l, int i, ElementType x)
 {
     if (l->size == l->capacity)
     {
@@ -124,7 +127,7 @@ void removeFromSeqList(SeqList *l, int i)
         curtailSeqList(l);
 }
 
-int indexOfSeqList(SeqList *l, int x)
+int indexOfSeqList(SeqList *l, ElementType x)
 {
     for (int n = 0; n < l->size; ++n)
         if (l->arr[n] == x)
@@ -142,23 +145,4 @@ void printSeqList(SeqList *l)
     printf("\n");
 }
 
-int main(void)
-{
-    SeqList list;
-    int arr[10] = {1, 2, 3, 4, 5, 5, 6, 7, 8, 9};
-    initSeqListFromArray(&list, arr, 9);
-    printSeqList(&list);
-    printf("%d\n", indexOfSeqList(&list, 3));
-    for (int i = 0; i < 20; ++i)
-        insertBack2SeqList(&list, 9);
-    insertBack2SeqList(&list, 6);
-    insert2SeqList(&list, 7, 100000000);
-    removeFromSeqList(&list, 2);
-    printSeqList(&list);
-    for (int i = 0; i < 30; ++i)
-    {
-        removeFromSeqList(&list, 0);
-    }
-    printSeqList(&list);
-    return 0;
-}
+#endif
