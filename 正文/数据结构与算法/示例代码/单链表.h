@@ -136,7 +136,6 @@ int deleteNode(LinkedList *l, ElementType x)
     l->head = first;
     if (first)
     {
-        // first是首个不为零节点
         Node *node = first->next;
         while (node != NULL)
         {

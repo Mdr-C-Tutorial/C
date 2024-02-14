@@ -26,5 +26,6 @@ int main(int argc, char **argv){
 
 ## 参考资料
 
++ [***cpp reference***](https://zh.cppreference.com/w/c/language)
 + ***C Primer Plus***
 + ***算法导论***
