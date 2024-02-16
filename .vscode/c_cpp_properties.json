@@ -5,13 +5,15 @@
       "includePath": [
         "${workspaceFolder}/**"
       ],
+      "defines": [
+        "_DEBUG",
+        "UNICODE", 
+        "_UNICODE"
+      ],
       "compilerPath": "D:/Software/mingw64/bin/gcc.exe",//请在此填写你电脑的解析配置路径
       "cStandard": "${default}",
       "cppStandard": "${default}",
-      "intelliSenseMode": "windows-gcc-x64",
-      "compilerArgs": [
-        ""
-      ]
+      "intelliSenseMode": "windows-gcc-x64"
     }
   ],
   "version": 4
