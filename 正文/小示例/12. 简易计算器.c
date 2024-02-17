@@ -32,7 +32,7 @@ int main()
         break;
     case '/':
         result = divide(num1, num2);
-        if(num2 != 0)
+        if(num2 == 0)
             return 22;
         break;
     default:
