@@ -1,3 +1,4 @@
+//#define AMAZING
 #include <stdio.h>
 
 int main()
@@ -20,15 +21,16 @@ int main()
     printf("您的BMI值为: %.2f\n", bmi);
 
     // 判断健康状态
+#ifndef AMAZING
     if (bmi < 18.5)
     {
         printf("您的体重过轻。\n");
     }
-    else if (bmi >= 18.5 && bmi < 24.9)
+    else if (bmi < 25)
     {
         printf("您的体重正常。\n");
     }
-    else if (bmi >= 25 && bmi < 29.9)
+    else if (bmi < 30)
     {
         printf("您的体重过重。\n");
     }
@@ -36,6 +38,8 @@ int main()
     {
         printf("您的体重肥胖。\n");
     }
-
+#else
+    printf("您的体重%s。\n", bmi < 18.5 ? "过轻" :(bmi < 25 ? "正常" :(bmi < 30 ? "过重" : "肥胖")));
+#endif
     return 0;
 }
