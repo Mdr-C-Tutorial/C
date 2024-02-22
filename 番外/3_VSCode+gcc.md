@@ -24,3 +24,9 @@
 # 通过msys2安装gcc(windows)
 ## 1. 下载msys2
 从[msys2网站](https://www.msys2.org)上下载安装包
+- [githubrelease](https://github.com/msys2/msys2-installer/releases/download/nightly-x86_64/msys2-x86_64-latest.exe)
+- [msysrepo](https://repo.msys2.org/distrib/msys2-x86_64-latest.exe)
+- [tunamirror](https://mirrors.tuna.tsinghua.edu.cn/msys2/distrib/msys2-x86_64-latest.exe)
+> msys2已停止更新x86的GUI安装包,只有自解压包
+ [最后一版GUI(github)](https://github.com/msys2/msys2-installer/releases/download/nightly-i686/msys2-i686-20210705.exe)[自解压版(repo)](https://repo.msys2.org/distrib/msys2-i686-latest.sfx.exe)
+
