@@ -53,3 +53,4 @@ dkms.conf
 
 # obsidian
 .obsidian/
+.trash/
