@@ -22,3 +22,5 @@
 	- [universal](https://code.visualstudio.com/sha/download?build=stable&os=darwin-universal)
 
 # 通过msys2安装gcc(windows)
+## 1. 下载msys2
+从[msys2网站](https://www.msys2.org)上下载安装包
