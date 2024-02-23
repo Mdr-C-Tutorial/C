@@ -33,5 +33,5 @@ int main(int argc, char* argv[]){
 
 + [C standard](https://open-std.org/JTC1/SC22/WG14/)
 + [***cpp reference***](https://zh.cppreference.com/w/c/language)
-+ ***C Primer Plus***
++ ***C Primer Plus***(ISBN 978-0-321-92842-9)
 + ***算法导论***
