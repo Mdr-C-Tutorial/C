@@ -21,6 +21,8 @@ int main(int argc, char* argv[]){
 
 ~~此教程并非一时兴起而作，实则怀“为往圣继绝学，为万世开太平”之愿，深思熟虑打造而成~~
 
+### [总纲](/总纲.md)
+
 ## 鸣谢名单
 
 + **mdr** ([Minsecrus](https://github.com/Minsecrus))
@@ -29,6 +31,9 @@ int main(int argc, char* argv[]){
 + **Enoch.驊** ([gngtwhh](https://github.com/gngtwhh))
 + **No** ([Kroner](https://www.cnblogs.com/Kroner)) ([Kroner](https://github.com/Kroner))
 + **xly** ([LY-Xiang](https://github.com/LY-Xiang))
+
+## 许可证
+[**CC-BY-SA 4.0**](/LICENSE)
 
 ## 参考资料
 
