@@ -31,6 +31,7 @@ int main(int argc, char* argv[]){
 + **Enoch.驊** ([gngtwhh](https://github.com/gngtwhh))
 + **No** ([Kroner](https://www.cnblogs.com/Kroner)) ([Kroner](https://github.com/Kroner))
 + **xly** ([LY-Xiang](https://github.com/LY-Xiang))
++ **革匊习习中** ([Juvwxyz](https://github.com/Juvwxyz))
 
 ## 许可证
 
