@@ -1,7 +1,6 @@
 git pull && 
-git diff --name-status --full-index > diff.tmp
 git add . &&
-git commit -m "$(date)\n$(cat diff.tmp)" && 
+git commit -m "$(date)" --status && 
 git push && 
 echo 'SUCCESS' && 
 exit 0 || 
