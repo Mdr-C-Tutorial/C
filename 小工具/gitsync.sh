@@ -1,6 +1,6 @@
 git pull && 
 git add . &&
-git commit -m "$(date)" --status && 
+git commit -m "$(date)" && 
 git push && 
 echo 'SUCCESS' && 
 exit 0 || 
