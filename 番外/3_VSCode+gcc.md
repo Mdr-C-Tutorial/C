@@ -26,6 +26,10 @@
   - [Apple silicon](https://code.visualstudio.com/sha/download?build=stable&os=darwin-arm64)
   - [universal](https://code.visualstudio.com/sha/download?build=stable&os=darwin-universal)
 
+### 安装VSCode
+
+
+
 ## 通过msys2安装gcc(windows)
 
 ## 1. 下载msys2

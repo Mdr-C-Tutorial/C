@@ -51,6 +51,10 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# obsidian
+# Temp files
+
+*.tmp
+
+# Obsidian
 .obsidian/
 .trash/
