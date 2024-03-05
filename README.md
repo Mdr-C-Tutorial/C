@@ -30,7 +30,7 @@ int main(int argc, char* argv[]){
 + **JuaJuanchi** ([JuaJuanchi](https://github.com/Jua-Juanchi))
 + **Enoch.驊** ([gngtwhh](https://github.com/gngtwhh))
 + **No** ([Kroner](https://www.cnblogs.com/Kroner)) ([Kroner](https://github.com/Kroner))
-+ **xly** ([LY-Xiang](https://github.com/LY-Xiang))
++ **xly** ([LY-Xiang](https://github.com/LY-Xiang))([hfsz2313](https://github.com/hfsz2313))
 + **革匊习习中** ([Juvwxyz](https://github.com/Juvwxyz))
 
 ## 许可证
