@@ -15,23 +15,34 @@
   <script>
     window.$docsify = {
       name: '',
-      repo: ''
+      repo: '',
+      markdown: {
+        renderer: {
+          code: function (code, lang) {
+            if (lang === "mermaid") {
+              return (
+                '<div class="mermaid">' + mermaid.render('mermaid-svg-' + num++, code) + "</div>"
+              );
+            }
+            return this.origin.code.apply(this, arguments);
+          }
+        }
+      },
+      loadNavbar: true
     }
   </script>
-  <!-- Docsify v4 -->
+  <!-- Mermaid -->
+  <script>
+    var num = 0;
+    mermaid.initialize({ startOnLoad: false });
+  </script>
+  <!-- Docsify -->
   <!--<script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>-->
   <script src="//cdn.jsdelivr.net/npm/docsify"></script>
-  <!-- Mathjax v3 -->
+  <!-- Mathjax -->
   <script src="//cdn.jsdelivr.net/npm/mathjax/es5/tex-mml-chtml.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-latex"></script>
-  <!-- Mermaid v10
-  <script type="module">
-    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs";
-    mermaid.initialize({ startOnLoad: true });
-    window.mermaid = mermaid;
-  </script> -->
-  <script src="//cdn.jsdelivr.net/npm/docsify-mermaid/dist/docsify-mermaid.js"></script>
-  <!-- Prism.js v1 -->
+  <!-- Prism.js -->
   <script src="//cdn.jsdelivr.net/npm/prismjs/components/prism-c.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs/components/prism-latex.js"></script>
   <script src="//cdn.jsdelivr.net/npm/prismjs/components/prism-makefile.min.js"></script>
