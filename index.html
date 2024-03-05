@@ -14,7 +14,7 @@
   <div id="app"></div>
   <script>
     window.$docsify = {
-      name: '',
+      name: 'Mdr-C-Tutorial',
       repo: '',
       markdown: {
         renderer: {
@@ -27,8 +27,11 @@
             return this.origin.code.apply(this, arguments);
           }
         }
-      },
-      loadNavbar: true
+      },//mermaid
+      homepage: '总纲.md',//主页
+      coverpage: 'README.md',//封面页
+      relativePath: true,//启用相对路径
+      loadNavbar: true//导航栏
     }
   </script>
   <!-- Mermaid -->
