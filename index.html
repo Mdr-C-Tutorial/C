@@ -17,6 +17,9 @@
       name: 'Mdr-C-Tutorial',
       namelink: '/总纲.md',
       repo: 'Mdr-C-Tutorial/C',
+      plugins: [
+        EditOnGithubPlugin.create('https://github.com/Mdr-C-Tutorial/C')
+      ],
       markdown: {
         renderer: {
           code: function (code, lang) {
@@ -35,14 +38,16 @@
       //basePath: '/',
       //relativePath: true,//启用相对路径
       //loadSidebar: true,//启用侧边栏
+      autoHeader: true,
       //subMaxLevel: 6,//文件目录
-      loadNavbar: true//导航栏
+      loadNavbar: true,//导航栏
+      mergeNavbar: true
     }
   </script>
   <!-- Mermaid -->
   <script>
     var num = 0;
-    mermaid.initialize({ startOnLoad: true });
+    mermaid.initialize({ startOnLoad: false });
   </script>
   <!-- Docsify -->
   <script src="//cdn.jsdelivr.net/npm/docsify"></script>
