@@ -1,4 +1,4 @@
-//#define AMAZING
+// #define AMAZING
 #include <stdio.h>
 
 int main()
@@ -39,7 +39,7 @@ int main()
         printf("您的体重肥胖。\n");
     }
 #else
-    printf("您的体重%s。\n", bmi < 18.5 ? "过轻" :(bmi < 25 ? "正常" :(bmi < 30 ? "过重" : "肥胖")));
+    printf("您的体重%s。\n", bmi < 18.5 ? "过轻" : (bmi < 25 ? "正常" : (bmi < 30 ? "过重" : "肥胖")));
 #endif
     return 0;
 }
