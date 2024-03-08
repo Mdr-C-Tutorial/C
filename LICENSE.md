@@ -1,4 +1,4 @@
 # LICENSE
 
-[LICENSE](./LICENSE ':include')
+[LICENSE](./LICENSE ':include :type=code txt')
 
