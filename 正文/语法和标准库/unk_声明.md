@@ -52,7 +52,7 @@ int (*f(void))(void)
 1. 这个声明的 **类型说明符** 是 `int`，**声明符** `(*f(void))(void)` 为第<mark>五</mark>种情况，是一个*函数声明符*，声明一个 **形参列表`void`，返回`int`** 的 **函数**
 2. 上一条中所属声明符的 **声明符** 部分 `(*f(void))` 为第<mark>二</mark>种情况
 3. 上一条中所属声明符的 **声明符** 部分 `*f(void)` 为第<mark>三</mark>种情况，是一个*指针声明符*，声明一个**指向一个形参列表`void`，返回`int`类型的函数**的**函数指针**
-4. 上一条中所属声明符的 **声明符** 部分 `f(void)` 为第<mark>五</mark>种情况，是一个*函数声明符*，声明一个***形参列表`void`***，*返回* <mark>***指向一个*** **形参列表`void`，返回`int`类型的函数** *的* ***函数指针***</matk> 的 **函数**
+4. 上一条中所属声明符的 **声明符** 部分 `f(void)` 为第<mark>五</mark>种情况，是一个*函数声明符*，声明一个***形参列表`void`***，*返回* <mark>***指向一个*** **形参列表`void`，返回`int`类型的函数** *的* ***函数指针***</mark> 的 **函数**
 5. 上一条中所属声明符的 **声明符** 部分为第<mark>一</mark>种情况，这个函数关联到 **标识符 `f`**
 
 ```c
@@ -64,3 +64,36 @@ int (*f(const void *))[3]
 3. 上一条中所属声明符的 **声明符** 部分 `*f(const void *)` 为第<mark>三</mark>种情况，是一个*指针声明符*，声明一个**指向一个长度为3，类型为`int`的数组**的**指针**
 4. 上一条中所属声明符的 **声明符** 部分 `f(const void *)` 为第<mark>五</mark>种情况，是一个*函数声明符*，声明一个***接受一个***`const void*`***类型形参***，*返回* <mark>***指向一个*** **长度为3，类型为`int`的数组** *的**指针***</mark> 的 **函数**
 5. 上一条中所属声明符的 **声明符** 部分为第<mark>一</mark>种情况，这个函数关联到 **标识符`f`**
+
+```c
+int(*(*r)(int(*(*)(int(*(*)())()))))[5]  // array
+(*(*r)(int(*(*)(int(*(*)())()))))  // ()
+*(*r)(int(*(*)(int(*(*)())())))  // pointer to array
+(*r)(int(*(*)(int(*(*)())())))  // function returns pointer to array
+(*r)  // ()
+*r  // pointer to function returns pointer to array
+
+(int(*(*)(int(*(*)())())))  // parameter list
+int(*(*)(int(*(*)())()))  // parameter 1
+(*(*)(int(*(*)())())) // ()
+*(*)(int(*(*)())())  // pointer to int
+(*)(int(*(*)())())  // function returns pointer
+(*)  // ()
+*  // pointer to function returns pointer to int
+
+(int(*(*)())())  // parameter list
+int(*(*)())()  // parameter 1
+(*(*)())()  // function returns int
+(*(*)())  // ()
+*(*)()  // pointer to function returns int
+(*)()  // function returns pointer to function returns int
+(*)  // ()
+*  // pointer to function returns pointer to function returns int
+
+// a pointer to function |- receives a parameter: pointer to function |- receives a parameter: pointer to function |- receives nothing
+//                       |                                            |                                            |- returns pointer to function |- reveives nothing
+//                       |                                            |                                                                           |- returns int
+//                       |                                            |- returns pointer to int
+//                       |- returns pointer to array
+```
+
