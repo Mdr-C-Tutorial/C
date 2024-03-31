@@ -58,3 +58,6 @@ dkms.conf
 # Obsidian
 .obsidian/
 .trash/
+
+#log
+*.log
