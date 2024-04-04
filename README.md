@@ -45,3 +45,4 @@ int main(int argc, char* argv[]){
 + [***cpp reference***](https://zh.cppreference.com/w/c/language)
 + ***C Primer Plus*** (ISBN 978-0-321-92842-9)
 + ***算法导论*** (ISBN 978-7-111-40701-0)
++ ***The C++ Programming Language*** (ISBN 978-7-111-53941-4) ~~借鉴一下其中的示例~~
