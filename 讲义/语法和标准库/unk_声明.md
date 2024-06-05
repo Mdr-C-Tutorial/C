@@ -32,12 +32,12 @@
 
 声明符分为以下五种情况：
 
-1. 标识符 属性说明符序列<sub>opt</sub>
+1. 标识符 属性说明符序列~opt~
 2. ( 声明符 )
 
-3. \* 属性说明符序列<sub>opt</sub> 限定符<sub>opt</sub> 声明符
-4. 第1/3/4/5种情况的声明符 [ `static`<sub>opt</sub> 限定符<sub>opt</sub> 表达式 ]
-   第1/3/4/5种情况的声明符 [ 限定符<sub>opt</sub> * ]
+3. \* 属性说明符序列~opt~ 限定符~opt~ 声明符
+4. 第1/3/4/5种情况的声明符 [ `static`~opt~ 限定符~opt~ 表达式 ]
+   第1/3/4/5种情况的声明符 [ 限定符~opt~ * ]
 
 5. 第1/3/4/5种情况的声明符 ( 形参或标识符 )
 
@@ -109,6 +109,6 @@ int(*(*)())()  // parameter 1
    fp fp2;
    ```
 
-   1. `char1` 具有 `char` 类型，`char_p1` 具有 `char*` 类型，`fp1` 具有 `char (*)(void)` 类型
-   2. `char_t` 是 `char` 的别名，`char_p` 是 `char*` 的别名，`fp` 是 `char (*)(void)` 的别名
+   1. `auto` 是**存储类说明符**，`char1` 具有 `char` 类型，`char_p1` 具有 `char*` 类型，`fp1` 具有 `char (*)(void)` 类型
+   2. `typedef` 放在上一句中 `auto` 的位置：`char_t` 是 `char` 的别名，`char_p` 是 `char*` 的别名，`fp` 是 `char (*)(void)` 的别名
    3. 第三行相当于 `char (*fp2)(void)`
