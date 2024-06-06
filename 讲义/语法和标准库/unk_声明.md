@@ -43,6 +43,11 @@
 
 其中，第三种情况为**指针声明符**，第四种情况为**数组声明符**，第五种情况为**函数声明符**
 
+其实就是**把原来声明符的标识符替换成更复杂的东西**，**一层一层**往下替换（很多类似的东西可以这么替换）
+
+可以用英语方便地解释，遇到第三种就在前面加 **pointer to**，第四种加 **array of**，第五种加 **function receives ... returns**
+比如 `double (*f[])(int)` ：**double** $\implies$ **function receives int returns double** $\implies$ **pointer to function receives int returns double** $\implies$ **array of pointer to function receives int returns double**
+
 ## 2. 例子
 
 ### 2.1 `int (*f(void))(void)`
@@ -66,12 +71,12 @@
 ~~写起来太难了，看注释吧~~
 
 ```c
-int(*(*r)(int(*(*)(int(*(*)())()))))[5]  // array
+int(*(*r)(int(*(*)(int(*(*)())()))))[5]  // array of int
 (*(*r)(int(*(*)(int(*(*)())()))))  // ()
-*(*r)(int(*(*)(int(*(*)())())))  // pointer to array
-(*r)(int(*(*)(int(*(*)())())))  // function returns pointer to array
+*(*r)(int(*(*)(int(*(*)())())))  // pointer to array of int
+(*r)(int(*(*)(int(*(*)())())))  // function returns pointer to array of int
 (*r)  // ()
-*r  // pointer to function returns pointer to array
+*r  // pointer to function returns pointer to array of int
 
 (int(*(*)(int(*(*)())())))  // parameter list
 int(*(*)(int(*(*)())()))  // parameter 1
@@ -90,11 +95,11 @@ int(*(*)())()  // parameter 1
 (*)  // ()
 *  // pointer to function returns pointer to function returns int
 
-// a pointer to function |- receives a parameter: pointer to function |- receives a parameter: pointer to function |- receives nothing
-//                       |                                            |                                            |- returns pointer to function |- reveives nothing
+// a pointer to function |- receives a parameter: pointer to function |- receives a parameter: pointer to function |- receives nothing(or unknown before C23)
+//                       |                                            |                                            |- returns pointer to function |- reveives nothing(or unknown before C23)
 //                       |                                            |                                                                           |- returns int
 //                       |                                            |- returns pointer to int
-//                       |- returns pointer to array
+//                       |- returns pointer to array of int
 ```
 
 ## 3. `typedef` 声明
