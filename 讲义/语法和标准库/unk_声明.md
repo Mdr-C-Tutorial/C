@@ -32,16 +32,21 @@
 
 声明符分为以下五种情况：
 
-1. 标识符 属性说明符序列<sub>opt</sub>
+1. 标识符 属性说明符序列~opt~
 2. ( 声明符 )
 
-3. \* 属性说明符序列<sub>opt</sub> 限定符<sub>opt</sub> 声明符
-4. 第1/3/4/5种情况的声明符 [ `static`<sub>opt</sub> 限定符<sub>opt</sub> 表达式 ]
-   第1/3/4/5种情况的声明符 [ 限定符<sub>opt</sub> * ]
+3. \* 属性说明符序列~opt~ 限定符~opt~ 声明符
+4. 第1/3/4/5种情况的声明符 [ `static`~opt~ 限定符~opt~ 表达式 ]
+   第1/3/4/5种情况的声明符 [ 限定符~opt~ * ]
 
 5. 第1/3/4/5种情况的声明符 ( 形参或标识符 )
 
 其中，第三种情况为**指针声明符**，第四种情况为**数组声明符**，第五种情况为**函数声明符**
+
+其实就是**把原来声明符的标识符替换成更复杂的东西**，**一层一层**往下替换（很多类似的东西可以这么替换）
+
+可以用英语方便地解释，遇到第三种就在前面加 **pointer to**，第四种加 **array of**，第五种加 **function receives ... returns**
+比如 `double (*f[])(int)` ：**double** $\implies$ **function receives int returns double** $\implies$ **pointer to function receives int returns double** $\implies$ **array of pointer to function receives int returns double**
 
 ## 2. 例子
 
@@ -66,12 +71,12 @@
 ~~写起来太难了，看注释吧~~
 
 ```c
-int(*(*r)(int(*(*)(int(*(*)())()))))[5]  // array
+int(*(*r)(int(*(*)(int(*(*)())()))))[5]  // array of int
 (*(*r)(int(*(*)(int(*(*)())()))))  // ()
-*(*r)(int(*(*)(int(*(*)())())))  // pointer to array
-(*r)(int(*(*)(int(*(*)())())))  // function returns pointer to array
+*(*r)(int(*(*)(int(*(*)())())))  // pointer to array of int
+(*r)(int(*(*)(int(*(*)())())))  // function returns pointer to array of int
 (*r)  // ()
-*r  // pointer to function returns pointer to array
+*r  // pointer to function returns pointer to array of int
 
 (int(*(*)(int(*(*)())())))  // parameter list
 int(*(*)(int(*(*)())()))  // parameter 1
@@ -90,11 +95,11 @@ int(*(*)())()  // parameter 1
 (*)  // ()
 *  // pointer to function returns pointer to function returns int
 
-// a pointer to function |- receives a parameter: pointer to function |- receives a parameter: pointer to function |- receives nothing
-//                       |                                            |                                            |- returns pointer to function |- reveives nothing
+// a pointer to function |- receives a parameter: pointer to function |- receives a parameter: pointer to function |- receives nothing(or unknown before C23)
+//                       |                                            |                                            |- returns pointer to function |- reveives nothing(or unknown before C23)
 //                       |                                            |                                                                           |- returns int
 //                       |                                            |- returns pointer to int
-//                       |- returns pointer to array
+//                       |- returns pointer to array of int
 ```
 
 ## 3. `typedef` 声明
@@ -109,6 +114,6 @@ int(*(*)())()  // parameter 1
    fp fp2;
    ```
 
-   1. `char1` 具有 `char` 类型，`char_p1` 具有 `char*` 类型，`fp1` 具有 `char (*)(void)` 类型
-   2. `char_t` 是 `char` 的别名，`char_p` 是 `char*` 的别名，`fp` 是 `char (*)(void)` 的别名
+   1. `auto` 是**存储类说明符**，`char1` 具有 `char` 类型，`char_p1` 具有 `char*` 类型，`fp1` 具有 `char (*)(void)` 类型
+   2. `typedef` 放在上一句中 `auto` 的位置：`char_t` 是 `char` 的别名，`char_p` 是 `char*` 的别名，`fp` 是 `char (*)(void)` 的别名
    3. 第三行相当于 `char (*fp2)(void)`
