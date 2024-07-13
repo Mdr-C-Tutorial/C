@@ -4,8 +4,7 @@
 
 ```c
 #define INTRODUCTION 52
-// 欢迎来到mdr的C语言教程
-// 向着星辰与深渊！
+// 向着星辰与深渊，欢迎来到mdr的C语言教程！
 
 #define INFORMATION 'C'
 // B站账号 Minsecrus
