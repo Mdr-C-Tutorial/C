@@ -31,25 +31,26 @@ int main(int argc, char* argv[]){
 3. `*** ***` `** **` `* *` `` ` ` `` 前后 **各空一个空格**；在中文标点前后的空格可省略
 4. 在一个 **术语(terminology)** 首次出现的时候在 **小括号** 内给出 **对应的外来语**，同时给出 **首字母缩略语(acronym)**。这些外来语通常对应 **概念(concept)** 的原文 ，希望有助于读者明确分辨词语的含义
    下文优先使用 **首字母缩略语**
-   为强调外来语对应左侧概念，括号左侧 **无空格**，右侧至少 **有一个空格**
-   大部分外来语单词摘自 [**维基百科**](https://zh.wikipedia.org)
+   为强调外来语对应左侧概念，括号左侧 **无空格**，右侧 *至少有一个空格*
+   大部分外来语单词摘自 [**维基百科**](https://zh.wikipedia.org) 和 [**C++ 参考手册**](https://en.cppreference.com/)
 
 ## 鸣谢名单 （按时间顺序）
 
 ### 个人
 
-+ **mdr** ([Minsecrus](https://github.com/Minsecrus))
-+ **@幻** ([huan201](https://github.com/huan201))
-+ **JuaJuanchi** ([JuaJuanchi](https://github.com/Jua-Juanchi))
-+ **Enoch.驊** ([gngtwhh](https://github.com/gngtwhh))
-+ **No** ([Kroner](https://www.cnblogs.com/Kroner)) ([Kroner](https://github.com/Kroner))
-+ **xly** ([LY-Xiang](https://github.com/LY-Xiang))([hfsz2313](https://github.com/hfsz2313))
-+ **革匊习习中** ([Juvwxyz](https://github.com/Juvwxyz))
-+ **FrankHB** ([FrankHB](https://github.com/FrankHB))
++ **mdr** ([GitHub - Minsecrus](https://github.com/Minsecrus))
++ **@幻** ([GitHub - huan201](https://github.com/huan201))
++ **JuaJuanchi** ([GitHub - JuaJuanchi](https://github.com/Jua-Juanchi))
++ **Enoch.驊** ([GitHub - gngtwhh](https://github.com/gngtwhh))
++ **No** ([CNBlogs - Kroner](https://www.cnblogs.com/Kroner)) ([GitHub - Kroner](https://github.com/Kroner))
++ **xly** ([GitHub - LY-Xiang](https://github.com/LY-Xiang)) ([GitHub - hfsz2313](https://github.com/hfsz2313))
++ **革匊习习中** ([GitHub - Juvwxyz](https://github.com/Juvwxyz))
++ **FrankHB** ([GitHub - FrankHB](https://github.com/FrankHB))
++ **0x7E7**
 
 ### 组织
 
-+ **艾猫工作室** （[aymao](https://www.aymao.com/)）
++ **艾猫工作室** （[aymao.com](https://www.aymao.com/)）
 
 ## 许可证
 
@@ -58,6 +59,6 @@ int main(int argc, char* argv[]){
 ## 参考资料
 
 + [***ISO C standard***](https://open-std.org/JTC1/SC22/WG14/)
-+ [***cpp reference***](https://zh.cppreference.com/w/c/language)
++ [***C++ 参考手册***](https://zh.cppreference.com/w/c/language)
 + ***C Primer Plus*** (ISBN 978-0-321-92842-9)
 + ***算法导论*** (ISBN 978-7-111-40701-0)
