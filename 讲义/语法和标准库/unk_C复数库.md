@@ -1,4 +1,4 @@
-# C 复数库
+# C 复数库(C Complex Library)
 
 ## 1. 复数和虚数类型
 
@@ -95,9 +95,9 @@ double conj( double _Complex z ); // 共轭
 在 `<math.h>` 里面的函数，在 `<complex.h>` 里面普遍有对应的版本，函数名即为 `<math.h>` 里面函数名前面加一个 **c**。如下示例：
 
 ```c
-float   sinf( float arg );
-double  sin( double arg );
+float  sinf( float  arg );
+double sin ( double arg );
 
-float complex   csinf( float complex z );
-double complex  csin( double complex z );
+float  complex csinf( float  complex z );
+double complex csin ( double complex z );
 ```
