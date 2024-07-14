@@ -18,13 +18,25 @@ int main(int argc, char* argv[]){
 }
 ```
 
-~~此教程并非一时兴起而作，实则怀“为往圣继绝学，为万世开太平”之愿，深思熟虑打造而成~~
+此教程并非一时兴起而作，实则怀“为往圣继绝学，为万世开太平”之愿，深思熟虑打造而成
+**得天独厚者，替天行善**
 
-### [**总纲**](/总纲.md)
+[**总纲**](/总纲.md)
+[**关于本教程**](/About.md)
 
-### [**关于本教程**](/About.md)
+## 本仓库文档规范
 
-## 鸣谢名单
+1. 标题由 **一级标题** 开始，依次递减
+2. **强调** 用 `** **` 标识，*次强调* 用 `* *` 标识，`代码块` 用 `` ` ` `` 标识
+3. `*** ***` `** **` `* *` `` ` ` `` 前后 **各空一个空格**；在中文标点前后的空格可省略
+4. 在一个 **术语(terminology)** 首次出现的时候在 **小括号** 内给出 **对应的外来语**，同时给出 **首字母缩略语(acronym)**。这些外来语通常对应 **概念(concept)** 的原文 ，希望有助于读者明确分辨词语的含义
+   下文优先使用 **首字母缩略语**
+   为强调外来语对应左侧概念，括号左侧 **无空格**，右侧至少 **有一个空格**
+   大部分外来语单词摘自 [**维基百科**](https://zh.wikipedia.org)
+
+## 鸣谢名单 （按时间顺序）
+
+### 个人
 
 + **mdr** ([Minsecrus](https://github.com/Minsecrus))
 + **@幻** ([huan201](https://github.com/huan201))
@@ -33,6 +45,11 @@ int main(int argc, char* argv[]){
 + **No** ([Kroner](https://www.cnblogs.com/Kroner)) ([Kroner](https://github.com/Kroner))
 + **xly** ([LY-Xiang](https://github.com/LY-Xiang))([hfsz2313](https://github.com/hfsz2313))
 + **革匊习习中** ([Juvwxyz](https://github.com/Juvwxyz))
++ **FrankHB** ([FrankHB](https://github.com/FrankHB))
+
+### 组织
+
++ **艾猫工作室** （[aymao](https://www.aymao.com/)）
 
 ## 许可证
 
@@ -44,4 +61,3 @@ int main(int argc, char* argv[]){
 + [***cpp reference***](https://zh.cppreference.com/w/c/language)
 + ***C Primer Plus*** (ISBN 978-0-321-92842-9)
 + ***算法导论*** (ISBN 978-7-111-40701-0)
-+ ***The C++ Programming Language*** (ISBN 978-7-111-53941-4) ~~借鉴一下其中的示例~~
