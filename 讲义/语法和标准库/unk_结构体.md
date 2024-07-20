@@ -5,7 +5,7 @@
 ## 1. 定义
 
 关键字 `struct` + “名字” + 声明列表
-其中声明列表是一个用**逗号**分隔，**花括号**环绕的列表，列表中的每一项是一个成员的声明
+其中声明列表是一个用 **逗号** 分隔，**花括号** 环绕的列表，列表中的每一项是一个成员的声明
 
 ```c
 struct aircraft_carrier {
@@ -41,11 +41,11 @@ typedef struct aircraft_carrier aircraft_carrier;
 ## 2. 初始化
 
 ```c
-struct aircraft_carrier carrier = {"LiaoNing", 16};
-struct aircraft_carrier carrier2 = {.id = 17, .name = "ShanDong"};
+struct aircraft_carrier carrier = { "LiaoNing", 16 };
+struct aircraft_carrier carrier2 = { .id = 17, .name = "ShanDong" };
 ```
 
-初始化结构体要用**花括号**环绕，**逗号**分隔的列表，列表中的每一项都应该是能初始化对应成员的表达式。
+初始化结构体要用 **花括号** 环绕，**逗号** 分隔的列表，列表中的每一项都应该是能初始化对应成员的表达式。
 可以为列表中的表达式提供 **指派符**，初始化结构体内特定的成员。
 第二行中 `.id` `.name` 即为 **指派符**。
 
