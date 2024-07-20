@@ -2,7 +2,7 @@
 
 1. 本教程由 GitHub organization [**Mdr-C-Tutorial**](https://github.com/Mdr-C-Tutorial) 出品，在弹幕视频网站 [**bilibili**](https://www.bilibili.com/) 发布讲解视频（预计2027年寒假开始更新），所有讲义，示例代码及视频均**免费**
    如果发现有人收费售卖本教程，请与 `mdr` 联系
-   **推荐**听者 `git clone` 本仓库到本地（本教程所有 **markdown** 文档内嵌 $L^AT_EX$ 在 **Typora** 和 **VSCode** 中能正常显示）
+   **推荐** 听者 `git clone` 本仓库到本地（本教程所有 **markdown** 文档内嵌 $L^AT_EX$ 在 **Typora** 和 **VSCode** 中能正常显示）
 2. 本教程官方 **QQ 群** 群号 [**885719573**![mdr 的 Coding 小窝](https://pub.idqqimg.com/wpa/images/group.png "mdr 的 Coding 小窝")](https://qm.qq.com/cgi-bin/qm/qr?k=BdVPqTXYNclTbEJ_hr2SQiw_s6HbMKv8&jump_from=webapi&authKey=UY6WSOF1GJQF/32XY/CHluyWUhnS3k3YSga8S0/kIKtcAyqWs+5Ek8RPuWVAVcon)，欢迎进入QQ群交流编程，我会与大家一起成长的
    QQ群里面有本讲义的 **压缩包**
 3. 对于讲义及示例代码中的错误和不足之处，欢迎在QQ群中指出，更欢迎在 **GitHub 仓库**中提交 [**Pull Request**](https://github.com/Mdr-C-Tutorial/C/pulls)
