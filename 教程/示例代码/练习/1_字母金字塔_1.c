@@ -7,11 +7,17 @@ void pyramid(char c)
     for (int i = 0; i < height; ++i)
     {
         for (int j = 0; j < height - i - 1; ++j)
+        {
             putchar(' ');
+        }
         for (int j = 0; j < i + 1; ++j)
+        {
             putchar('A' + j);
+        }
         for (int j = i - 1; j >= 0; --j)
+        {
             putchar('A' + j);
+        }
         putchar('\n');
     }
 }

@@ -2,7 +2,24 @@
 
 int manhattan_distance(int x, int y, int x0, int y0)
 {
-    return ((x - x0) >= 0 ? (x - x0) : (x0 - x)) + ((y - y0) >= 0 ? (y - y0) : (y0 - y));
+    int dx, dy;
+    if (x < x0)
+    {
+        dx = x0 - x;
+    }
+    else
+    {
+        dx = x - x0;
+    }
+    if (y < y0)
+    {
+        dy = y0 - y;
+    }
+    else
+    {
+        dy = y - y0;
+    }
+    return dx + dy;
 }
 
 void pyramid(char c)
@@ -15,9 +32,13 @@ void pyramid(char c)
         {
             int distance = manhattan_distance(i, j, height - 1, height - 1);
             if (c - distance >= 'A')
+            {
                 putchar(c - distance);
+            }
             else
+            {
                 putchar(' ');
+            }
         }
         putchar('\n');
     }
