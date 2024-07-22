@@ -1,4 +1,4 @@
-# C 复数库(C Complex Library)
+# C 复数库 (C Complex Library)
 
 ## 1. 复数和虚数类型
 
