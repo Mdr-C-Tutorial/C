@@ -1,4 +1,4 @@
-# 网络基础 - UDP （用户数据报协议）
+# 网络基础 - 用户数据报协议 (User Datagram Protocol, UDP)
 
 ## 1.1 什么是 UDP
 

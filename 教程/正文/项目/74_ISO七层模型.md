@@ -4,7 +4,7 @@
 
 ### 1.1.1 七层模型的目的和历史
 
-ISO 七层模型，也称为 OSI 模型（Open SystemsInterconnection），是国际标准化组织（ISO）为网络通信制定的型。
+ISO 七层模型，也称为 OSI 模型 (Open Systems Interconnection)，是国际标准化组织 (International Organization of Standards, ISO) 为网络通信制定的型。
 它的目的是定义网络通信的各个层次，以便不同厂商和技术之间的设备和议能够互相通信。
 七层模型的历史可以追溯到 20 世纪 80 年代，当时计算机网络开始迅速展，但不同厂商的网络设备使用不同的协议和通信方式，导致互联互通性问题。
 为了解决这个问题，ISO 组织提出了 ISO 七层模型，它将网络通信划分为个不同的层次，每个层次都有特定的功能和任务。

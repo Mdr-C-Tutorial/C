@@ -1,4 +1,4 @@
-# 网络基础 - TCP （传输控制协议）
+# 网络基础 - 传输控制协议 (Transmission Control Protocol, TCP)
 
 ## 1.1 什么是 TCP
 
