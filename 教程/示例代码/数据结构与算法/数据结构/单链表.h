@@ -79,7 +79,9 @@ Node *nodeInLinkedList(LinkedList *l, ElementType x)
     do
     {
         if (node->n == x)
+        {
             return node;
+        }
     } while ((node = node->next) != NULL);
     return NULL;
 }

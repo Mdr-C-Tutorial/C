@@ -41,7 +41,9 @@ void initSeqListFromArray(SeqList *l, ElementType *a, int length)
         exit(-1);
     }
     for (size_t n = 0; n < length; ++n)
+    {
         l->arr[n] = a[n];
+    }
     l->size = length;
     l->capacity = length;
 }
@@ -128,14 +130,20 @@ void removeFromSeqList(SeqList *l, int i)
     }
     l->size -= 1;
     if ((l->size + 1) * 4 < l->capacity)
+    {
         curtailSeqList(l);
+    }
 }
 
 int indexOfSeqList(SeqList *l, ElementType x)
 {
     for (int n = 0; n < l->size; ++n)
+    {
         if (l->arr[n] == x)
+        {
             return n;
+        }
+    }
     return -1;
 }
 
