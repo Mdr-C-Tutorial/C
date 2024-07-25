@@ -1,3 +1,7 @@
+/*
+ * Powered by Mdr-C-Tutorial. No rights reserved.
+ */
+
 #ifndef MDR_SEQLIST_H
 #define MDR_SEQLIST_H
 

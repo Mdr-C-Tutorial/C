@@ -1,3 +1,7 @@
+/*
+ * Powered by Mdr-C-Tutorial. No rights reserved.
+ */
+
 #ifndef MDR_LINKEDLIST_H
 #define MDR_LINKEDLIST_H
 
@@ -79,48 +83,6 @@ Node *nodeInLinkedList(LinkedList *l, ElementType x)
     } while ((node = node->next) != NULL);
     return NULL;
 }
-#if 0
-int deleteNode(LinkedList* l, ElementType x) {
-    Node* node = l->head;
-    if (node == NULL) // 链表长度为 0
-        return 0;
-    if (l->head->n == x) {
-        Node* node = l->head;
-        l->head = node->next;
-        free(node);
-        l->length -= 1;
-        return deleteNode(l, x) + 1;
-    }
-    if (node->next == NULL) { // 链表长度为 1
-        if (node->n == x) {
-            l->head = NULL;
-            free(node);
-            l->length -= 1;
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-    // 运行到此处，已经确定链表长度 >= 2
-    Node* prev = node;
-    node = node->next; // 此时prev指向l->head，node指向第二个节点
-    int cnt = 0;
-    do {
-        if (node->n == x) {
-            prev->next = node->next;
-            free(node);
-            cnt += 1;
-            node = prev->next;
-        } else {
-            prev = node;
-            node = node->next;
-        }
-    } while (node != NULL);
-    l->length -= cnt;
-    return cnt;
-}
-#else
 
 int deleteNode(LinkedList *l, ElementType x)
 {
@@ -233,5 +195,3 @@ void printLinkedList(LinkedList *l)
     } while ((node = node->next) != NULL);
     printf("\n");
 }
-
-#endif
