@@ -52,12 +52,14 @@ Mkfile.old
 dkms.conf
 
 # Temp files
-
 *.tmp
 
 # Obsidian
 .obsidian/
 .trash/
 
-#log
+# Log
 *.log
+
+# IDE/Editor
+.vscode/
