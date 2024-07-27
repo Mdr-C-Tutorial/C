@@ -36,14 +36,14 @@
 2. ( 声明符 )
 
 3. \* 属性说明符序列~opt~ 限定符~opt~ 声明符
-4. 第 1/3/4/5 种情况的声明符 \[ `static`~opt~ 限定符~opt~ 表达式 \]
-   第 1/3/4/5 种情况的声明符 \[ 限定符~opt~ * \]
+4. 第 1/3/4/5 种情况的声明符 [ `static`~opt~ 限定符~opt~ 表达式 ]
+   第 1/3/4/5 种情况的声明符 [ 限定符~opt~ * ]
 
 5. 第 1/3/4/5 种情况的声明符 ( 形参或标识符 )
 
-其中，第三种情况为**指针声明符**，第四种情况为**数组声明符**，第五种情况为**函数声明符**
+其中，第三种情况为 **指针声明符**，第四种情况为 **数组声明符**，第五种情况为 **函数声明符**
 
-其实就是**把原来声明符的标识符替换成更复杂的东西**，**一层一层**往下替换（很多类似的东西可以这么替换）
+其实就是 **把原来声明符的标识符替换成更复杂的东西**，**一层一层** 往下替换（很多类似的东西可以这么替换）
 
 可以用英语方便地解释，遇到第三种就在前面加 **pointer to**，第四种加 **array of**，第五种加 **function receives ... returns**
 比如 `double (*f[])(int)` ：**double** $\implies$ **function receives int returns double** $\implies$ **pointer to function receives int returns double** $\implies$ **array of pointer to function receives int returns double**
