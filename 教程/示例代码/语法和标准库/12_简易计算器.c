@@ -19,8 +19,7 @@ int main()
 
     // 判断运算符是否有效
     // 根据运算符进行计算
-    switch (operator)
-    {
+    switch (operator) {
     case '+':
         result = add(num1, num2);
         break;
@@ -32,8 +31,7 @@ int main()
         break;
     case '/':
         result = divide(num1, num2);
-        if (num2 == 0)
-        {
+        if (num2 == 0) {
             return 22;
         }
         break;
@@ -68,8 +66,7 @@ double multiply(double a, double b)
 // 除法函数
 double divide(double a, double b)
 {
-    if (b == 0)
-    {
+    if (b == 0) {
         perror("除数不能为0\n");
         return 0.0;
     }

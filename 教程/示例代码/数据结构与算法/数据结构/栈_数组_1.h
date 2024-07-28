@@ -15,50 +15,41 @@ typedef struct
     int top;
 } Stack;
 
-void initStack(Stack *s)
+void initStack(Stack* s)
 {
     s->top = -1;
-    for (int i = 0; i < cap; i++)
-    {
+    for (int i = 0; i < cap; i++) {
         s->array[i] = 0;
     }
 }
 
-void push(Stack *s, ElementType e)
+void push(Stack* s, ElementType e)
 {
-    if (s->top == cap - 1)
-    {
+    if (s->top == cap - 1) {
         printf("Stack Overflow\n");
-    }
-    else
-    {
+    } else {
         s->array[++s->top] = e;
     }
 }
 
-ElementType pop(Stack *s)
+ElementType pop(Stack* s)
 {
-    if (s->top == -1)
-    {
+    if (s->top == -1) {
         printf("Stack Underflow\n");
         return 0;
     }
     return s->array[s->top--];
 }
 
-void printStack(const Stack *s)
+void printStack(const Stack* s)
 {
     printf("%d element", s->top + 1);
-    if (s->top == -1 || s->top == 0)
-    {
+    if (s->top == -1 || s->top == 0) {
         printf(": [ ");
-    }
-    else
-    {
+    } else {
         printf("s: [ ");
     }
-    for (int i = 0; i <= s->top; i++)
-    {
+    for (int i = 0; i <= s->top; i++) {
         printf("%d ", s->array[i]);
     }
     printf("]\n");
