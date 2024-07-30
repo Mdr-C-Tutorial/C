@@ -22,6 +22,7 @@ void merge(int A[], const int p, const int q, const int r)
     }
     R[n2] = INT_MAX;
     int i = 0, j = 0, k = p;
+#if 0
     while (i < n1 || j < n2) {
         if (L[i] <= R[j]) {
             A[k] = L[i];
@@ -32,6 +33,17 @@ void merge(int A[], const int p, const int q, const int r)
         }
         k += 1;
     }
+#else
+    for (; k <= r; k++) {
+        if (L[i] <= R[j]) {
+            A[k] = L[i];
+            i += 1;
+        } else {
+            A[k] = R[j];
+            j += 1;
+        }
+    }
+#endif
     free(L);
     free(R);
 }
