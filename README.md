@@ -75,3 +75,4 @@ int main(int argc, char* argv[]){
 + [***C++ 参考手册***](https://zh.cppreference.com/w/c/language)
 + ***C Primer Plus*** (ISBN 978-0-321-92842-9)
 + ***算法导论*** (ISBN 978-7-111-40701-0)
++ [***Let's Build a Simple Database***](https://cstack.github.io/db_tutorial/)

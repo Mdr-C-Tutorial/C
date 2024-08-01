@@ -10,12 +10,12 @@
 + `double complex` `float complex` `long double complex`
 + `double imaginary` `float imaginary` `long double imaginary`
 
-`imaginary` 和 `complex` 前面需要加一个**类型限定符**，限定是 `float`，`double` 还是 `long double`
+`imaginary` 和 `complex` 前面需要加一个 **类型限定符**，限定是 `float`，`double` 还是 `long double`
 
 `+` `-` `*` `/` 运算符对于实数和虚数以及它们的混合均适用。
 因为 $\mathbb{C}$ 不是有序域，所以不支持 `>` `<` `>=` `<=` 运算符。
 
-> 注：目前所有主流编译器均**不**支持 `_Imaginary` 类型
+> 注：目前所有主流编译器均 **不** 支持 `_Imaginary` 类型
 
 ## 2. 构建复数
 
@@ -23,7 +23,7 @@
 
 虚数单位是 $i$，但考虑到 `i` 是个经常使用的标识符（如在循环当中），所以用 `I` 代替。
 
-如果 `_Imaginary` 类型已定义，它会展开成 `const float _Imaginary` 类型的值，值为虚数单位；否则（目前来讲**绝大多数**情况），它会展开成 `const float _Complex` 类型的值，（值也为虚数单位）。
+如果 `_Imaginary` 类型已定义，它会展开成 `const float _Imaginary` 类型的值，值为虚数单位；否则（目前来讲 **绝大多数** 情况），它会展开成 `const float _Complex` 类型的值，（值也为虚数单位）。
 
 ```c
 #include <complex.h>
