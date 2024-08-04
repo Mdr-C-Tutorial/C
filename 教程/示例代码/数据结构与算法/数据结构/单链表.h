@@ -5,7 +5,6 @@
 #ifndef MDR_LINKEDLIST_H
 #define MDR_LINKEDLIST_H
 
-#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,8 +16,7 @@ typedef struct Node {
     struct Node* next;
 } Node;
 
-typedef struct
-{
+typedef struct {
     Node* head;
     size_t length;
 } LinkedList;
@@ -41,9 +39,9 @@ void initLinkedListWithValue(LinkedList* l, ElementType x)
     l->length = 1;
 }
 
-bool isLinkedListEmpty(LinkedList* l) { return l->length == 0; }
+bool isLinkedListEmpty(const LinkedList* l) { return l->length == 0; }
 
-size_t lengthOfLinkedList(LinkedList* l) { return l->length; }
+size_t lengthOfLinkedList(const LinkedList* l) { return l->length; }
 
 void insert2LinkedList(LinkedList* l, ElementType x)
 {
@@ -54,7 +52,7 @@ void insert2LinkedList(LinkedList* l, ElementType x)
     l->length += 1;
 }
 
-int indexOfLinkedList(LinkedList* l, ElementType x)
+int indexOfLinkedList(const LinkedList* l, const ElementType x)
 {
     int index = 0;
     Node* node = l->head;
@@ -68,7 +66,7 @@ int indexOfLinkedList(LinkedList* l, ElementType x)
     return -1;
 }
 
-Node* nodeInLinkedList(LinkedList* l, ElementType x)
+Node* nodeInLinkedList(const LinkedList* l, ElementType x)
 {
     Node* node = l->head;
     if (node == NULL)
@@ -126,7 +124,8 @@ void deleteFirstByValue(LinkedList* l, ElementType x)
         return;
     }
     Node* prev = NULL;
-    while (node != NULL && node->n != x) { // 至少执行 1 次
+    while (node != NULL && node->n != x) {
+        // 至少执行 1 次
         prev = node;
         node = node->next;
     }
@@ -151,7 +150,7 @@ void clearLinkedList(LinkedList* l)
     }
 }
 
-LinkedList merge(LinkedList* a, LinkedList* b)
+LinkedList merge(const LinkedList* a, const LinkedList* b)
 {
     LinkedList c;
     c.head = a->head;
@@ -164,7 +163,7 @@ LinkedList merge(LinkedList* a, LinkedList* b)
     return c;
 }
 
-void printLinkedList(LinkedList* l)
+void printLinkedList(const LinkedList* l)
 {
     printf("%zu: ", l->length);
     int index = 0;

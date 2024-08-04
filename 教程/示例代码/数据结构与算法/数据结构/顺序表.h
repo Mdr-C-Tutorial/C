@@ -5,16 +5,14 @@
 #ifndef MDR_SEQLIST_H
 #define MDR_SEQLIST_H
 
-#include <stdbool.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-const int g_initCap = 4;
+constexpr int g_initCap = 4;
 
 typedef int ElementType;
-typedef struct
-{
+
+typedef struct {
     ElementType* arr;
     size_t size; // length of the sequence list
     size_t capacity; // size of the array
@@ -24,18 +22,18 @@ void initSeqList(SeqList* l)
 {
     l->arr = (ElementType*)malloc(sizeof(ElementType) * g_initCap);
     if (!(l->arr)) {
-        printf("Intitalization failed!\n");
+        printf("Initialization failed!\n");
         exit(-1);
     }
     l->size = 0;
     l->capacity = g_initCap;
 }
 
-void initSeqListFromArray(SeqList* l, ElementType* a, int length)
+void initSeqListFromArray(SeqList* l, const ElementType* a, int length)
 {
     l->arr = (ElementType*)malloc(sizeof(ElementType) * length);
     if (!(l->arr)) {
-        printf("Intitalization failed!\n");
+        printf("Initialization failed!\n");
         exit(-1);
     }
     for (size_t n = 0; n < length; ++n) {
@@ -51,11 +49,11 @@ void clearSeqList(SeqList* l)
     initSeqList(l);
 }
 
-bool isSeqListEmpty(SeqList* l) { return l->size == 0; }
+bool isSeqListEmpty(const SeqList* l) { return l->size == 0; }
 
-size_t lengthOfSeqList(SeqList* l) { return l->size; }
+size_t lengthOfSeqList(const SeqList* l) { return l->size; }
 
-ElementType getFromSeqList(SeqList* l, int i)
+ElementType getFromSeqList(const SeqList* l, int i)
 {
     if (i >= l->size) {
         printf("Index out of bound!\n");
@@ -80,7 +78,7 @@ void curtailSeqList(SeqList* l)
 {
     printf("Curtailment\n");
     ElementType* newArr = (ElementType*)realloc(l->arr, sizeof(ElementType) * l->capacity / 2);
-    if (!(newArr)) {
+    if (!newArr) {
         printf("Curtailment failed!\n");
         exit(-1);
     }
@@ -122,7 +120,7 @@ void removeFromSeqList(SeqList* l, int i)
     }
 }
 
-int indexOfSeqList(SeqList* l, ElementType x)
+int indexOfSeqList(const SeqList* l, ElementType x)
 {
     for (int n = 0; n < l->size; ++n) {
         if (l->arr[n] == x) {
@@ -132,7 +130,7 @@ int indexOfSeqList(SeqList* l, ElementType x)
     return -1;
 }
 
-void printSeqList(SeqList* l)
+void printSeqList(const SeqList* l)
 {
     printf("cap: %zu  size: %zu ==>", l->capacity, l->size);
     for (size_t i = 0; i < l->size; ++i) {
