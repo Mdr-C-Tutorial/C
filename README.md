@@ -48,7 +48,7 @@ int main(int argc, char* argv[]){
 
 ## 鸣谢名单（按时间顺序）
 
-### 个人
+### 个人（贡献者）
 
 + **mdr** ([GitHub - Minsecrus](https://github.com/Minsecrus))
 + **@幻** ([GitHub - huan201](https://github.com/huan201))
@@ -57,13 +57,20 @@ int main(int argc, char* argv[]){
 + **No** ([CNBlogs - Kroner](https://www.cnblogs.com/Kroner)) ([GitHub - Kroner](https://github.com/Kroner))
 + **xly** ([GitHub - LY-Xiang](https://github.com/LY-Xiang)) ([GitHub - hfsz2313](https://github.com/hfsz2313))
 + **革匊习习中** ([GitHub - Juvwxyz](https://github.com/Juvwxyz))
-+ **FrankHB** ([GitHub - FrankHB](https://github.com/FrankHB))
 + **0x7E7**
 + **FHU-yezi** ([GitHub - FHU-yezi](https://github.com/FHU-yezi))
++ **菲露露** ([GitHub - LovelyLavender4](https://github.com/lovelylavender4))
 
 ### 组织
 
 + **艾猫工作室** ([aymao.com](https://www.aymao.com/))
+
+### 特别鸣谢
+
++ **FrankHB** ([GitHub - FrankHB](https://github.com/FrankHB))
++ **jajuju**
++ **Fresky** ([GitHub - FreskyZ](https://github.com/freskyz))
++ **兔兔**
 
 ## 许可证
 
