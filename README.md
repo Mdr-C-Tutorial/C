@@ -18,7 +18,7 @@ int main(int argc, char* argv[]){
 }
 ```
 
-这里是 **Mdr's C tutorial**，欢迎来这里共同学习  
+这里是 **Mdr's C Tutorial**，欢迎来这里共同学习  
 本教程的目标：在 **准确** 的基础上力争 **简洁** 和 **生动**  
 此教程并非一时兴起而作，实则怀“为往圣继绝学，为万世开太平”之愿，深思熟虑打造而成  
 得天独厚者，替天行善
@@ -33,12 +33,16 @@ int main(int argc, char* argv[]){
 2. **强调** 用 `** **` 标识，*次强调* 用 `* *` 标识，`代码块` 用 `` ` ` `` 标识
 3. `*** ***` `** **` `* *` `` ` ` `` 前后 **各空一个空格**；在中文标点前后的空格可省略
 4. 引文和注释用 `>` 标识
-5. 在一个 **术语 (Terminology)** 首次出现的时候在 **半角小括号** 内给出 **对应的外来语**，同时给出 **首字母缩略语 (Acronym)**。这些外来语通常对应 **概念 (Concept)** 的原文 ，希望有助于读者明确分辨词语的含义。
+5. 在中文上下文中用全角小括号（）
+6. 在一个 **术语 (Terminology)** 首次出现的时候在 **半角小括号** 内给出 **对应的外来语**，同时给出 **首字母缩略语 (Acronym)**。这些外来语通常对应 **概念 (Concept)** 的原文 ，希望有助于读者明确分辨词语的含义。
    1. 为减少读者的记忆负担，下文分情况使用 **术语的汉语表述** 和 **首字母缩略语**：初始章节以前者为主，进阶章节以后者为主
    2. 外来语和缩略语可能视情况在不同章节多次出现
    3. 括号左侧右侧各空一个空格
    4. 大部分外来语单词摘自 [维基百科](https://zh.wikipedia.org) 和 [C++ 参考手册](https://en.cppreference.com/)
-6. **专有名词** 需 **大写**
+7. **专有名词** 需 **大写**
+8. 图片统一放在 `/images/` 目录下，并采用 **绝对路径** 引入  
+   截图统一采用 **PNG** 格式，命名为三位数字，如：`001.png`；  
+   拍照统一采用 **JPEG** 格式，命名为两位数字，如：`01.jpg`；
 
 ## 代码规范
 
@@ -50,26 +54,26 @@ int main(int argc, char* argv[]){
 
 ### 个人（贡献者）
 
-+ **mdr** ([GitHub - Minsecrus](https://github.com/Minsecrus))
-+ **@幻** ([GitHub - huan201](https://github.com/huan201))
-+ **JuaJuanchi** ([GitHub - JuaJuanchi](https://github.com/Jua-Juanchi))
-+ **Enoch.驊** ([GitHub - gngtwhh](https://github.com/gngtwhh))
-+ **No** ([CNBlogs - Kroner](https://www.cnblogs.com/Kroner)) ([GitHub - Kroner](https://github.com/Kroner))
-+ **xly** ([GitHub - LY-Xiang](https://github.com/LY-Xiang)) ([GitHub - hfsz2313](https://github.com/hfsz2313))
-+ **革匊习习中** ([GitHub - Juvwxyz](https://github.com/Juvwxyz))
++ **mdr** （[GitHub - Minsecrus](https://github.com/Minsecrus)）
++ **@幻** （[GitHub - huan201](https://github.com/huan201)）
++ **JuaJuanchi** （[GitHub - JuaJuanchi](https://github.com/Jua-Juanchi)）
++ **Enoch.驊** （[GitHub - gngtwhh](https://github.com/gngtwhh)）
++ **No** （[CNBlogs - Kroner](https://www.cnblogs.com/Kroner)）（[GitHub - Kroner](https://github.com/Kroner)）
++ **xly** （[GitHub - LY-Xiang](https://github.com/LY-Xiang)）（[GitHub - hfsz2313](https://github.com/hfsz2313)）
++ **革匊习习中** （[GitHub - Juvwxyz](https://github.com/Juvwxyz)）
 + **0x7E7**
-+ **FHU-yezi** ([GitHub - FHU-yezi](https://github.com/FHU-yezi))
-+ **菲露露** ([GitHub - LovelyLavender4](https://github.com/lovelylavender4))
++ **FHU-yezi** （[GitHub - FHU-yezi](https://github.com/FHU-yezi)）
++ **菲露露** （[GitHub - LovelyLavender4](https://github.com/lovelylavender4)）
 
 ### 组织
 
-+ **艾猫工作室** ([aymao.com](https://www.aymao.com/))
++ **艾猫工作室** （[aymao.com](https://www.aymao.com/)）
 
 ### 特别鸣谢
 
-+ **FrankHB** ([GitHub - FrankHB](https://github.com/FrankHB))
++ **FrankHB** （[GitHub - FrankHB](https://github.com/FrankHB)）
 + **jajuju**
-+ **Fresky** ([GitHub - FreskyZ](https://github.com/freskyz))
++ **Fresky** （[GitHub - FreskyZ](https://github.com/freskyz)）
 + **兔兔**
 
 ## 许可证
@@ -80,6 +84,6 @@ int main(int argc, char* argv[]){
 
 + [***ISO C standard***](https://open-std.org/JTC1/SC22/WG14/)
 + [***C++ 参考手册***](https://zh.cppreference.com/w/c/language)
-+ ***C Primer Plus*** (ISBN 978-0-321-92842-9)
-+ ***算法导论*** (ISBN 978-7-111-40701-0)
++ ***C Primer Plus*** （ISBN 978-0-321-92842-9）
++ ***算法导论*** （ISBN 978-7-111-40701-0）
 + [***Let's Build a Simple Database***](https://cstack.github.io/db_tutorial/)
