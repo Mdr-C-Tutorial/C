@@ -64,6 +64,7 @@ int main(int argc, char* argv[]){
 + **0x7E7**
 + **FHU-yezi** （[GitHub - FHU-yezi](https://github.com/FHU-yezi)）
 + **菲露露** （[GitHub - LovelyLavender4](https://github.com/lovelylavender4)）
++ **XIAOYI12** （[GitHub - xiaoyi1212](https://github.com/xiaoyi1212)）
 
 ### 组织
 
@@ -73,7 +74,7 @@ int main(int argc, char* argv[]){
 
 + **FrankHB** （[GitHub - FrankHB](https://github.com/FrankHB)）
 + **jajuju**
-+ **Fresky** （[GitHub - FreskyZ](https://github.com/freskyz)）
++ **Fresky** （[GitHub - FreskyZ](https://github.com/FreskyZ)）
 + **兔兔**
 
 ## 许可证
