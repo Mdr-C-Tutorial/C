@@ -2,7 +2,7 @@ name: main to gh-pages
 on:
   push:
     branches:
-      - main
+      - NULL
 jobs:
   m2p:
     runs-on: ubuntu-last
