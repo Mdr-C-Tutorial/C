@@ -1,0 +1,19 @@
+name: main to gh-pages
+on:
+  push:
+    branches:
+      - main
+jobs:
+  m2p:
+    runs-on: ubuntu-last
+    steps:
+      - name: Checkout
+        uses: action/checkout@v4
+      - name: Merge and Push
+        permissions:
+          contents: write
+        run: |
+          git checkout gh-pages
+          git merge main -m "sync from branch main"
+          git push
+
