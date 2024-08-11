@@ -10,7 +10,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: action/checkout@v4
+        uses: actions/checkout@v4
       - name: Merge and Push
         run: |
           git checkout gh-pages
