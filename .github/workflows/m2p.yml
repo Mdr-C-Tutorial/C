@@ -19,6 +19,6 @@ jobs:
           git config user.name "Mdr-C-Tutorial"
           git config user.email "2972853299@qq.com"
           git checkout gh-pages
-          git merge main -m "sync from branch main"
+          git merge main -m "Merge branch 'main' into gh-pages"
           git push
 
