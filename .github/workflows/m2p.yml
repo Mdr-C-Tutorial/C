@@ -5,15 +5,20 @@ on:
       - main
 jobs:
   m2p:
-    runs-on: ubuntu-last
     permissions:
       contents: write
+      actions: write
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: action/checkout@v4
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Merge and Push
         run: |
+          git config user.name "Mdr-C-Tutorial"
+          git config user.email "2972853299@qq.com"
           git checkout gh-pages
-          git merge main -m "sync from branch main"
+          git merge main -m "Merge branch 'main' into gh-pages"
           git push
 
