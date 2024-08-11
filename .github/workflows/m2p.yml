@@ -5,7 +5,7 @@ on:
       - main
 jobs:
   m2p:
-    runs-on: ubuntu-last
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
