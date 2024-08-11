@@ -6,13 +6,15 @@ on:
 jobs:
   m2p:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - name: Clone,Merge and Push
+      - name: Checkout
+        uses: actions/chrckout@v4
+        with:
+          fetch-depth: 0
+      - name: Merge and Push
         run: |
-          git clone https://github.com/Mdr-C-Tutorial/C.git
-          cd C
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout gh-pages
           git merge main -m "sync from branch main"
           git push
