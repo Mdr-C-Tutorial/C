@@ -9,10 +9,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Merge and Push
+      - name: Clone,Merge and Push
         run: |
+          git clone https://github.com/Mdr-C-Tutorial/C.git
+cd C
           git checkout gh-pages
           git merge main -m "sync from branch main"
           git push
