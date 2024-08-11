@@ -12,7 +12,7 @@ jobs:
       - name: Clone,Merge and Push
         run: |
           git clone https://github.com/Mdr-C-Tutorial/C.git
-cd C
+          cd C
           git checkout gh-pages
           git merge main -m "sync from branch main"
           git push
