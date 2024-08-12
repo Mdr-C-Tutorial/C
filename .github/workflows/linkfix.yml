@@ -4,7 +4,7 @@ on:
     branches:
       - gh-pages
     paths:
-      - '教程/示例代码/'
+      - 教程/示例代码/**
 jobs:
   m2p:
     permissions:
@@ -21,7 +21,7 @@ jobs:
         run: |
           git config user.name "Mdr-C-Tutorial"
           git config user.email "2972853299@qq.com"
-          cd .教程/示例代码
+          cd ./教程/示例代码
           python linkfix.py
           git add .
           git commit -m "linkfix"
