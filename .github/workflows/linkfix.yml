@@ -1,6 +1,6 @@
 name: linkfix
 on:
-  workflow_dispatch
+  workflow_dispatch:
   workflow_run:
     workflows: [main to gh-pages]
     types: [completed]
