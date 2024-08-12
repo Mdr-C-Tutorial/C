@@ -22,7 +22,7 @@ jobs:
       - name: Merge
         run: |
           git checkout gh-pages
-          git merge main -m "Merge branch 'main' into gh-pages" || return 0
+          git merge main -m "Merge branch 'main' into gh-pages" || printf 'skip'
       - name: Setup Python
         uses: actions/setup-python@v5
       - name: Link Fix
@@ -30,7 +30,7 @@ jobs:
           cd ./教程/示例代码
           python linkfix.py
           git add .
-          git commit -m "linkfix" || return 0
+          git commit -m "linkfix" || printf 'skip'
           cd ../../
       - name: Push
         run: git push
