@@ -1,9 +1,9 @@
 name: linkfix
 on:
   workflow_dispatch
-  push:
-    paths:
-      - 教程/示例代码/**
+  workflow_run:
+    workflows: [main to gh-pages]
+    types: [completed]
 jobs:
   m2p:
     permissions:
