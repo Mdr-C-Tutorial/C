@@ -1,8 +1,7 @@
 name: linkfix
 on:
+  workflow_dispatch
   push:
-    branches:
-      - gh-pages
     paths:
       - 教程/示例代码/**
 jobs:
