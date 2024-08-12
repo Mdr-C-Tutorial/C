@@ -1,8 +1,7 @@
 name: main to gh-pages
 on:
-  push:
-    branches:
-      - main
+  workflow_call:
+  workflow_dispatch:
 jobs:
   m2p:
     permissions:
