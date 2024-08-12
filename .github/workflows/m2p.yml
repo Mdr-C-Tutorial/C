@@ -1,7 +1,9 @@
 name: main to gh-pages
 on:
-  workflow_call:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 jobs:
   m2p:
     permissions:
@@ -13,11 +15,22 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Merge and Push
+      - name: Setup Git
         run: |
           git config user.name "Mdr-C-Tutorial"
           git config user.email "2972853299@qq.com"
+      - name: Merge
+        run: |
           git checkout gh-pages
           git merge main -m "Merge branch 'main' into gh-pages"
-          git push
-
+      - name: Setup Python
+        uses: actions/setup-python@v5
+      - name: Link Fix
+        run: |
+          cd ./教程/示例代码
+          python linkfix.py
+          git add .
+          git commit -m "linkfix"
+          cd ../../
+      - name: Push
+        run: git push
