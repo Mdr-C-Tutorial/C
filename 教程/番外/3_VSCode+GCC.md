@@ -1,8 +1,8 @@
-# VSCode+GCC
+# VSCode + GCC
 
-## VSCode 安装并配置
+## 1. VSCode 安装并配置
 
-### 1. 下载 VSCode
+### 1.1 下载 VSCode
 
 从 [VS Code 官网](https://code.visualstudio.com) 上下载对应版本（对于 Windows 用户推荐 system 而不是 user 以防止不必要的麻烦 不过前提是有管理员权限）
 以下是部分平台安装包直下链接
@@ -26,11 +26,11 @@
   - [Apple silicon](https://code.visualstudio.com/sha/download?build=stable&os=darwin-arm64)
   - [universal](https://code.visualstudio.com/sha/download?build=stable&os=darwin-universal)
 
-### 安装 VSCode
+### 1.2 安装 VSCode
 
-## 通过 msys2 安装 GCC (Windows)
+## 2. 通过 msys2 安装 GCC (Windows)
 
-## 1. 下载 msys2
+### 2.1 下载 msys2
 
 从 [msys2 网站](https://www.msys2.org) 上下载安装包
 
