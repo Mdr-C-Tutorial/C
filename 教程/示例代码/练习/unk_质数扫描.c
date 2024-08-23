@@ -9,7 +9,7 @@ int main(void)
         {
             if (num == t)
             {
-                printf("%d",num);
+                printf("%d", num);
             }
             if (num % t == 0)
             {

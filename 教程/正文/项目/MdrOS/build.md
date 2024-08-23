@@ -8,7 +8,6 @@
 
 [Limine - C Template](https://github.com/limine-bootloader/limine-c-template)
 
-
 ## 自制引导用户
 
 通常你们需要的准备工作要求更多,且编写后的操作系统运行的介质非常有限
@@ -23,17 +22,17 @@ github上有很多使用Multiboot的自制OS实例, 可以借鉴其是如何搭�
 
 ## 目录结构
 
-```
-┌ target (目标文件目录, 存放编译好等待链接的目标文件)
+```text
+├ target (目标文件目录, 存放编译好等待链接的目标文件)
 ├ src (源文件目录, 存放操作系统的所有C和汇编源码)
-|  ├ boot (存放引导程序的源码文件)
-|  ├ kernel (存放内核的核心功能源码文件, 如中断管理, 多进程, 内存管理等)
-|  ├ util (存放一些工具函数实现, 如各种数据结构实现,printf实现等)
-|  ├ driver (存放内核内置驱动的源码实现)
-|  ├ fs (存放文件系统的源码实现)
-|  ├ include (存放各种头文件)
-|  └ sysapp (存放系统内置程序, 如shell)
-├ isodir (将最终的内核文件以及所有需要的资源文件到这里的最终目标目录, 等待引导实现程序打包成ISO等映像)  
+│  ├ boot (存放引导程序的源码文件)
+│  ├ kernel (存放内核的核心功能源码文件, 如中断管理, 多进程, 内存管理等)
+│  ├ util (存放一些工具函数实现, 如各种数据结构实现,printf实现等)
+│  ├ driver (存放内核内置驱动的源码实现)
+│  ├ fs (存放文件系统的源码实现)
+│  ├ include (存放各种头文件)
+│  └ sysapp (存放系统内置程序, 如shell)
+├ isodir (将最终的内核文件以及所有需要的资源文件到这里的最终目标目录, 等待引导实现程序打包成ISO等映像)
 ├ apps (操作系统内置的应用程序源码, 一般放置移植或自己开发的各种小程序, 如lua解释器, SDL2图形库等)
 └  i686_elf_tools (交叉编译工具链)
 ```
@@ -48,38 +47,38 @@ github上有很多使用Multiboot的自制OS实例, 可以借鉴其是如何搭�
 
 ```linker
 ENTRY(_start)
- 
+
 SECTIONS
 {
-	
-	. = 2M;
- 
-	.text BLOCK(4K) : ALIGN(4K)
-	{
-	    code = .; _code = .; __code = .;
-		*(.multiboot)
-		*(.text)
-	}
- 
-	.rodata BLOCK(4K) : ALIGN(4K)
-	{
-		*(.rodata)
-	}
- 
-	.data BLOCK(4K) : ALIGN(4K)
-	{
-	    data = .; _data = .; __data = .;
-		*(.data)
-	}
- 
-	.bss BLOCK(4K) : ALIGN(4K)
-	{
-	    bss = .; _bss = .; __bss = .;
-		*(COMMON)
-		*(.bss)
-	}
- 
-	end = .; _end = .; __end = .;
+
+    . = 2M;
+
+    .text BLOCK(4K) : ALIGN(4K)
+    {
+        code = .; _code = .; __code = .;
+        *(.multiboot)
+        *(.text)
+    }
+
+    .rodata BLOCK(4K) : ALIGN(4K)
+    {
+        *(.rodata)
+    }
+
+    .data BLOCK(4K) : ALIGN(4K)
+    {
+        data = .; _data = .; __data = .;
+        *(.data)
+    }
+
+    .bss BLOCK(4K) : ALIGN(4K)
+    {
+        bss = .; _bss = .; __bss = .;
+        *(COMMON)
+        *(.bss)
+    }
+
+    end = .; _end = .; __end = .;
 }
 ```
 
@@ -91,7 +90,7 @@ SECTIONS
 
 #### 根目录构建脚本
 
-```Makefile
+```make
 
 clean: # 目录清理
     rm target/*
@@ -109,18 +108,18 @@ linker:
 
 #### 子目录脚本示例
 
-```Makefile
+```make
 gcc := /i686_elf_tools/bin/i686-elf-gcc #交叉编译器的路径
 incpath_src := ../include/ #头文件目录路径
 out_path_src := ../target/ #根据你的子目录相对于根目录的深度编写 ../的个数
 obj_dos := $(out_path_src)源文件名.obj ... #填写你所有的源文件对应的目标文件名 (源文件名.obj)
 default : $(obj_dos)
-	
+
 $(out_path_src)%.o : %.c Makefile #C源文件构建
-	 $(gcc) -I$(incpath_src) -nostdinc -nolibc -nostdlib -fno-builtin -ffreestanding -fno-stack-protector -Qn -fno-pic -fno-pie -fno-asynchronous-unwind-tables -mpreferred-stack-boundary=2 -fomit-frame-pointer -O0 -finput-charset=UTF-8 -fexec-charset=GB2312 -mno-mmx -mno-sse -mfpmath=387 -w -c $*.c -o $(out_path_src)$*.o
+    $(gcc) -I$(incpath_src) -nostdinc -nolibc -nostdlib -fno-builtin -ffreestanding -fno-stack-protector -Qn -fno-pic -fno-pie -fno-asynchronous-unwind-tables -mpreferred-stack-boundary=2 -fomit-frame-pointer -O0 -finput-charset=UTF-8 -fexec-charset=GB2312 -mno-mmx -mno-sse -mfpmath=387 -w -c $*.c -o $(out_path_src)$*.o
 
 $(out_path_src)%.obj : %.asm Makefile
-	 nasm -f elf $*.asm -o $(out_path_src)$*.obj
+    nasm -f elf $*.asm -o $(out_path_src)$*.obj
 ```
 
 ### Python

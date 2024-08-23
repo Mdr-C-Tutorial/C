@@ -9,16 +9,22 @@
 int main(void)
 {
     int secret = rand() % 100 + 1;
-    for (;;) {
+    for (;;)
+    {
         int guess;
         printf("Enter your guess: ");
         scanf("%d", &guess);
-        if (guess == secret) {
+        if (guess == secret)
+        {
             printf("You win!\n");
             break;
-        } else if (guess > secret) {
+        }
+        else if (guess > secret)
+        {
             printf("Too high!\n");
-        } else {
+        }
+        else
+        {
             printf("Too low!\n");
         }
     }
