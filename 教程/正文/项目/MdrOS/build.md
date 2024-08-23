@@ -51,34 +51,34 @@ ENTRY(_start)
 SECTIONS
 {
 
- . = 2M;
+    . = 2M;
 
- .text BLOCK(4K) : ALIGN(4K)
- {
-     code = .; _code = .; __code = .;
-  *(.multiboot)
-  *(.text)
- }
+    .text BLOCK(4K) : ALIGN(4K)
+    {
+        code = .; _code = .; __code = .;
+        *(.multiboot)
+        *(.text)
+    }
 
- .rodata BLOCK(4K) : ALIGN(4K)
- {
-  *(.rodata)
- }
+    .rodata BLOCK(4K) : ALIGN(4K)
+    {
+        *(.rodata)
+    }
 
- .data BLOCK(4K) : ALIGN(4K)
- {
-     data = .; _data = .; __data = .;
-  *(.data)
- }
+    .data BLOCK(4K) : ALIGN(4K)
+    {
+        data = .; _data = .; __data = .;
+        *(.data)
+    }
 
- .bss BLOCK(4K) : ALIGN(4K)
- {
-     bss = .; _bss = .; __bss = .;
-  *(COMMON)
-  *(.bss)
- }
+    .bss BLOCK(4K) : ALIGN(4K)
+    {
+        bss = .; _bss = .; __bss = .;
+        *(COMMON)
+        *(.bss)
+    }
 
- end = .; _end = .; __end = .;
+    end = .; _end = .; __end = .;
 }
 ```
 
@@ -116,10 +116,10 @@ obj_dos := $(out_path_src)源文件名.obj ... #填写你所有的源文件对�
 default : $(obj_dos)
 
 $(out_path_src)%.o : %.c Makefile #C源文件构建
-  $(gcc) -I$(incpath_src) -nostdinc -nolibc -nostdlib -fno-builtin -ffreestanding -fno-stack-protector -Qn -fno-pic -fno-pie -fno-asynchronous-unwind-tables -mpreferred-stack-boundary=2 -fomit-frame-pointer -O0 -finput-charset=UTF-8 -fexec-charset=GB2312 -mno-mmx -mno-sse -mfpmath=387 -w -c $*.c -o $(out_path_src)$*.o
+     $(gcc) -I$(incpath_src) -nostdinc -nolibc -nostdlib -fno-builtin -ffreestanding -fno-stack-protector -Qn -fno-pic -fno-pie -fno-asynchronous-unwind-tables -mpreferred-stack-boundary=2 -fomit-frame-pointer -O0 -finput-charset=UTF-8 -fexec-charset=GB2312 -mno-mmx -mno-sse -mfpmath=387 -w -c $*.c -o $(out_path_src)$*.o
 
 $(out_path_src)%.obj : %.asm Makefile
-  nasm -f elf $*.asm -o $(out_path_src)$*.obj
+     nasm -f elf $*.asm -o $(out_path_src)$*.obj
 ```
 
 ### Python
