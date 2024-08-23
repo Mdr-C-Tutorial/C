@@ -43,12 +43,12 @@ int main(int argc, char* argv[]){
 5. 段落和段落之间有一个空行；只换行不换段落，无空行，在前一行结尾加两个空格；
 6. **强调** 用 `** **` 标识，*次强调* 用 `* *` 标识，`代码块` 用 `` ` ` `` 标识；
 7. 引文和注释用 `>` 标识；书名和文章名用 `*** ***` 标识；
-8. `*** ***` `** **` `* *` `` ` ` `` 前后 **各空一个空格**，但中文标点前后无需加空格；
+8. `*** ***` `** **` `* *` `` ` ` `` `$ $` 前后 **各空一个空格**，但中文标点前后无需加空格；
 9. 中西文字符，或者中文和数字之间加一个空格；
 10. 在中文上下文中用全角标点，比如全角小括号，全角冒号等；
 11. 要正确使用标点符号，分清 **顿号**、**逗号**、**分号** 和 **句号**，尤其避免一逗到底；
 12. 分清 **的地得** 和 **他她它祂怹**
-13. 仅在必要时使用 **数量词**（尤其是 **一个**）~~你是一个一个一个~~
+13. 仅在必要时使用 **数量词**（尤其警惕 **一个** 的不恰当使用）~~你是一个一个一个~~
 14. 在 **术语** (Terminology) 首次出现的时候在 **半角小括号** 内给出 **对应的外来语**，同时给出 **首字母缩略语** (Acronym)。这些外来语通常对应 **概念** (Concept) 的原文 ，希望有助于读者明确分辨词语的含义：
     1. 为减少读者的记忆负担，下文分情况使用 **术语的汉语表述** 和 **首字母缩略语**：初始章节以前者为主，进阶章节以后者为主
     2. 外来语和缩略语可能视情况在不同章节多次出现
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]){
     5. 大部分外来语单词摘自 [维基百科](https://zh.wikipedia.org) 和 [C++ 参考手册](https://en.cppreference.com/)；
 15. **专有名词** 需 **大写**；
 16. 图片统一放在 `/images/` 目录下，并采用 **绝对路径** 引入：
-    1. 截图统一采用 **PNG** 格式，命名为三位数字，如：`001.png`；  
+    1. 截图统一采用 **PNG** 格式，命名为三位数字，如：`001.png`；
     2. 拍照统一采用 **JPEG** 格式，命名为不带前导零的数字，如：`1.jpg`；
 17. 在每篇文档结尾写出引用内容的出处；
 18. 语言风格：
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]){
 1. 如果是项目代码，需要构建系统完成编译运行，需将必要的相关文件放入对应目录，例如 `CMakeLists.txt` 和 `xmake.lua` 等；
 2. 源文件后缀名为 `.c`，头文件后缀名为 `.h`；
 3. 标识符采用惯例命名，不允许使用拼音；
-4. `if` `else` `for` `while` 必须跟随一条 **复合语句**。
+4. `if` `else` `for` `while` 必须跟随 **复合语句**。
 
 ## 对预期读者的要求
 
@@ -95,8 +95,9 @@ int main(int argc, char* argv[]){
 + **FHU-yezi** （[GitHub - FHU-yezi](https://github.com/FHU-yezi)）
 + **菲露露** （[GitHub - LovelyLavender4](https://github.com/lovelylavender4)）
 + **XIAOYI12** （[GitHub - xiaoyi1212](https://github.com/xiaoyi1212)）
-+ **WHITE TREE**（[GitHub - VinbeWan](https://github.com/VinbeWan)）
-+ **A4-Tacks**（[GitHub - A4-Tacks](https://github.com/A4-Tacks)）
++ **WHITE TREE** （[GitHub - VinbeWan](https://github.com/VinbeWan)）
++ **min0911Y** （[GitHub - min0911Y](https://github.com/min0911Y)）
++ **A4-Tacks** （[GitHub - A4-Tacks](https://github.com/A4-Tacks)）
 
 ### 组织
 
@@ -121,3 +122,4 @@ int main(int argc, char* argv[]){
 + ***算法导论*** （ISBN 978-7-111-40701-0）
 + [***Let's Build a Simple Database***](https://cstack.github.io/db_tutorial/)
 + [***pldocs***](https://github.com/FrankHB/pl-docs/blob/master/zh-CN)
++ ***陶哲轩实分析*** （ISBN 978-7-115-48025-5）
