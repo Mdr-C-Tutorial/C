@@ -116,10 +116,10 @@ obj_dos := $(out_path_src)源文件名.obj ... #填写你所有的源文件对�
 default : $(obj_dos)
 
 $(out_path_src)%.o : %.c Makefile #C源文件构建
-     $(gcc) -I$(incpath_src) -nostdinc -nolibc -nostdlib -fno-builtin -ffreestanding -fno-stack-protector -Qn -fno-pic -fno-pie -fno-asynchronous-unwind-tables -mpreferred-stack-boundary=2 -fomit-frame-pointer -O0 -finput-charset=UTF-8 -fexec-charset=GB2312 -mno-mmx -mno-sse -mfpmath=387 -w -c $*.c -o $(out_path_src)$*.o
+    $(gcc) -I$(incpath_src) -nostdinc -nolibc -nostdlib -fno-builtin -ffreestanding -fno-stack-protector -Qn -fno-pic -fno-pie -fno-asynchronous-unwind-tables -mpreferred-stack-boundary=2 -fomit-frame-pointer -O0 -finput-charset=UTF-8 -fexec-charset=GB2312 -mno-mmx -mno-sse -mfpmath=387 -w -c $*.c -o $(out_path_src)$*.o
 
 $(out_path_src)%.obj : %.asm Makefile
-     nasm -f elf $*.asm -o $(out_path_src)$*.obj
+    nasm -f elf $*.asm -o $(out_path_src)$*.obj
 ```
 
 ### Python
