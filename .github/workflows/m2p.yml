@@ -16,9 +16,12 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup Git
+        env:
+          user_name: ${{ secrets.USER_NAME }}
+          user_email: ${{ secrets.USER_EMAIL }}
         run: |
-          git config user.name "Mdr-C-Tutorial"
-          git config user.email "2972853299@qq.com"
+          git config user.name "$user_name"
+          git config user.email "$user_email"
       - name: Merge
         run: |
           git checkout gh-pages
