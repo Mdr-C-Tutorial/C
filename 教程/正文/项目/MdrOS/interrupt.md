@@ -30,13 +30,13 @@ IDT有特殊的标志位规定某些中断是否可以由用户程序使用 `int
 
 ### 异常中断
 
-异常中断是非可屏蔽中断, 由CPU内部触发，用于向正在运行的内核发出需要其处理的一些异常。 
+异常中断是非可屏蔽中断, 由CPU内部触发，用于向正在运行的内核发出需要其处理的一些异常。
 在Intel规定中，前32个中断向量被留为异常
 
 * 在中断流程里发生异常中断叫 `Double Fault`
 * 在 `Doubel Fault` 里再次发生中断叫 `Triple Fault`
 
-> 当发生 `Triple Fault` 类型中断时候, 计算机系统意识到发生了内核无法解决的严重错误, 
+> 当发生 `Triple Fault` 类型中断时候, 计算机系统意识到发生了内核无法解决的严重错误,
 > 这个时候计算机系统会越过ACPI等电源的设置迅速进行重启。
 
 以下是一份IDT各种异常的对照表
@@ -45,13 +45,11 @@ IDT有特殊的标志位规定某些中断是否可以由用户程序使用 `int
 
 [**OSDEV Exceptions**](https://wiki.osdev.org/Exceptions) OSDEV网站有对异常中断作详细的解释
 
-
 ### 中断请求 (IRQ) 或硬件中断
 
 这种类型的中断由芯片组在外部产生，并通过锁定到相关 CPU 的 #INTR 引脚或等效信号来发出信号。属于可屏蔽中断的一种。
 
 > 在最初的32系统开发中, 我们会接触到一个叫做8259A的可编程中断控制器
-
 
 ### 软中断
 
@@ -66,6 +64,7 @@ IDT有特殊的标志位规定某些中断是否可以由用户程序使用 `int
 > 通常, 我们建议你将这些结构体定义在头文件中, 以方便我们在其他地方复用它们
 
 1. 中断门描述符结构体
+
     ```c
     struct idt_entry_struct {
         uint16_t base_low;
@@ -77,8 +76,9 @@ IDT有特殊的标志位规定某些中断是否可以由用户程序使用 `int
 
     typedef struct idt_entry_struct idt_entry_t;
     ```
-   
+
 2. IDT指针声明
+
     ```c
     struct idt_ptr_struct {
         uint16_t limit;
@@ -87,16 +87,18 @@ IDT有特殊的标志位规定某些中断是否可以由用户程序使用 `int
 
     typedef struct idt_ptr_struct idt_ptr_t;
     ```
-   
+
 3. 以及一些函数的预定义
+
     ```c
     void idt_install(); //IDT初始化
 
     void idt_use_reg(uint8_t num,uint32_t base); //注册用户程序可触发的中断, 这个在我们以后写到syscall时候要用
     void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags); //注册一般中断
     ```
-   
+
 4. 汇编定义的ISR处理函数
+
     ```c
     #define DECLARE_ISR(i) extern void isr##i();
 
@@ -156,6 +158,7 @@ IDT有特殊的标志位规定某些中断是否可以由用户程序使用 `int
     ```
 
 5. 中断触发前的CPU各种寄存器状态以及中断号等
+
     ```c
     typedef struct registers {
         uint32_t ds; // 我们自己弹入的，当前数据段
@@ -167,6 +170,7 @@ IDT有特殊的标志位规定某些中断是否可以由用户程序使用 `int
     ```
 
 6. 方便内核注册中断处理函数以及一些其他定义
+
     ```c
     #define IRQ0 32
     #define IRQ1 33
@@ -307,6 +311,7 @@ IDT有特殊的标志位规定某些中断是否可以由用户程序使用 `int
     ```
 
 3. C语言中的中断预处理函数, 由汇编调用
+
     ```c
     void isr_handler(registers_t regs) {
         //printf("\n[Kernel]: received interrupt: %d\n",regs.int_no); 这里你可以输出一下异常中断号,也可以不输出
@@ -332,6 +337,5 @@ IDT有特殊的标志位规定某些中断是否可以由用户程序使用 `int
 什么? 你问我汇编部分呢, 请看源码文件, 我们使用nasm语法编写
 
 [**interrupt.asm**](/教程/示例代码/项目/mdrOS/interrupt.asm)
-
 
 到这里, 我们内核就基本具备了对中断的处理能力, 以后编写程序驱动, 异常处理都可以通过我们已经编写好的函数去注册
