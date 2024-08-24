@@ -92,3 +92,22 @@ STM32系列微控制器具有以下特点：
 </table>
 
 ### 2.2 STM32命名方法
+
+![STM32命名方法图](/images/嵌入式/STM32命名方法图.png)
+
+> 注：摘自《STM32选型手册》
+
+## 3. 开发导引
+
+### 3.1 分配原理图IO
+
+在画原理图之前，一般做法是先把引脚分类好，然后才开始画原理图，一般分类如下：
+
+| 引脚分类    | 引脚说明                                             |
+|---------|--------------------------------------------------|
+| 电源      | VBAT、VDD、VSS、VDDA、VSSA、VREF+、VREF-等              |
+| 晶振IO    | 主晶振、RTC晶振                                        |
+| 下载IO    | JTAG（JTMS、JTCK、JTDI、JTDO、NJRST）、SWD（SWDIO、SWCLK） |
+| BOOT IO | BOOT0、BOOT1，设置板子启动方式                             |
+| 复位IO    | NRST，用于外部复位                                      |
+| GPIO    | 专用总线（I2C、SPI、CAN、USB、FSMC、DMCI等）、通用IO            |
