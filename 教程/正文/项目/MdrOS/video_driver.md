@@ -104,13 +104,13 @@
     }
     ```
 
-> 什么? 你问我printf函数怎么实现?  
+> 什么? 你问我printf函数怎么实现?\
 > 别着急, 请看下面
 [MdrOS的printf函数实现](/教程/示例代码/项目/mdrOS/printf.c)
 
 ## VBE (VESA BIOS EXTENSION) VESA BIOS扩展
 
-> **SVGA (Super VGA)** \
+> **SVGA (Super VGA)**\
 > IBM的VGA标准是显示卡发展史上的一块丰碑。
 > 但后来无法满足人们的需要，于是市场上出现了TVGA、S3系列、
 > Cirrus Logic、ET等为首的一批显示卡，提供了比VGA分辨率更高，颜色更丰富的显示模式，
