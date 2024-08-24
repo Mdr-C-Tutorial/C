@@ -69,7 +69,7 @@ int main(int argc, char* argv[]){
 
 ## 代码规范
 
-1. 如果是项目代码，需要构建系统完成编译运行，需将必要的相关文件放入对应目录，例如 `CMakeLists.txt` 和 `xmake.lua` 等；
+1. 如果是项目代码，需要构建系统完成编译运行，需将必要的相关文件放入对应目录，如 `CMakeLists.txt` 和 `xmake.lua` 等；
 2. 源文件后缀名为 `.c`，头文件后缀名为 `.h`；
 3. 标识符采用惯例命名，不允许使用拼音；
 4. `if` `else` `for` `while` 必须跟随 **复合语句**。
@@ -84,20 +84,22 @@ int main(int argc, char* argv[]){
 
 ### 个人（贡献者）
 
-+ **mdr** （[GitHub - Minsecrus](https://github.com/Minsecrus)）
++ **Mdr** （[GitHub - Minsecrus](https://github.com/Minsecrus)）
 + **@幻** （[GitHub - huan201](https://github.com/huan201)）
 + **JuaJuanchi** （[GitHub - JuaJuanchi](https://github.com/Jua-Juanchi)）
 + **Enoch.驊** （[GitHub - gngtwhh](https://github.com/gngtwhh)）
 + **No** （[CNBlogs - Kroner](https://www.cnblogs.com/Kroner)）（[GitHub - Kroner](https://github.com/Kroner)）
-+ **xly** （[GitHub - LY-Xiang](https://github.com/LY-Xiang)）（[GitHub - hfsz2313](https://github.com/hfsz2313)）
++ **Xly** （[GitHub - LY-Xiang](https://github.com/LY-Xiang)）（[GitHub - hfsz2313](https://github.com/hfsz2313)）
 + **革匊习习中** （[GitHub - Juvwxyz](https://github.com/Juvwxyz)）
 + **0x7E7**
 + **FHU-yezi** （[GitHub - FHU-yezi](https://github.com/FHU-yezi)）
 + **菲露露** （[GitHub - LovelyLavender4](https://github.com/lovelylavender4)）
 + **XIAOYI12** （[GitHub - xiaoyi1212](https://github.com/xiaoyi1212)）
 + **WHITE TREE** （[GitHub - VinbeWan](https://github.com/VinbeWan)）
-+ **min0911Y** （[GitHub - min0911Y](https://github.com/min0911Y)）
++ **Min0911Y** （[GitHub - min0911Y](https://github.com/min0911Y)）
 + **A4-Tacks** （[GitHub - A4-Tacks](https://github.com/A4-Tacks)）
++ **Telecomadm** （[GitHub - telecomadm1145](https://github.com/telecomadm1145)）
++ **ChatRBQ** （[GitHub - fawdlstty](https://github.com/fawdlstty)）
 
 ### 组织
 
@@ -106,7 +108,7 @@ int main(int argc, char* argv[]){
 ### 特别鸣谢
 
 + **FrankHB** （[GitHub - FrankHB](https://github.com/FrankHB)）
-+ **jajuju**
++ **Jajuju** （[GitHub - frederick-vs-ja](https://github.com/frederick-vs-ja)）
 + **Fresky** （[GitHub - FreskyZ](https://github.com/FreskyZ)）
 + **兔兔**
 
