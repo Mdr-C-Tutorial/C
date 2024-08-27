@@ -100,6 +100,7 @@ int main(int argc, char* argv[]){
 + **A4-Tacks** （[GitHub - A4-Tacks](https://github.com/A4-Tacks)）
 + **Telecomadm** （[GitHub - telecomadm1145](https://github.com/telecomadm1145)）
 + **ChatRBQ** （[GitHub - fawdlstty](https://github.com/fawdlstty)）
++ **Kill** （[GitHub - Killcerr](https://github.com/Killcerr)）
 
 ### 组织
 
