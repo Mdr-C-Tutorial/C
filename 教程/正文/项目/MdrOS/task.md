@@ -46,6 +46,28 @@ PCB相比TSS拥有更快的任务切换速度, 且可以自定义多种进程私
 
 > 在用户程序发生系统调用时禁止进行该CPU的任务切换, 不然syscall无法正确返回
 
+进程切换过程中, 需要切换的寄存器可以参考TSS的结构, 以下展示了进程如何切换上下文
+
+```c
+struct context{
+    uint32_t esp;
+    uint32_t ebp;
+    uint32_t ebx;
+    uint32_t esi;
+    uint32_t edi;
+    uint32_t ecx;
+    uint32_t edx;
+    uint32_t eflags;
+
+    uint32_t eax;
+    uint32_t eip;
+    uint32_t ds;
+    uint32_t cs;
+    uint32_t ss;
+    fpu_regs_t fpu_regs; // FPU 标记, 是否启用FPU
+};
+```
+
 * CoolPotOS的顺序任务调度 [task.c kernel_thread(line:167)](/教程/示例代码/项目/mdrOS/task.c#L167)
 
 ## 补充
