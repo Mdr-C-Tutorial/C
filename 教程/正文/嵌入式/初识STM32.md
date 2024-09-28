@@ -38,6 +38,7 @@ STM32系列微控制器具有以下特点：
     <tr>
         <td>STM32-L0</td>
         <td>低功耗</td>
+    </tr>
     <tr>
         <td rowspan="3">Cortex-M3</td> 
         <td>STM32-F1</td>
