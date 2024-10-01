@@ -63,3 +63,4 @@ dkms.conf
 
 # IDE/Editor
 .vscode/
+.idea/
