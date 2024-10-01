@@ -4,8 +4,7 @@
 
 #include <stdio.h>
 
-int manhattan_distance(int x, int y, int x0, int y0)
-{
+int manhattan_distance(int x, int y, int x0, int y0) {
     int dx, dy;
     if (x < x0) {
         dx = x0 - x;
@@ -20,8 +19,7 @@ int manhattan_distance(int x, int y, int x0, int y0)
     return dx + dy;
 }
 
-void pyramid(char c)
-{
+void pyramid(char c) {
     int height = c - 'A' + 1;
     int width = height * 2 - 1;
     for (int i = 0; i < height; ++i) {
@@ -37,8 +35,7 @@ void pyramid(char c)
     }
 }
 
-int main()
-{
+int main() {
     char c;
     scanf("%c", &c);
     pyramid(c);

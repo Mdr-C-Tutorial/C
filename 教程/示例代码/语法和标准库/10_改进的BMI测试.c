@@ -1,8 +1,7 @@
 // #define AMAZING
 #include <stdio.h>
 
-int main()
-{
+int main() {
     float weight, height, bmi;
 
     // 获取用户输入
@@ -22,24 +21,19 @@ int main()
 
     // 判断健康状态
 #ifndef AMAZING
-    if (bmi < 18.5)
-    {
+    if (bmi < 18.5) {
         printf("您的体重过轻。\n");
-    }
-    else if (bmi < 25)
-    {
+    } else if (bmi < 25) {
         printf("您的体重正常。\n");
-    }
-    else if (bmi < 30)
-    {
+    } else if (bmi < 30) {
         printf("您的体重过重。\n");
-    }
-    else
-    {
+    } else {
         printf("您的体重肥胖。\n");
     }
 #else
-    printf("您的体重%s。\n", bmi < 18.5 ? "过轻" : (bmi < 25 ? "正常" : (bmi < 30 ? "过重" : "肥胖")));
+    printf("您的体重%s。\n",
+           bmi < 18.5 ? "过轻"
+                      : (bmi < 25 ? "正常" : (bmi < 30 ? "过重" : "肥胖")));
 #endif
     return 0;
 }

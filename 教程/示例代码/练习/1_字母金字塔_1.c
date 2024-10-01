@@ -4,8 +4,7 @@
 
 #include <stdio.h>
 
-void pyramid(char c)
-{
+void pyramid(char c) {
     int height = c - 'A' + 1;
     int width = height * 2 - 1;
     for (int i = 0; i < height; ++i) {
@@ -22,8 +21,7 @@ void pyramid(char c)
     }
 }
 
-int main()
-{
+int main() {
     char c;
     scanf("%c", &c);
     pyramid(c);

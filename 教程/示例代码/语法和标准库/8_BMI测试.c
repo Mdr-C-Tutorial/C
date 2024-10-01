@@ -1,8 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-int main()
-{
+int main() {
     float weight, height, bmi;
 
     // 获取用户输入

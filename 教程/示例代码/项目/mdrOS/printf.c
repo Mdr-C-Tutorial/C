@@ -1,10 +1,10 @@
 /*
-* printf.c
-* MdrOS printf函数实现 (Linux/libc 中的printf实现)
-*/
+ * printf.c
+ * MdrOS printf函数实现 (Linux/libc 中的printf实现)
+ */
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdarg.h>
 
 static int skip_atoi(const char **s) {
     int i = 0;
@@ -14,19 +14,21 @@ static int skip_atoi(const char **s) {
     return i;
 }
 
-#define ZEROPAD    1        /* pad with zero */
-#define SIGN    2        /* unsigned/signed long */
-#define PLUS    4        /* show plus */
-#define SPACE    8        /* space if plus */
-#define LEFT    16        /* left justified */
-#define SMALL    32        /* Must be 32 == 0x20 */
-#define SPECIAL    64        /* 0x */
+#define ZEROPAD 1  /* pad with zero */
+#define SIGN 2     /* unsigned/signed long */
+#define PLUS 4     /* show plus */
+#define SPACE 8    /* space if plus */
+#define LEFT 16    /* left justified */
+#define SMALL 32   /* Must be 32 == 0x20 */
+#define SPECIAL 64 /* 0x */
 
-#define __do_div(n, base) ({ \
-int __res; \
-__res = ((unsigned long) n) % (unsigned) base; \
-n = ((unsigned long) n) / (unsigned) base; \
-__res; })
+#define __do_div(n, base)                                                      \
+    ({                                                                         \
+        int __res;                                                             \
+        __res = ((unsigned long)n) % (unsigned)base;                           \
+        n = ((unsigned long)n) / (unsigned)base;                               \
+        __res;                                                                 \
+    })
 
 static char *number(char *str, long num, int base, int size, int precision,
                     int type) {
@@ -103,12 +105,12 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
     char *str;
     const char *s;
 
-    int flags;        /* flags to number() */
+    int flags; /* flags to number() */
 
-    int field_width;    /* width of output field */
-    int precision;        /* min. # of digits for integers; max
-				   number of chars for from string */
-    int qualifier;        /* 'h', 'l', or 'L' for integer fields */
+    int field_width; /* width of output field */
+    int precision;   /* min. # of digits for integers; max
+                              number of chars for from string */
+    int qualifier;   /* 'h', 'l', or 'L' for integer fields */
 
     for (str = buf; *fmt; ++fmt) {
         if (*fmt != '%') {
@@ -118,24 +120,24 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
 
         /* process flags */
         flags = 0;
-        repeat:
-        ++fmt;        /* this also skips first '%' */
+    repeat:
+        ++fmt; /* this also skips first '%' */
         switch (*fmt) {
-            case '-':
-                flags |= LEFT;
-                goto repeat;
-            case '+':
-                flags |= PLUS;
-                goto repeat;
-            case ' ':
-                flags |= SPACE;
-                goto repeat;
-            case '#':
-                flags |= SPECIAL;
-                goto repeat;
-            case '0':
-                flags |= ZEROPAD;
-                goto repeat;
+        case '-':
+            flags |= LEFT;
+            goto repeat;
+        case '+':
+            flags |= PLUS;
+            goto repeat;
+        case ' ':
+            flags |= SPACE;
+            goto repeat;
+        case '#':
+            flags |= SPECIAL;
+            goto repeat;
+        case '0':
+            flags |= ZEROPAD;
+            goto repeat;
         }
 
         /* get field width */
@@ -145,8 +147,7 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
         else if (*fmt == '*') {
             ++fmt;
             /* it's the next argument */
-            field_width = va_arg(args,
-            int);
+            field_width = va_arg(args, int);
             if (field_width < 0) {
                 field_width = -field_width;
                 flags |= LEFT;
@@ -162,8 +163,7 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
             else if (*fmt == '*') {
                 ++fmt;
                 /* it's the next argument */
-                precision = va_arg(args,
-                int);
+                precision = va_arg(args, int);
             }
             if (precision < 0)
                 precision = 0;
@@ -180,95 +180,86 @@ int vsprintf(char *buf, const char *fmt, va_list args) {
         base = 10;
 
         switch (*fmt) {
-            case 'c':
-                if (!(flags & LEFT))
-                    while (--field_width > 0)
-                        *str++ = ' ';
-                *str++ = (unsigned char) va_arg(args,
-                int);
+        case 'c':
+            if (!(flags & LEFT))
                 while (--field_width > 0)
                     *str++ = ' ';
-                continue;
+            *str++ = (unsigned char)va_arg(args, int);
+            while (--field_width > 0)
+                *str++ = ' ';
+            continue;
 
-            case 's':
-                s = va_arg(args,
-                char *);
-                len = strnlen(s, precision);
+        case 's':
+            s = va_arg(args, char *);
+            len = strnlen(s, precision);
 
-                if (!(flags & LEFT))
-                    while (len < field_width--)
-                        *str++ = ' ';
-                for (i = 0; i < len; ++i)
-                    *str++ = *s++;
+            if (!(flags & LEFT))
                 while (len < field_width--)
                     *str++ = ' ';
-                continue;
+            for (i = 0; i < len; ++i)
+                *str++ = *s++;
+            while (len < field_width--)
+                *str++ = ' ';
+            continue;
 
-            case 'p':
-                if (field_width == -1) {
-                    field_width = 2 * sizeof(void *);
-                    flags |= ZEROPAD;
-                }
-                str = number(str, (unsigned long) va_arg(args,
-                void *), 16,
-                field_width, precision, flags);
-                continue;
+        case 'p':
+            if (field_width == -1) {
+                field_width = 2 * sizeof(void *);
+                flags |= ZEROPAD;
+            }
+            str = number(str, (unsigned long)va_arg(args, void *), 16,
+                         field_width, precision, flags);
+            continue;
 
-            case 'n':
-                if (qualifier == 'l') {
-                    long *ip = va_arg(args,
-                    long *);
-                    *ip = (str - buf);
-                } else {
-                    int *ip = va_arg(args,
-                    int *);
-                    *ip = (str - buf);
-                }
-                continue;
+        case 'n':
+            if (qualifier == 'l') {
+                long *ip = va_arg(args, long *);
+                *ip = (str - buf);
+            } else {
+                int *ip = va_arg(args, int *);
+                *ip = (str - buf);
+            }
+            continue;
 
-            case '%':
-                *str++ = '%';
-                continue;
+        case '%':
+            *str++ = '%';
+            continue;
 
-                /* integer number formats - set up the flags and "break" */
-            case 'o':
-                base = 8;
-                break;
+            /* integer number formats - set up the flags and "break" */
+        case 'o':
+            base = 8;
+            break;
 
-            case 'x':
-                flags |= SMALL;
-            case 'X':
-                base = 16;
-                break;
+        case 'x':
+            flags |= SMALL;
+        case 'X':
+            base = 16;
+            break;
 
-            case 'd':
-            case 'i':
-                flags |= SIGN;
-            case 'u':
-                break;
+        case 'd':
+        case 'i':
+            flags |= SIGN;
+        case 'u':
+            break;
 
-            default:
-                *str++ = '%';
-                if (*fmt)
-                    *str++ = *fmt;
-                else
-                    --fmt;
-                continue;
+        default:
+            *str++ = '%';
+            if (*fmt)
+                *str++ = *fmt;
+            else
+                --fmt;
+            continue;
         }
         if (qualifier == 'l')
-            num = va_arg(args,
-        unsigned long);
+            num = va_arg(args, unsigned long);
         else if (qualifier == 'h') {
-            num = (unsigned short) va_arg(args,
-            int);
+            num = (unsigned short)va_arg(args, int);
             if (flags & SIGN)
-                num = (short) num;
+                num = (short)num;
         } else if (flags & SIGN)
-            num = va_arg(args,
-        int);
+            num = va_arg(args, int);
         else
-        num = va_arg(args,
-        unsigned int);
+            num = va_arg(args, unsigned int);
         str = number(str, num, base, field_width, precision, flags);
     }
     *str = '\0';
@@ -286,15 +277,15 @@ int sprintf(char *buf, const char *fmt, ...) {
 }
 
 /*
-* 记住, 该函数只是打印字符串. 你可以将其改成vga_writestring也可以改成vbe_writestring
-* 取决于你的视频显示模式
-*/
-void print(char* string); 
+ * 记住, 该函数只是打印字符串.
+ * 你可以将其改成vga_writestring也可以改成vbe_writestring 取决于你的视频显示模式
+ */
+void print(char *string);
 
 /*
-* printk 以后我们的一些设备驱动会用, 功能与printf相差无异
-* 你可以自己将驱动的printk函数替换成printf并删掉printk函数
-*/
+ * printk 以后我们的一些设备驱动会用, 功能与printf相差无异
+ * 你可以自己将驱动的printk函数替换成printf并删掉printk函数
+ */
 void printk(const char *formet, ...) {
     int len;
     va_list ap;

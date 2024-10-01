@@ -6,8 +6,7 @@ double subtract(double a, double b);
 double multiply(double a, double b);
 double divide(double a, double b);
 
-int main()
-{
+int main() {
     char operator;
     double num1, num2, result;
 
@@ -19,27 +18,17 @@ int main()
 
     // 判断运算符是否有效
     // 根据运算符进行计算
-    switch (operator)
-    {
-    case '+':
+    if (operator== '+') {
         result = add(num1, num2);
-        break;
-    case '-':
+    } else if (operator== '-') {
         result = subtract(num1, num2);
-        break;
-    case '*':
+    } else if (operator== '*') {
         result = multiply(num1, num2);
-        break;
-    case '/':
+    } else if (operator== '/') {
         result = divide(num1, num2);
-        if (num2 == 0)
-        {
-            return 22;
-        }
-        break;
-    default:
-        perror("无效的运算符");
-        return 22;
+    } else {
+        printf("无效的运算符\n");
+        return 1;
     }
 
     printf("结果: %lf\n", result);
@@ -48,28 +37,17 @@ int main()
 }
 
 // 加法函数
-double add(double a, double b)
-{
-    return a + b;
-}
+double add(double a, double b) { return a + b; }
 
 // 减法函数
-double subtract(double a, double b)
-{
-    return a - b;
-}
+double subtract(double a, double b) { return a - b; }
 
 // 乘法函数
-double multiply(double a, double b)
-{
-    return a * b;
-}
+double multiply(double a, double b) { return a * b; }
 
 // 除法函数
-double divide(double a, double b)
-{
-    if (b == 0)
-    {
+double divide(double a, double b) {
+    if (b == 0) {
         perror("除数不能为0\n");
         return 0.0;
     }
