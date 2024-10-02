@@ -64,3 +64,10 @@ dkms.conf
 # IDE/Editor
 .vscode/
 .idea/
+
+# node
+node_modules
+build
+temp
+cache
+deps/*

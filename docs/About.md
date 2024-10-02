@@ -4,7 +4,7 @@
    如发现有人售卖本教程，请与 mdr 联系。  
    推荐读者将本教程仓库 Clone 至本地，并使用 [Typora](https://typora.io/) 或 [VS Code](https://code.visualstudio.com/) 或 [Obsidian](https://obsidian.md/) 进行阅读，以正常渲染 Markdown 与内嵌 $L^AT_EX$ 公式。
 2. 每个正式的 C 语言标准出版后，MCT 会对仓库进行扩充和修改，以全面正确地讲解新版本内容。
-3. 本教程官方 QQ 群 [**885719573** ![mdr 的 Coding 小窝](https://pub.idqqimg.com/wpa/images/group.png)](https://qm.qq.com/cgi-bin/qm/qr?k=BdVPqTXYNclTbEJ_hr2SQiw_s6HbMKv8&jump_from=webapi&authKey=UY6WSOF1GJQF/32XY/CHluyWUhnS3k3YSga8S0/kIKtcAyqWs+5Ek8RPuWVAVcon)，欢迎进入 QQ 群交流编程，一同成长！  
+3. 本教程官方 QQ 群 [**885719573** ![mdr 的 Coding 小窝](https://pub.idqqimg.com/wpa/images/group.png)](https://qm.qq.com/cgi-bin/qm/qr?k=BdVPqTXYNclTbEJ_hr2SQiw_s6HbMKv8&jump_from=webapi&authKey=UY6WSOF1GJQF/32XY/CHluyWUhnS3k3YSga8S0/kIKtcAyqWs+5Ek8RPuWVAVcon)欢迎进入 QQ 群交流编程，一同成长！  
    QQ 群中有部分相关书籍的电子版。
 4. 对于讲义及示例代码中的错误和不足之处，欢迎在 QQ 群中指出，更欢迎在 GitHub 仓库中提交 [Pull Request](https://github.com/Mdr-C-Tutorial/C/pulls)。
 5. 任何组织和个人均可在任何场合引用本教程的任何内容，无需标明出处。
