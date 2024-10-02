@@ -4,8 +4,8 @@ layout: home
 
 hero:
   name: "Mdr-C-Tutorial"
-  text: "Free, Standard and Dedicated"
-  tagline: powered by mdr
+  text: "Free and Standard"
+  tagline: Original and Dedicated
   actions:
     - theme: brand
       text: 开始！
