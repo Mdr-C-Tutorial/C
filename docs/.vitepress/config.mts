@@ -1,5 +1,6 @@
 import { defineConfig } from "vitepress";
 import mathjax3 from "markdown-it-mathjax3";
+
 const customElements = [
   "math",
   "maction",
