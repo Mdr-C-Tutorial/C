@@ -4,10 +4,10 @@
 文件系统负责有效合理的管理所有逻辑存储单元(也就是文件 File)。
 市面上主流的文件系统有:
 
-* FAT12 FAT16 FAT32(VFAT)
-* ISO9660 NFS RAMFS
-* NTFS BRTFS XFS
-* ext2 ext3 ext4
+- FAT12 FAT16 FAT32(VFAT)
+- ISO9660 NFS RAMFS
+- NTFS BRTFS XFS
+- ext2 ext3 ext4
 
 还有更多, 教程就不一一列举了
 

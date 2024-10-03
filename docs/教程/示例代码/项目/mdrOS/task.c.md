@@ -292,7 +292,7 @@ int32_t user_process(char *path, char *name,char* argv,uint8_t level){ // 用户
     load_elf(ehdr,page);
 
 
-    uint32_t *stack_top = (uint32_t * )((uint32_t) new_task + STACK_SIZE); 
+    uint32_t *stack_top = (uint32_t * )((uint32_t) new_task + STACK_SIZE);
 
     *(--stack_top) = (uint32_t) main;
     //*(--stack_top) = (uint32_t) buffer;
