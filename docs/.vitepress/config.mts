@@ -485,7 +485,7 @@ export default defineConfig({
         },
       ],
       "/教程/番外": [{ text: "番外目录" }],
-      "/教程/杂项": [{ text: "其他目录" }],
+      "/教程/杂项": [{ text: "杂项目录" }],
     },
 
     socialLinks: [
