@@ -416,7 +416,7 @@ export default defineConfig({
                   text: "算法",
                   items: [
                     {
-                      text: "1.什么是算法",
+                      text: "1. 什么是算法",
                       link: "/教程/正文/数据结构与算法/算法/1_什么是算法",
                     },
                     {
