@@ -1,5 +1,6 @@
 import { defineConfig } from "vitepress";
 import mathjax3 from "markdown-it-mathjax3";
+
 const customElements = [
   "math",
   "maction",
@@ -93,6 +94,8 @@ const customElements = [
 export default defineConfig({
   title: "Mdr-C-Tutorial",
   description: "Mdr C Tutorial Repository",
+  lang: "zh-CN",
+  base: "/C/",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
