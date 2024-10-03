@@ -79,3 +79,15 @@ deps/*
 .yarn/install-state.gz
 .pnp.*
 .yarn-integrity
+
+# vitepress
+/coverage
+/src/client/shared.ts
+/src/node/shared.ts
+*.tgz
+.DS_Store
+.temp
+.vite_opt_cache
+dist
+examples-temp
+*.timestamp-*.mjs
