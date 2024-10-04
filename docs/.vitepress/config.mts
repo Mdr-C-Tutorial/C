@@ -99,9 +99,15 @@ export default defineConfig({
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
-      { text: "Home", link: "/" },
-      { text: "总纲", link: "/教程/正文/总纲" },
-      { text: "关于", link: "/About" },
+      {
+        text: "Home", link: "/"
+      },
+      {
+        text: "总纲", link: "/教程/正文/总纲"
+      },
+      {
+        text: "关于", link: "/About"
+      },
     ],
 
     sidebar: {
@@ -109,7 +115,9 @@ export default defineConfig({
         {
           text: "教程目录",
           items: [
-            { text: "总纲", link: "/教程/正文/总纲" },
+            {
+              text: "总纲", link: "/教程/正文/总纲"
+            },
             {
               text: "语法和标准库",
               items: [
@@ -410,6 +418,10 @@ export default defineConfig({
                       text: "1. ADT",
                       link: "/教程/正文/数据结构与算法/数据结构/1_ADT",
                     },
+                    {
+                      text: "2. 线性表",
+                      link: "/教程/正文/数据结构与算法/数据结构/2_线性表",
+                    }
                   ],
                 },
                 {
@@ -477,7 +489,19 @@ export default defineConfig({
                       text: "5.1 MdrOS 项目概述",
                       link: "/教程/正文/项目/MdrOS/项目概述",
                     },
+                    {
+                      text: "引言 - MdrOS",
+                      link: "/教程/正文/项目/MdrOS/root",
+                    },
+                    {
+                      text: "3. 引导程序 - MdrOS",
+                      link: "/教程/正文/项目/MdrOS/bootloader",
+                    }
                   ],
+                },
+                {
+                  text: "6. MdrHAL",
+                  items: []
                 },
               ],
             },
@@ -487,12 +511,22 @@ export default defineConfig({
           ],
         },
       ],
-      "/教程/番外": [{ text: "番外目录" }],
-      "/教程/杂项": [{ text: "杂项目录" }],
+      "/教程/番外": [
+        {
+          text: "番外目录"
+        }
+      ],
+      "/教程/杂项": [
+        {
+          text: "杂项目录"
+        }
+      ],
     },
 
     socialLinks: [
-      { icon: "github", link: "https://github.com/Mdr-C-Tutorial/C" },
+      {
+        icon: "github", link: "https://github.com/Mdr-C-Tutorial/C"
+      },
     ],
   },
   markdown: {
