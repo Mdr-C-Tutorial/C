@@ -96,6 +96,9 @@ export default defineConfig({
   description: "Mdr C Tutorial Repository",
   lang: "zh-CN",
   base: "/C/",
+  cleanUrls: true,
+  metaChunk: true,
+  lastUpdated: true,
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
