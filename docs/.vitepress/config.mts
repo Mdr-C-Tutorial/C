@@ -93,6 +93,7 @@ const customElements = [
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Mdr-C-Tutorial",
+  titleTemplate: "Mdr-C-Tutorial",
   description: "Mdr C Tutorial Repository",
   lang: "zh-CN",
   base: "/C/",
