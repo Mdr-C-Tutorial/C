@@ -420,7 +420,7 @@ export default defineConfig({
               items: [
                 {
                   text: "数据结构",
-                  collapsed: false,
+                  collapsed: true,
                   items: [
                     {
                       text: "1. ADT",
@@ -434,7 +434,7 @@ export default defineConfig({
                 },
                 {
                   text: "算法",
-                  collapsed: false,
+                  collapsed: true,
                   items: [
                     {
                       text: "1. 什么是算法",
