@@ -109,11 +109,11 @@ export default defineConfig({
       },
       {
         text: "总纲",
-        link: "/教程/正文/总纲,
+        link: "/教程/正文/总纲",
       },
       {
         text: "关于",
-        link: "/About"
+        link: "/About,
       },
     ],
 
@@ -465,8 +465,8 @@ export default defineConfig({
                     {
                       text: "1.1 Mdr Server 项目概述",
                       link: "/教程/正文/项目/Mdr_Server/项目概述"
-                    }
-                  ]
+                    },
+                  ],
                 },
                 {
                   text: "2. Mdr Chat Room",
@@ -474,8 +474,8 @@ export default defineConfig({
                     {
                       text: "2.1 Mdr Chat Room 项目概述",
                       link: "/教程/正文/项目/Mdr_Chat_Room/项目概述"
-                    }
-                  ]
+                    },
+                  ],
                 },
                 {
                   text: "3. Mdr Lang",
@@ -483,8 +483,8 @@ export default defineConfig({
                     {
                       text: "3.1 Mdr Lang 项目概述",
                       link: "/教程/正文/项目/Mdr_Lang/项目概述"
-                    }
-                  ]
+                    },
+                  ],
                 },
                 {
                   text: "4. MdrDB",
@@ -492,8 +492,8 @@ export default defineConfig({
                     {
                       text: "4.1 MdrDB 项目概述",
                       link: "/教程/正文/项目/MdrDB/项目概述"
-                    }
-                  ]
+                    },
+                  ],
                 },
                 {
                   text: "5. MdrOS",
@@ -509,13 +509,13 @@ export default defineConfig({
                     {
                       text: "3. 引导程序 - MdrOS",
                       link: "/教程/正文/项目/MdrOS/bootloader"
-                    }
-                  ]
+                    },
+                  ],
                 },
                 {
                   text: "6. MdrHAL",
                   items: []
-                }
+                },
               ],
             },
             {
