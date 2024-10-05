@@ -104,13 +104,16 @@ export default defineConfig({
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       {
-        text: "Home", link: "/"
+        text: "Home",
+        link: "/",
       },
       {
-        text: "总纲", link: "/教程/正文/总纲"
+        text: "总纲",
+        link: "/教程/正文/总纲,
       },
       {
-        text: "关于", link: "/About"
+        text: "关于",
+        link: "/About"
       },
     ],
 
@@ -120,10 +123,12 @@ export default defineConfig({
           text: "教程目录",
           items: [
             {
-              text: "总纲", link: "/教程/正文/总纲"
+              text: "总纲",
+              link: "/教程/正文/总纲"
             },
             {
               text: "语法和标准库",
+              collapsed: false,
               items: [
                 {
                   text: "1. 在开始编程之前",
@@ -131,6 +136,7 @@ export default defineConfig({
                 },
                 {
                   text: "2. 初识 C",
+
                   items: [
                     {
                       text: "2.1 一个简单的 C 程序",
@@ -160,6 +166,7 @@ export default defineConfig({
                 },
                 {
                   text: "3. 基本概念",
+
                   items: [
                     {
                       text: "3.1 行为",
@@ -178,8 +185,7 @@ export default defineConfig({
                 {
                   text: "4. 表达式",
                   link: "/教程/正文/语法和标准库/4_表达式",
-                },
-                {
+
                   items: [
                     {
                       text: "4.1 运算符",
@@ -214,8 +220,6 @@ export default defineConfig({
                 {
                   text: "6. 函数",
                   link: "/教程/正文/语法和标准库/6_函数",
-                },
-                {
                   items: [
                     {
                       text: "6.1 函数声明和定义",
@@ -238,8 +242,7 @@ export default defineConfig({
                 {
                   text: "8. 指针",
                   link: "/教程/正文/语法和标准库/8_指针",
-                },
-                {
+
                   items: [
                     {
                       text: "8.1 restrict",
@@ -250,8 +253,7 @@ export default defineConfig({
                 {
                   text: "9. 声明",
                   link: "/教程/正文/语法和标准库/9_声明",
-                },
-                {
+
                   items: [
                     {
                       text: "9.1 const volatile",
@@ -262,8 +264,7 @@ export default defineConfig({
                 {
                   text: "10. 结构体",
                   link: "/教程/正文/语法和标准库/10_结构体",
-                },
-                {
+
                   items: [
                     {
                       text: "10.1 结构体对齐",
@@ -285,12 +286,12 @@ export default defineConfig({
                 },
                 {
                   text: "12. 对象",
+
                   items: [
                     {
                       text: "12.1 对象表示",
-                      link: "/教程/正文/语法和标准库/12_对象/12_1_对象表示"
-                    },
-                    {
+                      link: "/教程/正文/语法和标准库/12_对象/12_1_对象表示",
+
                       items: [
                         {
                           text: "12.1.1 内存对齐",
@@ -354,6 +355,7 @@ export default defineConfig({
                 },
                 {
                   text: "24. 标准库",
+
                   items: [
                     {
                       text: "24.1 标准库介绍",
@@ -413,9 +415,11 @@ export default defineConfig({
             },
             {
               text: "数据结构与算法",
+
               items: [
                 {
                   text: "数据结构",
+
                   items: [
                     {
                       text: "1. ADT",
@@ -424,11 +428,12 @@ export default defineConfig({
                     {
                       text: "2. 线性表",
                       link: "/教程/正文/数据结构与算法/数据结构/2_线性表",
-                    }
+                    },
                   ],
                 },
                 {
                   text: "算法",
+
                   items: [
                     {
                       text: "1. 什么是算法",
@@ -448,67 +453,69 @@ export default defineConfig({
             },
             {
               text: "项目",
-              items: [{
-                text: "项目结构",
-                link: "/教程/正文/项目/项目结构",
-              },
-              {
-                text: "1. Mdr Server",
-                items: [
-                  {
-                    text: "1.1 Mdr Server 项目概述",
-                    link: "/教程/正文/项目/Mdr_Server/项目概述",
-                  },
-                ],
-              },
-              {
-                text: "2. Mdr Chat Room",
-                items: [
-                  {
-                    text: "2.1 Mdr Chat Room 项目概述",
-                    link: "/教程/正文/项目/Mdr_Chat_Room/项目概述",
-                  },
-                ],
-              },
-              {
-                text: "3. Mdr Lang",
-                items: [
-                  {
-                    text: "3.1 Mdr Lang 项目概述",
-                    link: "/教程/正文/项目/Mdr_Lang/项目概述",
-                  },
-                ],
-              },
-              {
-                text: "4. MdrDB",
-                items: [
-                  {
-                    text: "4.1 MdrDB 项目概述",
-                    link: "/教程/正文/项目/MdrDB/项目概述",
-                  },
-                ],
-              },
-              {
-                text: "5. MdrOS",
-                items: [
-                  {
-                    text: "5.1 MdrOS 项目概述",
-                    link: "/教程/正文/项目/MdrOS/项目概述",
-                  },
-                  {
-                    text: "5.2 引言 - MdrOS",
-                    link: "/教程/正文/项目/MdrOS/root",
-                  },
-                  {
-                    text: "3. 引导程序 - MdrOS",
-                    link: "/教程/正文/项目/MdrOS/bootloader",
-                  }
-                ],
-              },
-              {
-                text: "6. MdrHAL",
-                items: []
-              },
+
+              items: [
+                {
+                  text: "项目结构",
+                  link: "/教程/正文/项目/项目结构"
+                },
+                {
+                  text: "1. Mdr Server",
+                  items: [
+                    {
+                      text: "1.1 Mdr Server 项目概述",
+                      link: "/教程/正文/项目/Mdr_Server/项目概述"
+                    }
+                  ]
+                },
+                {
+                  text: "2. Mdr Chat Room",
+                  items: [
+                    {
+                      text: "2.1 Mdr Chat Room 项目概述",
+                      link: "/教程/正文/项目/Mdr_Chat_Room/项目概述"
+                    }
+                  ]
+                },
+                {
+                  text: "3. Mdr Lang",
+                  items: [
+                    {
+                      text: "3.1 Mdr Lang 项目概述",
+                      link: "/教程/正文/项目/Mdr_Lang/项目概述"
+                    }
+                  ]
+                },
+                {
+                  text: "4. MdrDB",
+                  items: [
+                    {
+                      text: "4.1 MdrDB 项目概述",
+                      link: "/教程/正文/项目/MdrDB/项目概述"
+                    }
+                  ]
+                },
+                {
+                  text: "5. MdrOS",
+                  items: [
+                    {
+                      text: "5.1 MdrOS 项目概述",
+                      link: "/教程/正文/项目/MdrOS/项目概述"
+                    },
+                    {
+                      text: "5.2 引言 - MdrOS",
+                      link: "/教程/正文/项目/MdrOS/root"
+                    },
+                    {
+                      text: "3. 引导程序 - MdrOS",
+                      link: "/教程/正文/项目/MdrOS/bootloader"
+                    }
+                  ]
+                },
+                {
+                  text: "6. MdrHAL",
+                  items: []
+                }
               ],
             },
             {
@@ -520,18 +527,19 @@ export default defineConfig({
       "/教程/番外": [
         {
           text: "番外目录"
-        }
+        },
       ],
       "/教程/杂项": [
         {
           text: "杂项目录"
-        }
+        },
       ],
     },
 
     socialLinks: [
       {
-        icon: "github", link: "https://github.com/Mdr-C-Tutorial/C"
+        icon: "github",
+        link: "https://github.com/Mdr-C-Tutorial/C"
       },
     ],
   },
