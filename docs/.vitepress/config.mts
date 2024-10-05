@@ -113,7 +113,7 @@ export default defineConfig({
       },
       {
         text: "关于",
-        link: "/About,
+        link: "/About",
       },
     ],
 
@@ -124,7 +124,7 @@ export default defineConfig({
           items: [
             {
               text: "总纲",
-              link: "/教程/正文/总纲"
+              link: "/教程/正文/总纲",
             },
             {
               text: "语法和标准库",
@@ -457,14 +457,14 @@ export default defineConfig({
               items: [
                 {
                   text: "项目结构",
-                  link: "/教程/正文/项目/项目结构"
+                  link: "/教程/正文/项目/项目结构",
                 },
                 {
                   text: "1. Mdr Server",
                   items: [
                     {
                       text: "1.1 Mdr Server 项目概述",
-                      link: "/教程/正文/项目/Mdr_Server/项目概述"
+                      link: "/教程/正文/项目/Mdr_Server/项目概述",
                     },
                   ],
                 },
@@ -473,7 +473,7 @@ export default defineConfig({
                   items: [
                     {
                       text: "2.1 Mdr Chat Room 项目概述",
-                      link: "/教程/正文/项目/Mdr_Chat_Room/项目概述"
+                      link: "/教程/正文/项目/Mdr_Chat_Room/项目概述",
                     },
                   ],
                 },
@@ -482,7 +482,7 @@ export default defineConfig({
                   items: [
                     {
                       text: "3.1 Mdr Lang 项目概述",
-                      link: "/教程/正文/项目/Mdr_Lang/项目概述"
+                      link: "/教程/正文/项目/Mdr_Lang/项目概述",
                     },
                   ],
                 },
@@ -491,7 +491,7 @@ export default defineConfig({
                   items: [
                     {
                       text: "4.1 MdrDB 项目概述",
-                      link: "/教程/正文/项目/MdrDB/项目概述"
+                      link: "/教程/正文/项目/MdrDB/项目概述",
                     },
                   ],
                 },
@@ -500,21 +500,21 @@ export default defineConfig({
                   items: [
                     {
                       text: "5.1 MdrOS 项目概述",
-                      link: "/教程/正文/项目/MdrOS/项目概述"
+                      link: "/教程/正文/项目/MdrOS/项目概述",
                     },
                     {
                       text: "5.2 引言 - MdrOS",
-                      link: "/教程/正文/项目/MdrOS/root"
+                      link: "/教程/正文/项目/MdrOS/root",
                     },
                     {
                       text: "3. 引导程序 - MdrOS",
-                      link: "/教程/正文/项目/MdrOS/bootloader"
+                      link: "/教程/正文/项目/MdrOS/bootloader",
                     },
                   ],
                 },
                 {
                   text: "6. MdrHAL",
-                  items: []
+                  items: [],
                 },
               ],
             },
@@ -526,12 +526,12 @@ export default defineConfig({
       ],
       "/教程/番外": [
         {
-          text: "番外目录"
+          text: "番外目录",
         },
       ],
       "/教程/杂项": [
         {
-          text: "杂项目录"
+          text: "杂项目录",
         },
       ],
     },
@@ -539,7 +539,7 @@ export default defineConfig({
     socialLinks: [
       {
         icon: "github",
-        link: "https://github.com/Mdr-C-Tutorial/C"
+        link: "https://github.com/Mdr-C-Tutorial/C",
       },
     ],
   },
