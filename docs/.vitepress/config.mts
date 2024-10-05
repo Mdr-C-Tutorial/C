@@ -109,11 +109,11 @@ export default defineConfig({
       },
       {
         text: "总纲",
-        link: "/教程/正文/总纲,
+        link: "/教程/正文/总纲",
       },
       {
         text: "关于",
-        link: "/About"
+        link: "/About",
       },
     ],
 
@@ -124,7 +124,7 @@ export default defineConfig({
           items: [
             {
               text: "总纲",
-              link: "/教程/正文/总纲"
+              link: "/教程/正文/总纲",
             },
             {
               text: "语法和标准库",
@@ -458,7 +458,7 @@ export default defineConfig({
               items: [
                 {
                   text: "项目结构",
-                  link: "/教程/正文/项目/1_项目结构"
+                  link: "/教程/正文/项目/1_项目结构",
                 },
                 {
                   text: "Mdr Server",
@@ -466,9 +466,9 @@ export default defineConfig({
                   items: [
                     {
                       text: "1. 项目概述 - Mdr Server",
-                      link: "/教程/正文/项目/Mdr_Server/项目概述"
-                    }
-                  ]
+                      link: "/教程/正文/项目/Mdr_Server/项目概述",
+                    },
+                  ],
                 },
                 {
                   text: "Mdr Chat Room",
@@ -476,9 +476,9 @@ export default defineConfig({
                   items: [
                     {
                       text: "1. 项目概述 - Mdr Chat Room",
-                      link: "/教程/正文/项目/Mdr_Chat_Room/项目概述"
-                    }
-                  ]
+                      link: "/教程/正文/项目/Mdr_Chat_Room/项目概述",
+                    },
+                  ],
                 },
                 {
                   text: "Mdr Lang",
@@ -486,9 +486,9 @@ export default defineConfig({
                   items: [
                     {
                       text: "1. 项目概述 - Mdr Lang",
-                      link: "/教程/正文/项目/Mdr_Lang/项目概述"
-                    }
-                  ]
+                      link: "/教程/正文/项目/Mdr_Lang/项目概述",
+                    },
+                  ],
                 },
                 {
                   text: "MdrDB",
@@ -496,9 +496,9 @@ export default defineConfig({
                   items: [
                     {
                       text: "1. 项目概述 - MdrDB",
-                      link: "/教程/正文/项目/MdrDB/项目概述"
-                    }
-                  ]
+                      link: "/教程/正文/项目/MdrDB/项目概述",
+                    },
+                  ],
                 },
                 {
                   text: "MdrOS",
@@ -506,40 +506,40 @@ export default defineConfig({
                   items: [
                     {
                       text: "1. 项目概述 - MdrOS",
-                      link: "/教程/正文/项目/MdrOS/项目概述"
+                      link: "/教程/正文/项目/MdrOS/项目概述",
                     },
                     {
                       text: "2. 引言 - MdrOS",
-                      link: "/教程/正文/项目/MdrOS/root"
+                      link: "/教程/正文/项目/MdrOS/root",
                     },
                     {
                       text: "3. 引导程序 - MdrOS",
-                      link: "/教程/正文/项目/MdrOS/bootloader"
-                    }
-                  ]
+                      link: "/教程/正文/项目/MdrOS/bootloader",
+                    },
+                  ],
                 },
                 {
                   text: "6. MdrHAL",
                   collapsed: true,
-                  items: []
-                }
+                  items: [],
+                },
               ],
             },
             {
               text: "嵌入式",
-              collapsed: true
+              collapsed: true,
             },
           ],
         },
       ],
       "/教程/番外": [
         {
-          text: "番外目录"
+          text: "番外目录",
         },
       ],
       "/杂项": [
         {
-          text: "杂项目录"
+          text: "杂项目录",
         },
       ],
     },
@@ -547,7 +547,7 @@ export default defineConfig({
     socialLinks: [
       {
         icon: "github",
-        link: "https://github.com/Mdr-C-Tutorial/C"
+        link: "https://github.com/Mdr-C-Tutorial/C",
       },
     ],
   },
