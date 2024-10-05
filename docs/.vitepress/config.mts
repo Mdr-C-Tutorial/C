@@ -450,53 +450,53 @@ export default defineConfig({
               text: "项目",
               items: [{
                 text: "项目结构",
-                link: "/教程/正文/项目/项目结构",
+                link: "/教程/正文/项目/1_项目结构",
               },
               {
-                text: "1. Mdr Server",
+                text: "Mdr Server",
                 items: [
                   {
-                    text: "1.1 Mdr Server 项目概述",
+                    text: "1. 项目概述 - Mdr Server",
                     link: "/教程/正文/项目/Mdr_Server/项目概述",
                   },
                 ],
               },
               {
-                text: "2. Mdr Chat Room",
+                text: "Mdr Chat Room",
                 items: [
                   {
-                    text: "2.1 Mdr Chat Room 项目概述",
+                    text: "1. 项目概述 - Mdr Chat Room",
                     link: "/教程/正文/项目/Mdr_Chat_Room/项目概述",
                   },
                 ],
               },
               {
-                text: "3. Mdr Lang",
+                text: "Mdr Lang",
                 items: [
                   {
-                    text: "3.1 Mdr Lang 项目概述",
+                    text: "1. 项目概述 - Mdr Lang",
                     link: "/教程/正文/项目/Mdr_Lang/项目概述",
                   },
                 ],
               },
               {
-                text: "4. MdrDB",
+                text: "MdrDB",
                 items: [
                   {
-                    text: "4.1 MdrDB 项目概述",
+                    text: "1. 项目概述 - MdrDB",
                     link: "/教程/正文/项目/MdrDB/项目概述",
                   },
                 ],
               },
               {
-                text: "5. MdrOS",
+                text: "MdrOS",
                 items: [
                   {
-                    text: "5.1 MdrOS 项目概述",
+                    text: "1. 项目概述 - MdrOS",
                     link: "/教程/正文/项目/MdrOS/项目概述",
                   },
                   {
-                    text: "5.2 引言 - MdrOS",
+                    text: "2. 引言 - MdrOS",
                     link: "/教程/正文/项目/MdrOS/root",
                   },
                   {
@@ -522,7 +522,7 @@ export default defineConfig({
           text: "番外目录"
         }
       ],
-      "/教程/杂项": [
+      "/杂项": [
         {
           text: "杂项目录"
         }
