@@ -284,11 +284,10 @@ export default defineConfig({
                   items: [
                     {
                       text: "12.1 对象表示",
+                      link: "/教程/正文/语法和标准库/12_对象/12_1_对象表示"
+                    },
+                    {
                       items: [
-                        {
-                          text: "12.0 对象表示 - 概述",
-                          link: "/教程/正文/语法和标准库/12_对象/12_1_对象表示",
-                        },
                         {
                           text: "12.1.1 内存对齐",
                           link: "/教程/正文/语法和标准库/12_对象/12_1_对象表示/12_1_1_内存对齐.md",
@@ -445,64 +444,67 @@ export default defineConfig({
             },
             {
               text: "项目",
-              items: [
-                {
-                  text: "1. Mdr Server",
-                  items: [
-                    {
-                      text: "1.1 Mdr Server 项目概述",
-                      link: "/教程/正文/项目/Mdr_Server/项目概述",
-                    },
-                  ],
-                },
-                {
-                  text: "2. Mdr Chat Room",
-                  items: [
-                    {
-                      text: "2.1 Mdr Chat Room 项目概述",
-                      link: "/教程/正文/项目/Mdr_Chat_Room/项目概述",
-                    },
-                  ],
-                },
-                {
-                  text: "3. Mdr Lang",
-                  items: [
-                    {
-                      text: "3.1 Mdr Lang 项目概述",
-                      link: "/教程/正文/项目/Mdr_Lang/项目概述",
-                    },
-                  ],
-                },
-                {
-                  text: "4. MdrDB",
-                  items: [
-                    {
-                      text: "4.1 MdrDB 项目概述",
-                      link: "/教程/正文/项目/MdrDB/项目概述",
-                    },
-                  ],
-                },
-                {
-                  text: "5. MdrOS",
-                  items: [
-                    {
-                      text: "5.1 MdrOS 项目概述",
-                      link: "/教程/正文/项目/MdrOS/项目概述",
-                    },
-                    {
-                      text: "引言 - MdrOS",
-                      link: "/教程/正文/项目/MdrOS/root",
-                    },
-                    {
-                      text: "3. 引导程序 - MdrOS",
-                      link: "/教程/正文/项目/MdrOS/bootloader",
-                    }
-                  ],
-                },
-                {
-                  text: "6. MdrHAL",
-                  items: []
-                },
+              items: [{
+                text: "项目结构",
+                link: "/教程/正文/项目/项目结构",
+              },
+              {
+                text: "1. Mdr Server",
+                items: [
+                  {
+                    text: "1.1 Mdr Server 项目概述",
+                    link: "/教程/正文/项目/Mdr_Server/项目概述",
+                  },
+                ],
+              },
+              {
+                text: "2. Mdr Chat Room",
+                items: [
+                  {
+                    text: "2.1 Mdr Chat Room 项目概述",
+                    link: "/教程/正文/项目/Mdr_Chat_Room/项目概述",
+                  },
+                ],
+              },
+              {
+                text: "3. Mdr Lang",
+                items: [
+                  {
+                    text: "3.1 Mdr Lang 项目概述",
+                    link: "/教程/正文/项目/Mdr_Lang/项目概述",
+                  },
+                ],
+              },
+              {
+                text: "4. MdrDB",
+                items: [
+                  {
+                    text: "4.1 MdrDB 项目概述",
+                    link: "/教程/正文/项目/MdrDB/项目概述",
+                  },
+                ],
+              },
+              {
+                text: "5. MdrOS",
+                items: [
+                  {
+                    text: "5.1 MdrOS 项目概述",
+                    link: "/教程/正文/项目/MdrOS/项目概述",
+                  },
+                  {
+                    text: "5.2 引言 - MdrOS",
+                    link: "/教程/正文/项目/MdrOS/root",
+                  },
+                  {
+                    text: "3. 引导程序 - MdrOS",
+                    link: "/教程/正文/项目/MdrOS/bootloader",
+                  }
+                ],
+              },
+              {
+                text: "6. MdrHAL",
+                items: []
+              },
               ],
             },
             {
