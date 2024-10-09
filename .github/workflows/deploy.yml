@@ -36,6 +36,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: latest
+          node-version-file: package.json
       - name: Setup yarn
         run: |
           corepack enable
@@ -43,9 +44,9 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Install dependencies
-        run: npm install
+        run: yarn install
       - name: Build with VitePress
-        run: npm run docs:build
+        run: yarn run docs:build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
