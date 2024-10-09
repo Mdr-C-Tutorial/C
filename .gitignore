@@ -79,7 +79,6 @@ deps/*
 .yarn/install-state.gz
 .pnp.*
 .yarn-integrity
-yarn.lock
 
 # vitepress
 /coverage
