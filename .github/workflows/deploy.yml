@@ -34,7 +34,7 @@ jobs:
       - name: Setup yarn
         run: |
           corepack enable
-          yarn set version latest
+          yarn set version stable
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Install dependencies
