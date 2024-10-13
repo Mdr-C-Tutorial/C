@@ -21,10 +21,10 @@ hero:
       link: http://localhost:3000
 
 features:
-  - title: Feature A
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature B
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
-  - title: Feature C
-    details: Lorem ipsum dolor sit amet, consectetur adipiscing elit
+  - title: 内容全面
+    details: 涵盖语言，数据结构与算法，项目，嵌入式等内容
+  - title: 代码丰富
+    details: 每个知识点或项目案例都有详细完整的示例代码
+  - title: 与时俱进
+    details: 使用最新的语言标准和技术栈
 ---
