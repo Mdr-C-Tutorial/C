@@ -143,3 +143,4 @@ int main(int argc, char* argv[]){
 - [**_Let's Build a Simple Database_**](https://cstack.github.io/db_tutorial/)
 - [**_pldocs_**](https://github.com/FrankHB/pl-docs/blob/master/zh-CN)
 - **_陶哲轩实分析_** （ISBN 978-7-115-48025-5）
+- [**OSDEV.org**](https://wiki.osdev.org/)
