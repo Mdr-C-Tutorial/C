@@ -18,7 +18,7 @@ hero:
       link: /杂项/总纲
     - theme: alt
       text: 返回官网
-      link: http://localhost:3000
+      link: http://mdr.aymao.com
 
 features:
   - title: 内容全面
