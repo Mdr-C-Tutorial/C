@@ -364,7 +364,7 @@ export default defineConfig({
                     },
                     {
                       text: "24.2 独立 宿主实现",
-                      link: "/教程/正文/语法和标准库/24_C标准库/24_2_freestanding 宿主实现",
+                      link: "/教程/正文/语法和标准库/24_C标准库/24_2_freestanding_宿主实现",
                     },
                     {
                       text: "24.3 预定义宏",

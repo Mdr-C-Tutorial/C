@@ -1,6 +1,6 @@
 # 关于本教程
 
-1. 本教程由 GitHub Organization [**Mdr-C-Tutorial**](https://github.com/Mdr-C-Tutorial) 出品，同时在弹幕视频网站 [BiliBili](https://www.bilibili.com/) 和 [YouTube](https://youtube.com/) 发布讲解视频（预计 2027 年寒假开始更新），所有讲义，示例代码及视频均 **免费**。  
+1. 本教程由 GitHub Organization [**Mdr-C-Tutorial**](https://github.com/Mdr-C-Tutorial) 出品，同时在弹幕视频网站 [BiliBili](https://www.bilibili.com/) 和 [YouTube](https://youtube.com/) 发布讲解视频（预计 2027 年寒假开始更新），所有讲义，示例代码及视频均**免费**。  
    如发现有人售卖本教程，请与 mdr 联系。  
    推荐读者将本教程仓库 Clone 至本地，并使用 [Typora](https://typora.io/) 或 [VS Code](https://code.visualstudio.com/) 或 [Obsidian](https://obsidian.md/) 进行阅读，以正常渲染 Markdown 与内嵌 $L^AT_EX$ 公式。
 2. 本教程官方 QQ 群 [**885719573** ![mdr 的 Coding 小窝](https://pub.idqqimg.com/wpa/images/group.png)](https://qm.qq.com/cgi-bin/qm/qr?k=BdVPqTXYNclTbEJ_hr2SQiw_s6HbMKv8&jump_from=webapi&authKey=UY6WSOF1GJQF/32XY/CHluyWUhnS3k3YSga8S0/kIKtcAyqWs+5Ek8RPuWVAVcon)欢迎进入 QQ 群交流编程，一同成长！  
@@ -13,7 +13,7 @@
    每个正式的 C 标准出版后，MCT 会对仓库进行及时的扩充和修改，同时在视频网站发布相应视频，以全面正确地讲解新版本内容。
 5. 任何组织和个人均可在任何场合引用本教程的任何内容，无需标明出处。
 6. 本教程拟搭建官网（目前讲义部署在 [**GitHub Pages**](https://mdr.aymao.com/C/)）。  
-   官网正在编写，仓库在这里 [**前端仓库**](https://github.com/Mdr-C-Tutorial/WebSite)  
+   官网正在编写，仓库在这里：[**前端仓库**](https://github.com/Mdr-C-Tutorial/WebSite)  
    官网不设置打赏渠道，如果真心想打赏请在 QQ 群里给群主发红包 :)
 7. Mdr-C-Tutorial 急需 logo。
 8. 对于目前大学本科 C 语言课程教学中的一些怪现状，如：
