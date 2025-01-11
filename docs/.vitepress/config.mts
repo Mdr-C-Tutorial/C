@@ -545,7 +545,29 @@ export default defineConfig({
       "/教程/题解": [
         {
           text: "习题答案及解析",
-        }
+          items: [
+            {
+              text: "快速导航",
+              link: "/教程/题解/快速导航"
+            },
+            {
+              text: "[1] 语法和标准库",
+              collapsed: false,
+              items: [
+                {
+                  text: "[101] 在开始编程之前",
+                  collapsed: true,
+                  items: [
+                    {
+                      text: "10101",
+                      link: "/教程/题解/语法和标准库/在开始编程之前/10101",
+                    },
+                  ],
+                }
+              ],
+            },
+          ],
+        },
       ],
     },
 
