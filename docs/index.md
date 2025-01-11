@@ -11,6 +11,9 @@ hero:
       text: 正文
       link: /教程/正文/总纲
     - theme: alt
+      text: 习题答案
+      link: /教程/题解/总纲
+    - theme: alt
       text: 番外
       link: /教程/番外/总纲
     - theme: alt

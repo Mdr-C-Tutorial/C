@@ -542,6 +542,11 @@ export default defineConfig({
           text: "杂项目录",
         },
       ],
+      "/教程/题解": [
+        {
+          text: "习题答案及解析",
+        }
+      ],
     },
 
     socialLinks: [
