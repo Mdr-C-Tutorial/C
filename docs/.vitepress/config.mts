@@ -508,14 +508,6 @@ export default defineConfig({
                       text: "1. 项目概述 - MdrOS",
                       link: "/教程/正文/项目/MdrOS/项目概述",
                     },
-                    {
-                      text: "2. 引言 - MdrOS",
-                      link: "/教程/正文/项目/MdrOS/root",
-                    },
-                    {
-                      text: "3. 引导程序 - MdrOS",
-                      link: "/教程/正文/项目/MdrOS/bootloader",
-                    },
                   ],
                 },
                 {
