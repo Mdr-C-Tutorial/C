@@ -30,96 +30,12 @@
 - 段界限(20位)，占据描述符的第0～15位和第48～51位，前者存储低16位，后者存储高4位。
 - 段属性(12位)，占据描述符的第39～47位和第49～55位，段属性可以细分为8种：TYPE属性、S属性、DPL属性、P属性、AVL属性、L属性、D/B属性和G属性。
 
-### 如何配置
+#### 段寄存器
 
-在32位保护模式下, GDT的配置是必须的。这里我们用C配置一个简易的GDT, 方便我们后期使用分页式内存管理
+使用 `lgdt` 指令加载 gdt 后, 一般情况下您还需要初始化段寄存器
 
-1. 结构体声明
-
-在`description_table.h`头文件中声明
-
-    ```c
-    #define GDT_LENGTH 6
-
-    #define SA_RPL3 3
-
-    typedef struct gdt_entry_t {
-        uint16_t limit_low;           // 段基址 | 低16位置
-        uint16_t base_low;            // 段基址 | 高16位置
-        uint8_t base_middle;
-        uint8_t access;
-        uint8_t granularity;
-        uint8_t base_high;
-    } __attribute__((packed)) gdt_entry_t;
-
-    typedef struct gdt_ptr_t {
-        uint16_t limit;
-        uint32_t base;
-    } __attribute__((packed)) gdt_ptr_t;
-
-
-    void gdt_install();
-    ```
-
-2. 源文件
-
-在`gdt.c`中声明
-
-    ```c
-    #include "description_table.h"
-
-    gdt_entry_t gdt_entries[GDT_LENGTH];
-    gdt_ptr_t gdt_ptr;
-    ```
-
-3. 各种函数实现
-
-   ```c
-   void gdt_set_gate(uint32_t num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
-       gdt_entries[num].base_low     = (base & 0xFFFF);
-       gdt_entries[num].base_middle  = (base >> 16) & 0xFF;
-       gdt_entries[num].base_high    = (base >> 24) & 0xFF;
-
-       gdt_entries[num].limit_low    = (limit & 0xFFFF);
-       gdt_entries[num].granularity  = (limit >> 16) & 0x0F;
-
-       gdt_entries[num].granularity |= gran & 0xF0;
-       gdt_entries[num].access       = access;
-   }
-
-   void gdt_install() {
-       gdt_ptr.limit = sizeof(gdt_entry_t) * GDT_LENGTH - 1;
-       gdt_ptr.base = (uint32_t)&gdt_entries;
-
-       gdt_set_gate(0, 0, 0, 0, 0);   // 按照 Intel 文档要求，第一个描述符必须全 0
-       gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF);     // 指令段
-       gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF);     // 数据段
-       gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF);     // 用户模式代码段
-       gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF);     // 用户模式数据段
-
-       gdt_flush((uint32_t)&gdt_ptr);
-   }
-   ```
-
-4. `gdt_flush` 的汇编函数实现
-
-   ```asm
-   [global gdt_flush]
-
-   gdt_flush: ; void gdt_flush(uint32_t gdtr);
-       mov eax, [esp + 4] ; [esp+4]按规定是第一个参数，即gdtr
-       lgdt [eax] ; 加载新gdt指针，传入的是地址
-
-       mov ax, 0x10 ; 新数据段
-       mov ds, ax
-       mov es, ax
-       mov fs, ax
-       mov gs, ax
-       mov ss, ax ; 各数据段全部划给这一数据段
-       jmp 0x08:.flush ; cs没法mov，只能用farjmp/farcall，这里用farjmp刷新cs
-   .flush:
-       ret ; 刷新完毕，返回
-   ```
+* `ds` `fs` `gs` `es` `ss` 段寄存器需要初始化为 `0x10`
+* `cs` 段寄存器无法直接初始化,您需要段跳转等方式
 
 ## 分页式内存管理
 
@@ -150,14 +66,6 @@ MMU依赖于页表来进行一切与页面有关的管理活动，这些活动�
 
 > 页框不止可以以4kb为大小, 你也可以设置为4MB、1GB等大小。但是那样的页太大了,一般用于64位更大的内存上管理
 
-由于C代码对于内存管理整个模块的耦合性较高, 无法单独将代码片段完整展示出来。故列出了所有的源文件
-
-- [**kheap.c**](/教程/示例代码/项目/mdrOS/kheap.c) 内核堆实现
-- [**page.c**](/教程/示例代码/项目/mdrOS/page.c) 分页实现
-- [**memory.h**](/教程/示例代码/项目/mdrOS/memory.h) 各种结构的预定义
-- [**memory.c**](/教程/示例代码/项目/mdrOS/memory.c) 常用内存操作函数
-
-> 其中可以删除有关task的代码, 该代码是多进程的一部分实现。我们没进行到多进程那一步可以先不用,
 > 现在首要任务是确保我们所写的分页式内存管理可用
 
 ## 堆内存管理
@@ -168,5 +76,3 @@ MMU依赖于页表来进行一切与页面有关的管理活动，这些活动�
 
 - `void* malloc(size_t size);` 向OS申请分配一段指定大小的内存
 - `void free(void* ptr);` 释放一块已分配的内存
-
-> 什么? 你问我`realloc`函数怎么不在内, 哦这个其实可以你自己实现,并不需要通过操作系统给你提供API

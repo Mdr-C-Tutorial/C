@@ -106,8 +106,7 @@
    ```
 
 > 什么? 你问我printf函数怎么实现?\
-> 别着急, 请看下面
-> [MdrOS的printf函数实现](/教程/示例代码/项目/mdrOS/printf.c)
+> 我们推荐您使用 stb_sprintf 库
 
 ## VBE (VESA BIOS EXTENSION) VESA BIOS扩展
 
@@ -130,8 +129,17 @@
 > 以LegacyBIOS为例,我们刚进入引导一般都是VGA模式,这种显示模式的功能非常有限,只能打印字符和少许的颜色
 > 而进入VBE高分辨率显示模式,我们可以自由绘画图形, 可以显示的颜色升级为RGB
 
-1. 在16位实模式中开启VBE显示模式
+一般情况下诸如 `grub` `limine` 这些引导程序会判断内核头给出的信息,以决定是否启用vbe高分辨率显示模式. 
+<br>
+通常这些引导程序使用的引导规范会给出 vbe 显示模式的信息(屏幕长/宽/位深/显存基址)
 
-   ```c
+::: tip 小贴士
 
-   ```
+如果您没有打算自己编写一整套适用于VBE的终端, `plos-clan` 社区提供了 
+* `os_terminal` 一款适用于自制操作系统的虚拟终端,支持绝大部分常用的VT100控制字符
+
+[GitHub - plos-clan/os_terminal](https://github.com/plos-clan/libos-terminal/releases)
+
+酌情下载发行版并当作静态库链接至您的内核即可
+
+:::

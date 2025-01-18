@@ -14,7 +14,6 @@
 > 操作系统的初始化等工作由该进程完成(在多核中由CPU0的IDLE进程完成,且有几个CPU核心就有几个IDLE进程) \
 > 在操作系统内核初始化完成后该进程并不会销毁,而是循环执行`hlt`以降低CPU功耗
 
-- CoolPotOS的系统进程创建 [task.c kernel_thread(line:322)](/教程/示例代码/项目/mdrOS/task.c#L322)
 
 ## 用户进程
 
@@ -25,12 +24,11 @@
 - 涉及特权级切换时, 内核必须配置TSS(Task Statu Segments : 任务状态段), 该结构是`GDT`的一个段描述符
 - 每个用户进程会在内核有一块单独的栈, 该栈用于用户进程系统调用时候存储`R0`特权级执行时产生的各种数据
 
-> 在CoolPotOS中, 用户进程在刚创建时是R0特权级, 这时候内核会往该进程的栈中插入一个名为`switch_to_user_mode`
+> 在CP_Kernel内核中, 用户进程在刚创建时是R0特权级, 这时候内核会往该进程的栈中插入一个名为`switch_to_user_mode`
 > 的函数并传入真正的用户程序入口地址 \
 > `switch_to_user_mode`函数负责初始化进入`R3`前各种寄存器的值 \
 > 最后使用`iret`指令跳转到用户程序入口地址, 这个时候就切换至`R3`特权级了
 
-- CoolPotOS的用户进程创建 [task.c kernel_thread(line:205)](/教程/示例代码/项目/mdrOS/task.c#L205)
 
 ### TSS
 
@@ -44,33 +42,11 @@ PCB相比TSS拥有更快的任务切换速度, 且可以自定义多种进程私
 
 ## 任务调度
 
-任务调度有很多方式(抢占式调度/顺序调度), 内核会使用合理的方式分配给这些任务一定的CPU时间片, 一旦过了该任务的CPU时间片就会触发该任务调度
+任务调度有很多方式, 内核会使用合理的方式分配给这些任务一定的CPU时间片, 一旦过了该任务的CPU时间片就会触发该任务调度.
 
-> 在用户程序发生系统调用时禁止进行该CPU的任务切换, 不然syscall无法正确返回
+一个好的任务调度器可以大幅度提高应用程序的运行速度, 提高硬件资源的利用效率
 
-进程切换过程中, 需要切换的寄存器可以参考TSS的结构, 以下展示了进程如何切换上下文
-
-```c
-struct context{
-    uint32_t esp;
-    uint32_t ebp;
-    uint32_t ebx;
-    uint32_t esi;
-    uint32_t edi;
-    uint32_t ecx;
-    uint32_t edx;
-    uint32_t eflags;
-
-    uint32_t eax;
-    uint32_t eip;
-    uint32_t ds;
-    uint32_t cs;
-    uint32_t ss;
-    fpu_regs_t fpu_regs; // FPU 标记, 是否启用FPU
-};
-```
-
-- CoolPotOS的顺序任务调度 [task.c kernel_thread(line:167)](/教程/示例代码/项目/mdrOS/task.c#L167)
+进程切换过程中, 需要切换的寄存器可以参考TSS的结构.
 
 ## 补充
 
@@ -81,5 +57,3 @@ struct context{
 - 线程与进程的区别 \
   线程在上下文切换的寄存器要比进程少(只会切换`esp` `ebp` `eax` `ebx`等寄存器), \
   所以线程之间的资源可以共享。
-
-- 有关于更多的`syscall`系统调用的信息, 请参考[**用户程序**](/教程/正文/项目/MdrOS/application.md)部分。
