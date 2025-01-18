@@ -6,14 +6,11 @@ on:
 
   workflow_dispatch:
 
-# 设置 GITHUB_TOKEN 的权限，以允许部署到 GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# 只允许同时进行一次部署，跳过正在运行和最新队列之间的运行队列
-# 但是，不要取消正在进行的运行，因为我们希望允许这些生产部署完成
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -24,23 +21,39 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+          
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: latest
           node-version-file: package.json
+          check-latest: true
+                    
       - name: Setup yarn
         run: |
           corepack enable
           yarn set version stable
+          
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        
+      - name: Get yarn cachedir
+        id: yarn-cachedir
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+        
+      - name: Cache yarn
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cachedir.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+            
       - name: Install dependencies
         run: yarn install
+        
       - name: Build with VitePress
         run: yarn run docs:build
+        
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
