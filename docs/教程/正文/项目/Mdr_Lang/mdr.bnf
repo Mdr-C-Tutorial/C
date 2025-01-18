@@ -1,0 +1,39 @@
+program ::= [func|use|decl]* main [func|use|decl]*
+use ::= "use" id
+main ::= "function" "main" "()" "->" "()" "{" stmts "}"
+func ::= "function" gen_list type_ id "(" param_list ")" -> type_or_unit "{" stmts "}"
+gen_list ::= "<" param_list ">"
+type_ ::= type "." | epsilon
+type_or_unit ::= type | "()"
+type ::= "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64" | "f32" | "f64" | "bool" | "char" | id | array_type | tuple_type
+array_type ::= "[" type (":" digits)? "]"
+tuple_type ::= "(" type_list ")"
+type_list ::= type ("," type)*
+param_list ::= param ("," param)* | epsilon
+param ::= id (":" type)?
+decl ::= [ "let" | "const"] param ( "=" bool )? ";" | "struct" id "(" param_list ")" ";"
+bool ::= bool "||" join | join
+join ::= join "&&" eq | eq
+eq ::= eq "==" rel | eq "!=" rel | eq ">=" rel | eq "<=" rel | eq ">" rel | eq "<" rel | rel
+rel ::= rel "+" term | rel "-" term | term
+term ::= term "*" unary | term "/" unary | unary
+unary ::= "-" unary | "!" unary | factor
+factor ::= "(" bool ")" | location | literal | "true" | "false" | factor "." bool | call | "this" | tuple | array | range
+location ::= location "." bool | bool
+call ::= id "(" arg_list ")"
+arg_list ::= bool ("," bool)* | epsilon
+stmts ::= stmt*
+stmt ::= decl | location "=" bool; | "{" stmts "}" | "if" "(" bool ")" stmt ("else" stmt)? | "while" "(" bool ")" stmt | "loop" stmt | "return" bool ";" | "break" ";" | "continue" ";" | "for" "(" id ":" [array|range] ")" stmt
+tuple ::= "(" arg_list ")"
+array ::= "[" arg_list "]"
+literal ::= number | char | string
+range ::= digits ".." digits | digits "..." digits | digits ".." digits ".." digits | digits "..." digits ".." digits
+number ::= digits [("." digits)? ((["E"|"e"])? (["+"|"-"])? digits)? ("f")? | ("u")? (["H"|"h"|"L"|"l"])?]
+digits ::= digit+
+digit ::= ["0"-"9"]
+letter ::= ["a"-"z"] | ["A"-"Z"]
+id ::= letter ( letter | digit )*
+char ::= "'" [ letter | digit | symbol | white ] "'"
+symbol ::= ["!"|"@"|"#"|"$"|"%"|"^"|"&"|"*"|"("|")"|"-"|"_"|"+"|"="|"["|"]"|"{"|"}"|";"|":"|"'"|","|"."|"<"|">"|"/"|"?"|"\\"|"|"|"~"]
+white ::= [" "|"\t"|"\n"|"\r"]
+string ::= "\"" char* "\""
