@@ -3301,7 +3301,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:3.4.2":
+"prettier@npm:^3.4.2":
   version: 3.4.2
   resolution: "prettier@npm:3.4.2"
   bin:
@@ -3919,7 +3919,7 @@ __metadata:
   dependencies:
     markdown-it-mathjax3: "npm:^4.3.2"
     mermaid: "npm:^11.4.1"
-    prettier: "npm:3.4.2"
+    prettier: "npm:^3.4.2"
     vitepress: "npm:^1.3.4"
     vitepress-plugin-mermaid: "npm:^2.0.17"
   languageName: unknown
