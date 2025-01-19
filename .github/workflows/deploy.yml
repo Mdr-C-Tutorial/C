@@ -21,12 +21,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
           
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version-file: package.json
           check-latest: true
+          #cache: yarn
                     
       - name: Setup yarn
         run: |
@@ -50,7 +53,15 @@ jobs:
             
       - name: Install dependencies
         run: yarn install
-        
+      
+      - name: Cache Vitepress
+        uses: actions/cache@v4
+        with:
+          path: docs/.vitepress/cache
+          key: ${{ runner.os }}-vitepress-${{ github.run_number }}
+          restore-keys: |
+            ${{ runner.os }}-vitepress-
+
       - name: Build with VitePress
         run: yarn run docs:build
         
