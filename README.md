@@ -96,7 +96,7 @@ int main(int argc, char* argv[]){
 
 ## 许可证
 
-[**CC-BY-SA 4.0**](/LICENSE)
+[**CC-BY-NC-SA 4.0**](/LICENSE)
 
 ## 参考资料
 
