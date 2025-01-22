@@ -97,39 +97,6 @@ int main(int argc, char* argv[]){
 2. 勤于搜索（尤其是出现较多关联概念时）；
 3. 理解中文白话，最好有一定的英语水平（建议达到 CEFR B2）但不强制，最好有一定的数学水平（高中数学 + 数理逻辑基础 + 微积分 + 基础的概率论 + 基础的数论 + 基础的图论）但不强制；
 
-## 鸣谢名单（按时间顺序）
-
-### 个人（贡献者）
-
-- **Mdr** （[GitHub - Minsecrus](https://github.com/Minsecrus)）
-- **@幻** （[GitHub - huan201](https://github.com/huan201)）
-- **JuaJuanchi** （[GitHub - JuaJuanchi](https://github.com/Jua-Juanchi)）
-- **Enoch.驊** （[GitHub - gngtwhh](https://github.com/gngtwhh)）
-- **No** （[CNBlogs - Kroner](https://www.cnblogs.com/Kroner)）（[GitHub - Kroner](https://github.com/Kroner)）
-- **Xly** （[GitHub - LY-Xiang](https://github.com/LY-Xiang)）（[GitHub - hfsz2313](https://github.com/hfsz2313)）
-- **革匊习习中** （[GitHub - Juvwxyz](https://github.com/Juvwxyz)）
-- **0x7E7**
-- **FHU-yezi** （[GitHub - FHU-yezi](https://github.com/FHU-yezi)）
-- **菲露露** （[GitHub - LovelyLavender4](https://github.com/lovelylavender4)）
-- **XIAOYI12** （[GitHub - xiaoyi1212](https://github.com/xiaoyi1212)）
-- **WHITE TREE** （[GitHub - VinbeWan](https://github.com/VinbeWan)）
-- **Min0911Y** （[GitHub - min0911Y](https://github.com/min0911Y)）
-- **A4-Tacks** （[GitHub - A4-Tacks](https://github.com/A4-Tacks)）
-- **Telecomadm** （[GitHub - telecomadm1145](https://github.com/telecomadm1145)）
-- **ChatRBQ** （[GitHub - fawdlstty](https://github.com/fawdlstty)）
-- **Kill** （[GitHub - Killcerr](https://github.com/Killcerr)）
-
-### 组织
-
-- **艾猫工作室** （[aymao.com](https://www.aymao.com/)）
-
-### 特别鸣谢
-
-- **FrankHB** （[GitHub - FrankHB](https://github.com/FrankHB)）
-- **Jajuju** （[GitHub - frederick-vs-ja](https://github.com/frederick-vs-ja)）
-- **Fresky** （[GitHub - FreskyZ](https://github.com/FreskyZ)）
-- **兔兔**
-
 ## 许可证
 
 [**CC-BY-SA 4.0**](/LICENSE)
