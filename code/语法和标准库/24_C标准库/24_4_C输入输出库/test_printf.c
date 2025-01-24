@@ -1,3 +1,7 @@
+/*
+ * Powered by Mdr-C-Tutorial. No rights reserved.
+ */
+
 #include <inttypes.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -11,7 +15,7 @@ int main(void) {
     printf("\t%c\n", c);
     printf("\t%%\n");
 
-    const char* s = "Mdr-C";
+    const char *s = "Mdr-C";
     printf("字符串：\n");
     printf("   填充:\n");
     printf("\t[%10s]\n", s);
@@ -45,14 +49,15 @@ int main(void) {
     unsigned long n12 = 47;
     unsigned long long n13 = 47;
     uintmax_t n14 = 47;
-    printf("\tunsigned char 十/八/十六进制: \t%hhu %hho %hhx %hhX\n", n10,n10,n10,n10);
+    printf("\tunsigned char 十/八/十六进制: \t%hhu %hho %hhx %hhX\n", n10, n10,
+           n10, n10);
     printf("\tunsigned short:\t\t%hu\n", n11);
     printf("\tunsigned long:\t\t%lu\n", n12);
     printf("\tunsigned long long:\t%llu\n", n13);
     printf("\tuintmax_t:\t%ju\n", n14);
 
-    const char* p1 = s + 1;
-    const char* p2 = s + 3;
+    const char *p1 = s + 1;
+    const char *p2 = s + 3;
     printf("\tptrdiff_t:\t%td %td\n", p2 - p1, p1 - p2);
     size_t size = strlen(s);
     printf("\tsize_t:\t\t%zu\n", size);
