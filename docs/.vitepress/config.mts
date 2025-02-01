@@ -529,19 +529,19 @@ export default withMermaid(
                     collapsed: true,
                     items: [
                       {
-                        text: "12.1 \<stddef.h\>",
+                        text: "12.1 &lt;stddef.h&gt;",
                         link: "/教程/正文/语法和标准库/12_预定义宏/12_1_stddef",
                       },
                       {
-                        text: "12.2 \<stdint.h\>",
+                        text: "12.2 &lt;stdint.h&gt;",
                         link: "/教程/正文/语法和标准库/12_预定义宏/12_2_stdint",
                       },
                       {
-                        text: "12.3 \<inttypes.h\>",
+                        text: "12.3 &lt;inttypes.h&gt;",
                         link: "/教程/正文/语法和标准库/12_预定义宏/12_3_inttypes",
                       },
                       {
-                        text: "12.4 \<limits.h\>",
+                        text: "12.4 &lt;limits.h&gt;",
                         link: "/教程/正文/语法和标准库/12_预定义宏/12_4_limits",
                       },
                       {
@@ -556,15 +556,15 @@ export default withMermaid(
                     collapsed: true,
                     items: [
                       {
-                        text: "13.1 \<assert.h\>",
+                        text: "13.1 &lt;assert.h&gt;",
                         link: "/教程/正文/语法和标准库/13_错误处理/13_1_assert",
                       },
                       {
-                        text: "13.2 \<errno.h\>",
+                        text: "13.2 &lt;errno.h&gt;",
                         link: "/教程/正文/语法和标准库/13_错误处理/13_2_errno",
                       },
                       {
-                        text: "13.3 \<signal.h\>",
+                        text: "13.3 &lt;signal.h&gt;",
                         link: "/教程/正文/语法和标准库/13_错误处理/13_3_signal",
                       },
                     ],
@@ -606,12 +606,12 @@ export default withMermaid(
                     collapsed: true,
                     items: [
                       {
-                        text: "16.1 \<ctype.h\>",
+                        text: "16.1 &lt;ctype.h&gt;",
                         link: "/教程/正文/语法和标准库/16_字符字符串库/16_1_ctype",
 
                       },
                       {
-                        text: "16.2 \<string.h\>",
+                        text: "16.2 &lt;string.h&gt;",
                         link: "/教程/正文/语法和标准库/16_字符字符串库/16_2_string",
                       },
                     ],
@@ -622,15 +622,15 @@ export default withMermaid(
                     collapsed: true,
                     items: [
                       {
-                        text: "17.1 \<math.h\>",
+                        text: "17.1 &lt;math.h&gt;",
                         link: "/教程/正文/语法和标准库/17_数学库/17_1_math",
                       },
                       {
-                        text: "17.2 \<complex.h\>",
+                        text: "17.2 &lt;complex.h&gt;",
                         link: "/教程/正文/语法和标准库/17_数学库/17_2_complex",
                       },
                       {
-                        text: "17.3 \<tgmath.h\>",
+                        text: "17.3 &lt;tgmath.h&gt;",
                         link: "/教程/正文/语法和标准库/17_数学库/17_3_tgmath",
                       },
                       {
@@ -638,15 +638,15 @@ export default withMermaid(
                         link: "/教程/正文/语法和标准库/17_数学库/17_4_随机数生成",
                       },
                       {
-                        text: "17.5 \<stdbit.h\>",
+                        text: "17.5 &lt;stdbit.h&gt;",
                         link: "/教程/正文/语法和标准库/17_数学库/17_5_stdbit",
                       },
                       {
-                        text: "17.6 \<stdckdint.h\>",
+                        text: "17.6 &lt;stdckdint.h&gt;",
                         link: "/教程/正文/语法和标准库/17_数学库/17_6_stdckdint",
                       },
                       {
-                        text: "17.7 \<fenv.h\>",
+                        text: "17.7 &lt;fenv.h&gt;",
                         link: "/教程/正文/语法和标准库/17_数学库/17_7_fenv",
                       },
                     ],
