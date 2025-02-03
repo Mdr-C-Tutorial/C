@@ -17,11 +17,15 @@
 11. `isgraph()` 判断字符有没有图形表示，即 ``0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~`` 返回非零值，否则返回 **0**。简单地，对于 ASCII 表中的字符 `c`，如果 `iscntrl(c) == 0 && isblank(c) == 0`，那么 `isgraph(c)` 返回 非零值，否则返回 **0**
 
 ::: tip 非零值
+
 我们一般不会直接用到上述函数的返回值，而是直接将其用在条件判断中，如 `if (isalnum(c)) { ... } else { ... }`，因此只需区别返回值是否为零。
+
 :::
 
-::: note `<wctype.h>`
+::: note <wctype.h>
+
 在 `<wctype.h>` 中，也有这样的函数，将上述函数名中的 'is' 后面加上 'w'，如 `iswalnum()` 判断一个宽字符是不是字母或数字，等等。。。
+
 :::
 
 如果设置了非默认的本地环境，以上函数的运行结果会有不同。
@@ -90,8 +94,10 @@ int main() {
 1. `toupper()` 将字符转换为大写；
 2. `tolower()` 将字符转换为小写。
 
-::: note `<wctype.h>`
+::: note <wctype.h>
+
 在 `<wctype.h>` 中，也有这样的函数，将上述函数名中的 'to' 后面加上 'w'，如 `towupper()` 将宽字符转换为大写。
+
 :::
 
 **本章内容对应 cppref 链接如下：**
