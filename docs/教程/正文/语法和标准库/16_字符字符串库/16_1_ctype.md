@@ -22,7 +22,7 @@
 
 :::
 
-::: note <wctype.h>
+::: note wctype.h
 
 在 `<wctype.h>` 中，也有这样的函数，将上述函数名中的 'is' 后面加上 'w'，如 `iswalnum()` 判断一个宽字符是不是字母或数字，等等。。。
 
@@ -94,7 +94,7 @@ int main() {
 1. `toupper()` 将字符转换为大写；
 2. `tolower()` 将字符转换为小写。
 
-::: note <wctype.h>
+::: note wctype.h
 
 在 `<wctype.h>` 中，也有这样的函数，将上述函数名中的 'to' 后面加上 'w'，如 `towupper()` 将宽字符转换为大写。
 
