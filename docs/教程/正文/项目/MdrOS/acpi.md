@@ -1,4 +1,4 @@
-# ACPI 
+# ACPI
 
 高级配置与电源管理接口(Advanced Configuration and Power Interface)
 
@@ -14,16 +14,16 @@ ACPI的运行时模型用于管理在系统运行期间发生的所有ACPI事件
 
 ACPI可以实现的功能包括：
 
-* 系统电源管理（System power management）
-* 设备电源管理（Device power management）
-* 处理器电源管理（Processor power management）
-* 设备和处理器性能管理（Device and processor performance management）
-* 配置/即插即用（Configuration/Plug and Play）
-* 系统事件（System Event）
-* 电池管理（Battery management）
-* 温度管理（Thermal management）
-* 嵌入式控制器（Embedded Controller）
-* SMBus 控制器（SMBus Controller）
+- 系统电源管理（System power management）
+- 设备电源管理（Device power management）
+- 处理器电源管理（Processor power management）
+- 设备和处理器性能管理（Device and processor performance management）
+- 配置/即插即用（Configuration/Plug and Play）
+- 系统事件（System Event）
+- 电池管理（Battery management）
+- 温度管理（Thermal management）
+- 嵌入式控制器（Embedded Controller）
+- SMBus 控制器（SMBus Controller）
 
 > ioapic的开启以及SMP多处理器的开启也需要ACPI
 
@@ -33,26 +33,26 @@ ACPI提供了一组用于描述控制设备和描述设备信息方式的结构,
 
 以下是ACPI提供的一些表
 
-* Root System Description Table (RSDT)
-* Fixed ACPI Description Table (FADT)
-* Firmware ACPI Control Structure (FACS)
-* Differentiated System Description Table (DSDT)
-* Secondary System Description Table (SSDT)
-* Multiple APIC Description Table (MADT)
-* Smart Battery Table (SBST)
-* Extended System Description Table (XSDT)
-* Embedded Controller Boot Resources Table (ECDT)
-* System Locality Distance Information Table (SLIT)
-* System Resource Affinity Table (SRAT)
-* Corrected Platform Error Polling Table (CPEP)
-* Maximum System Characteristics Table (MSCT)
-* ACPI RAS Feature Table (RASF)
-* Memory Power State Table (MPST)
-* Platform Memory Topology Table (PMTT)
-* Boot Graphics Resource Table (BGRT)
-* Firmware Performance Data Table (FPDT)
-* Generic Timer Description Table (GTDT)
-* NVDIMM Firmware Interface Table (NFIT)
+- Root System Description Table (RSDT)
+- Fixed ACPI Description Table (FADT)
+- Firmware ACPI Control Structure (FACS)
+- Differentiated System Description Table (DSDT)
+- Secondary System Description Table (SSDT)
+- Multiple APIC Description Table (MADT)
+- Smart Battery Table (SBST)
+- Extended System Description Table (XSDT)
+- Embedded Controller Boot Resources Table (ECDT)
+- System Locality Distance Information Table (SLIT)
+- System Resource Affinity Table (SRAT)
+- Corrected Platform Error Polling Table (CPEP)
+- Maximum System Characteristics Table (MSCT)
+- ACPI RAS Feature Table (RASF)
+- Memory Power State Table (MPST)
+- Platform Memory Topology Table (PMTT)
+- Boot Graphics Resource Table (BGRT)
+- Firmware Performance Data Table (FPDT)
+- Generic Timer Description Table (GTDT)
+- NVDIMM Firmware Interface Table (NFIT)
 
 ## APIC
 

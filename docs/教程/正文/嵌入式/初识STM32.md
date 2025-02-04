@@ -26,13 +26,13 @@ STM32系列微控制器具有以下特点：
 
 <table>
     <tr>
-        <td>CPU位数</td> 
-        <td>内核</td> 
+        <td>CPU位数</td>
+        <td>内核</td>
         <td>系列</td>
         <td>描述</td>
     </tr>
     <tr>
-        <td rowspan="9">32</td>    
+        <td rowspan="9">32</td>
         <td rowspan="2">Cortex-M0</td>
         <td>STM32-F0</td>
         <td>入门级</td>
@@ -42,7 +42,7 @@ STM32系列微控制器具有以下特点：
         <td>低功耗</td>
     </tr>
     <tr>
-        <td rowspan="3">Cortex-M3</td> 
+        <td rowspan="3">Cortex-M3</td>
         <td>STM32-F1</td>
         <td>基础型，主频72MHz</td>
     </tr>
@@ -106,14 +106,14 @@ STM32系列微控制器具有以下特点：
 
 在画原理图之前，一般做法是先把引脚分类好，然后才开始画原理图，一般分类如下：
 
-| 引脚分类    | 引脚说明                                             |
-|---------|--------------------------------------------------|
-| 电源      | VBAT、VDD、VSS、VDDA、VSSA、VREF+、VREF-等              |
-| 晶振IO    | 主晶振、RTC晶振                                        |
-| 下载IO    | JTAG（JTMS、JTCK、JTDI、JTDO、NJRST）、SWD（SWDIO、SWCLK） |
-| BOOT IO | BOOT0、BOOT1，设置板子启动方式                             |
-| 复位IO    | NRST，用于外部复位                                      |
-| GPIO    | 专用总线（I2C、SPI、CAN、USB、FSMC、DMCI等）、通用IO            |
+| 引脚分类 | 引脚说明                                                   |
+| -------- | ---------------------------------------------------------- |
+| 电源     | VBAT、VDD、VSS、VDDA、VSSA、VREF+、VREF-等                 |
+| 晶振IO   | 主晶振、RTC晶振                                            |
+| 下载IO   | JTAG（JTMS、JTCK、JTDI、JTDO、NJRST）、SWD（SWDIO、SWCLK） |
+| BOOT IO  | BOOT0、BOOT1，设置板子启动方式                             |
+| 复位IO   | NRST，用于外部复位                                         |
+| GPIO     | 专用总线（I2C、SPI、CAN、USB、FSMC、DMCI等）、通用IO       |
 
 ### 3.2 关于引脚
 
@@ -123,12 +123,12 @@ STM32系列微控制器具有以下特点：
 
 对引脚的解读如下：
 
-| 名称                       | 说明                                                            |
-|--------------------------|---------------------------------------------------------------|
-| 引脚序号（Pins）               | 六种封装（具体要根据需求选择）                                               |
-| 引脚名称（Pin name）           | 指复位状态下引脚名称                                                    |
-| 引脚类型（Type）               | S：电源<br/>I：输入<br/>I/O：输入/输出                                   |
-| I/O结构（I/O Level）         | FT：兼容5V<br/>TTa：支持3.3V、直接ADC<br/>B：BOOT引脚<br/>RST：复位引脚、内部带弱上拉 |
-| 主功能（Main function）       | 引脚复位后的功能                                                      |
-| 复用功能（Alternate function） | I/O默认的复用功能                                                    |
-| 重映射（Remap）               | I/O除了默认的复用功能外，还能够通过重映射的方式映射到其他I/O，增加了I/O口功能的灵活性和多样性           |
+| 名称                           | 说明                                                                                          |
+| ------------------------------ | --------------------------------------------------------------------------------------------- |
+| 引脚序号（Pins）               | 六种封装（具体要根据需求选择）                                                                |
+| 引脚名称（Pin name）           | 指复位状态下引脚名称                                                                          |
+| 引脚类型（Type）               | S：电源<br/>I：输入<br/>I/O：输入/输出                                                        |
+| I/O结构（I/O Level）           | FT：兼容5V<br/>TTa：支持3.3V、直接ADC<br/>B：BOOT引脚<br/>RST：复位引脚、内部带弱上拉         |
+| 主功能（Main function）        | 引脚复位后的功能                                                                              |
+| 复用功能（Alternate function） | I/O默认的复用功能                                                                             |
+| 重映射（Remap）                | I/O除了默认的复用功能外，还能够通过重映射的方式映射到其他I/O，增加了I/O口功能的灵活性和多样性 |

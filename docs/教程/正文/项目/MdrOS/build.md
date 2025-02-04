@@ -4,13 +4,14 @@
 
 ## 使用现成的开发模板
 
-* Plos-clan Multiboot i386 [multiboot-xmake-template](https://github.com/plos-clan/multiboot-xmake-template) \
-    适用于 32 位 LegacyBIOS 引导的操作系统 
-    > 注意: 不适用于现代PC机, 您需要一台支持旧版MBR引导的电脑
+- Plos-clan Multiboot i386 [multiboot-xmake-template](https://github.com/plos-clan/multiboot-xmake-template) \
+   适用于 32 位 LegacyBIOS 引导的操作系统
 
-* Plos-clan Limine x86_64 [limine-xmake-template](https://github.com/plos-clan/limine-xmake-template) \
-    适用于 64 位 UEFI 引导的操作系统
-    > 适用于所有现代的PC机, 但是编写64位系统会很难
+  > 注意: 不适用于现代PC机, 您需要一台支持旧版MBR引导的电脑
+
+- Plos-clan Limine x86_64 [limine-xmake-template](https://github.com/plos-clan/limine-xmake-template) \
+   适用于 64 位 UEFI 引导的操作系统
+  > 适用于所有现代的PC机, 但是编写64位系统会很难
 
 ## 自制引导用户
 
