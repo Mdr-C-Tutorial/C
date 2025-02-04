@@ -57,7 +57,7 @@ jobs:
       - name: Cache Vitepress
         uses: actions/cache@v4
         with:
-          path: docs/.vitepress/cache
+          path: docs/.vitepress/dist
           key: ${{ runner.os }}-vitepress-${{ github.run_number }}
           restore-keys: |
             ${{ runner.os }}-vitepress-
