@@ -30,6 +30,4 @@ features:
     details: 每个知识点或项目案例都有详细完整的示例代码
   - title: 与时俱进
     details: 使用最新的语言标准和技术栈
-  - title: 开源免费
-    details: CC-BY-NC-SA - BE FREE AND UNAFRAID！
 ---

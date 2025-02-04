@@ -26,6 +26,11 @@ int main(int argc, char* argv[]){
 4. 此教程并非一时兴起而作，实则怀「为往圣继绝学，为万世开太平」之愿，深思熟虑打造而成。
 5. 得天独厚者，替天行善！
 
+## 构建与部署
+
+1. 本文档使用 [VitePress](https://vitejs.cn/vitepress/) 构建，需最新版 yarn 以在本地 build 和 dev。
+2. 本仓库采用 GitHub Actions 在每次提交时自动构建和部署。
+
 ## 文档规范
 
 该栏为本仓库 markdown 文档的规范。
