@@ -1,0 +1,107 @@
+name: Lint & Format
+
+permissions:
+  contents: write
+  pull-requests: write
+
+on:
+  push:
+    branches: [main]
+
+  workflow_dispatch:
+
+concurrency:
+  group: lint
+  cancel-in-progress: false
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Git
+        run: |
+          echo '${{ github.token }}' | gh auth login --with-token
+          gh auth status
+          gh auth setup-git
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          check-latest: true
+          #cache: yarn
+
+      - name: Setup yarn
+        run: |
+          corepack enable
+          yarn set version stable
+
+      - name: Get yarn cachedir
+        id: yarn-cachedir
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+      - name: Cache yarn
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cachedir.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Cpp Lint (clang-format & clang-tidy)
+        uses: cpp-linter/cpp-linter-action@v2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          style: file
+          thread-comments: update
+        continue-on-error: true
+
+      - name: ESLint (+vue +prettier)
+        run: yarn run eslint --fix --ignore-pattern .gitignore
+        continue-on-error: true
+
+      - name: Prettier
+        run: yarn run prettier --write .
+        continue-on-error: true
+
+      - name: Markdown Lint
+        uses: DavidAnson/markdownlint-cli2-action@v19
+        with:
+          globs: "**/*.{md,markdown} !node_modules"
+          fix: true
+        continue-on-error: true
+
+      - name: Autocorrect Lint
+        id: autocorrect-lint
+        uses: huacnlee/autocorrect-action@v2
+        with:
+          use_npm: true
+          args: --lint --config 'https://raw.githubusercontent.com/huacnlee/autocorrect/main/.autocorrectrc.template'
+        continue-on-error: true
+      - name: Autocorrect Fix
+        if: steps.autocorrect-lint.outcome == 'failure'
+        uses: huacnlee/autocorrect-action@v2
+        with:
+          use_npm: true
+          args: --fix --config 'https://raw.githubusercontent.com/huacnlee/autocorrect/main/.autocorrectrc.template'
+        continue-on-error: true
+
+      - name: Create PullRequest
+        run: |
+          git branch -f lint
+          git switch lint
+          git add .
+          git commit -m "lint:${{ github.ref }}"
+          git push -f origin lint
+          gh pr create --fill -B main -H lint
+        continue-on-error: true

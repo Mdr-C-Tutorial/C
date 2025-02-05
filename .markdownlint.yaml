@@ -6,7 +6,7 @@ MD013: false
 
 # 内联HTML
 MD033:
-  allowed_elements: 
+  allowed_elements:
     - table # 灵活表格
     - tl # table
     - tr # table

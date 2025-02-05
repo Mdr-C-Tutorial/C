@@ -1822,6 +1822,67 @@ __metadata:
   languageName: node
   linkType: hard
 
+"autocorrect-node-darwin-arm64@npm:2.13.0":
+  version: 2.13.0
+  resolution: "autocorrect-node-darwin-arm64@npm:2.13.0"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"autocorrect-node-darwin-x64@npm:2.13.0":
+  version: 2.13.0
+  resolution: "autocorrect-node-darwin-x64@npm:2.13.0"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"autocorrect-node-linux-x64-gnu@npm:2.13.0":
+  version: 2.13.0
+  resolution: "autocorrect-node-linux-x64-gnu@npm:2.13.0"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"autocorrect-node-linux-x64-musl@npm:2.13.0":
+  version: 2.13.0
+  resolution: "autocorrect-node-linux-x64-musl@npm:2.13.0"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"autocorrect-node-win32-x64-msvc@npm:2.13.0":
+  version: 2.13.0
+  resolution: "autocorrect-node-win32-x64-msvc@npm:2.13.0"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"autocorrect-node@npm:^2.13.0":
+  version: 2.13.0
+  resolution: "autocorrect-node@npm:2.13.0"
+  dependencies:
+    autocorrect-node-darwin-arm64: "npm:2.13.0"
+    autocorrect-node-darwin-x64: "npm:2.13.0"
+    autocorrect-node-linux-x64-gnu: "npm:2.13.0"
+    autocorrect-node-linux-x64-musl: "npm:2.13.0"
+    autocorrect-node-win32-x64-msvc: "npm:2.13.0"
+  dependenciesMeta:
+    autocorrect-node-darwin-arm64:
+      optional: true
+    autocorrect-node-darwin-x64:
+      optional: true
+    autocorrect-node-linux-x64-gnu:
+      optional: true
+    autocorrect-node-linux-x64-musl:
+      optional: true
+    autocorrect-node-win32-x64-msvc:
+      optional: true
+  bin:
+    autocorrect: cli.js
+  checksum: 10c0/18da306651f207243b2d0268c877270a8438fdc7a36710e5f83bf71d7c66999fab9faa44b44d23358086ae45f4015be429808d8e83a20379a78ce68a2d16d5ee
+  languageName: node
+  linkType: hard
+
 "balanced-match@npm:^1.0.0":
   version: 1.0.2
   resolution: "balanced-match@npm:1.0.2"
@@ -5500,6 +5561,7 @@ __metadata:
   resolution: "vitepress@workspace:."
   dependencies:
     "@eslint/js": "npm:^9.19.0"
+    autocorrect-node: "npm:^2.13.0"
     eslint: "npm:^9.19.0"
     eslint-config-prettier: "npm:^10.0.1"
     eslint-plugin-prettier: "npm:^5.2.3"
