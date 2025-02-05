@@ -3,7 +3,7 @@
 ```c
 /*
  * printf.c
- * MdrOS printf函数实现 (Linux/libc 中的printf实现)
+ * MdrOS printf 函数实现 (Linux/libc 中的 printf 实现)
  */
 #include <stdarg.h>
 #include <stddef.h>
@@ -280,14 +280,14 @@ int sprintf(char *buf, const char *fmt, ...) {
 }
 
 /*
- * 记住, 该函数只是打印字符串.
- * 你可以将其改成vga_writestring也可以改成vbe_writestring 取决于你的视频显示模式
+ * 记住，该函数只是打印字符串。
+ * 你可以将其改成 vga_writestring 也可以改成 vbe_writestring 取决于你的视频显示模式
  */
 void print(char *string);
 
 /*
- * printk 以后我们的一些设备驱动会用, 功能与printf相差无异
- * 你可以自己将驱动的printk函数替换成printf并删掉printk函数
+ * printk 以后我们的一些设备驱动会用，功能与 printf 相差无异
+ * 你可以自己将驱动的 printk 函数替换成 printf 并删掉 printk 函数
  */
 void printk(const char *formet, ...) {
     int len;

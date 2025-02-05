@@ -13,11 +13,11 @@ int main() {
     // 换算
     height /= 100;
 
-    // 计算BMI
+    // 计算 BMI
     bmi = weight / (height * height);
 
     // 显示结果
-    printf("您的BMI值为: %.2f\n", bmi);
+    printf("您的 BMI 值为：%.2f\n", bmi);
 
     // 判断健康状态
 #ifndef AMAZING

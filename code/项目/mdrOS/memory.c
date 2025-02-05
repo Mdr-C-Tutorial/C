@@ -1,7 +1,7 @@
 #include "../include/memory.h"
 
 void memclean(char *s, int len) {
-    // 清理某个内存区域（全部置0）
+    // 清理某个内存区域（全部置 0）
     int i;
     for (i = 0; i != len; i++) {
         s[i] = 0;
