@@ -1,0 +1,14 @@
+# 启用默认配置
+default: true
+
+# 行宽
+MD013: false
+
+# 内联HTML
+MD033:
+  allowed_elements:
+    - table # 灵活表格
+    - tl # table
+    - tr # table
+    - td # table
+    - br # 表格内换行

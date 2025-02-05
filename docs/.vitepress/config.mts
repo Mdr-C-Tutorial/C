@@ -138,7 +138,7 @@ export default withMermaid(
                   },
                   {
                     text: "2. 一个简单的 C 程序",
-                    link: "/教程/正文/语法和标准库/2_一个简单的C程序"
+                    link: "/教程/正文/语法和标准库/2_一个简单的C程序",
                   },
                   {
                     text: "3. 基本概念",
@@ -195,7 +195,7 @@ export default withMermaid(
                         text: "3.7 ASCII 码",
                         link: "/教程/正文/语法和标准库/3_基本概念/3_7_ASCII码",
                       },
-                    ]
+                    ],
                   },
                   {
                     text: "4. 表达式",
@@ -612,7 +612,6 @@ export default withMermaid(
                       {
                         text: "16.1 &lt;ctype.h&gt;",
                         link: "/教程/正文/语法和标准库/16_字符字符串库/16_1_ctype",
-
                       },
                       {
                         text: "16.2 &lt;string.h&gt;",
@@ -665,7 +664,7 @@ export default withMermaid(
                   },
                   {
                     text: "20. 本地化库",
-                    link: "/教程/正文/语法和标准库/20_本地化库"
+                    link: "/教程/正文/语法和标准库/20_本地化库",
                   },
                   {
                     text: "21. 程序支持",
@@ -715,7 +714,7 @@ export default withMermaid(
                   },
                   {
                     text: "23. 标准库扩展",
-                    link: "/教程/正文/语法和标准库/23_标准库扩展"
+                    link: "/教程/正文/语法和标准库/23_标准库扩展",
                   },
                 ],
               },
@@ -862,7 +861,7 @@ export default withMermaid(
                       {
                         text: "10102",
                         link: "/教程/题解/语法和标准库/在开始编程之前/10102",
-                      }
+                      },
                     ],
                   },
                   {
@@ -871,14 +870,14 @@ export default withMermaid(
                     items: [
                       {
                         text: "11001",
-                        link: "/教程/题解/语法和标准库/结构体/11001"
+                        link: "/教程/题解/语法和标准库/结构体/11001",
                       },
                       {
                         text: "11002",
-                        link: "/教程/题解/语法和标准库/结构体/11002"
+                        link: "/教程/题解/语法和标准库/结构体/11002",
                       },
                     ],
-                  }
+                  },
                 ],
               },
             ],
@@ -907,7 +906,7 @@ export default withMermaid(
       },
     },
     sitemap: {
-      hostname: "https://Mdr-C-Tutorial.github.io/C/"
+      hostname: "https://Mdr-C-Tutorial.github.io/C/",
     },
   }),
 );

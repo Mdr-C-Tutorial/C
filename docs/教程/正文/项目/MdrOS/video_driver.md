@@ -1,18 +1,18 @@
 # 视频驱动程序
 
-我们开发操作系统, 必须能显示各种调试信息以及启动日志。
+我们开发操作系统，必须能显示各种调试信息以及启动日志。
 
 这样我们才能明白开发过程中出现了哪些错误
 
 ## VGA (Video Graphics Array) 视频图形阵列
 
-你可能在修电脑的时候听过这个名词,是电脑显示器的一种接口。
-但是在本教程中，我们将其定义为一个`640 * 480`大小的显存区域,这块区域由BIOS提供给你,
+你可能在修电脑的时候听过这个名词，是电脑显示器的一种接口。
+但是在本教程中，我们将其定义为一个`640 * 480`大小的显存区域，这块区域由 BIOS 提供给你，
 其显存基址为 `0xB8000`
 
-> 注意: UEFI引导方式不存在这块区域, UEFI的显存区域由`BootService`提供给你
+> 注意：UEFI 引导方式不存在这块区域，UEFI 的显存区域由`BootService`提供给你
 
-### 编写VGA视频驱动程序
+### 编写 VGA 视频驱动程序
 
 1. 准备工作
 
@@ -23,13 +23,13 @@
    uint16_t cursor_x = 0, cursor_y = 0; // 光标位置
    uint8_t terminal_color = 7 | 0 << 4; //黑底白字
 
-   static inline void outb(uint16_t port, uint8_t data) { //out端口操作函数 (建议您放到io.h头文件中, io.h专门用于IO端口操作)
+   static inline void outb(uint16_t port, uint8_t data) { //out 端口操作函数 (建议您放到 io.h 头文件中，io.h 专门用于 IO 端口操作)
     asm volatile("outb %b0, %w1" : : "a"(data), "Nd"(port));
    }
    ```
 
-    - 关于`0xB8000`: 在OS代码中一般用16进制表示一些内存地址, 这样代码展现比较直观好辨认, 相比十进制或者二进制,
-      代码长度也会有所缩减
+   - 关于`0xB8000`: 在 OS 代码中一般用 16 进制表示一些内存地址，这样代码展现比较直观好辨认，相比十进制或者二进制，
+     代码长度也会有所缩减
 
    [关于进制的知识](/教程/番外/77_关于进制.md)
 
@@ -55,7 +55,7 @@
    }
    ```
 
-3. 实现putchar
+3. 实现 putchar
 
    ```c
    void putchar(char c){
@@ -92,7 +92,7 @@
    }
    ```
 
-4. 实现writestring函数, 用于打印一行信息
+4. 实现 writestring 函数，用于打印一行信息
 
    ```c
    void vga_write(const char *data, size_t size) {
@@ -105,38 +105,39 @@
    }
    ```
 
-> 什么? 你问我printf函数怎么实现?\
+> 什么？你问我 printf 函数怎么实现？\
 > 我们推荐您使用 stb_sprintf 库
 
-## VBE (VESA BIOS EXTENSION) VESA BIOS扩展
+## VBE (VESA BIOS EXTENSION) VESA BIOS 扩展
 
 > **SVGA (Super VGA)**\
-> IBM的VGA标准是显示卡发展史上的一块丰碑。
-> 但后来无法满足人们的需要，于是市场上出现了TVGA、S3系列、
-> Cirrus Logic、ET等为首的一批显示卡，提供了比VGA分辨率更高，颜色更丰富的显示模式，
-> 又兼容VGA显示卡，它们被统称为Super VGA（SVGA）。
-> 为了统一各种SVGA显卡,
-> 视频电子学标准协会VESA（Video Electronics Standards Association）
-> 提出了一组附加的BIOS功能调用借口——VBE（VESA BIOS EXTENSION）标准，
-> 从而在软件接口层次上实现了各种SVGA显示卡之间的兼容性。
-> 时至今日，所有的显示卡OEM厂商都提供了符合VESA SUPER标准的扩展BIOS。
-> 通过一组INT 10H中断调用（AH=4FH），
-> 可以方便地使用VESA SVGA的扩展功能而不必了解各种显示卡的硬件细节。
+> IBM 的 VGA 标准是显示卡发展史上的一块丰碑。
+> 但后来无法满足人们的需要，于是市场上出现了 TVGA、S3 系列、
+> Cirrus Logic、ET 等为首的一批显示卡，提供了比 VGA 分辨率更高，颜色更丰富的显示模式，
+> 又兼容 VGA 显示卡，它们被统称为 Super VGA（SVGA）。
+> 为了统一各种 SVGA 显卡，
+> 视频电子学标准协会 VESA（Video Electronics Standards Association）
+> 提出了一组附加的 BIOS 功能调用借口——VBE（VESA BIOS EXTENSION）标准，
+> 从而在软件接口层次上实现了各种 SVGA 显示卡之间的兼容性。
+> 时至今日，所有的显示卡 OEM 厂商都提供了符合 VESA SUPER 标准的扩展 BIOS。
+> 通过一组 INT 10H 中断调用（AH=4FH），
+> 可以方便地使用 VESA SVGA 的扩展功能而不必了解各种显示卡的硬件细节。
 
-## 如何开启VBE模式
+## 如何开启 VBE 模式
 
-> 操作系统开发前期我们不是很建议您使用VBE模式,
-> 以LegacyBIOS为例,我们刚进入引导一般都是VGA模式,这种显示模式的功能非常有限,只能打印字符和少许的颜色
-> 而进入VBE高分辨率显示模式,我们可以自由绘画图形, 可以显示的颜色升级为RGB
+> 操作系统开发前期我们不是很建议您使用 VBE 模式，
+> 以 LegacyBIOS 为例，我们刚进入引导一般都是 VGA 模式，这种显示模式的功能非常有限，只能打印字符和少许的颜色
+> 而进入 VBE 高分辨率显示模式，我们可以自由绘画图形，可以显示的颜色升级为 RGB
 
-一般情况下诸如 `grub` `limine` 这些引导程序会判断内核头给出的信息,以决定是否启用vbe高分辨率显示模式. 
+一般情况下诸如 `grub` `limine` 这些引导程序会判断内核头给出的信息，以决定是否启用 vbe 高分辨率显示模式。
 <br>
-通常这些引导程序使用的引导规范会给出 vbe 显示模式的信息(屏幕长/宽/位深/显存基址)
+通常这些引导程序使用的引导规范会给出 vbe 显示模式的信息 (屏幕长/宽/位深/显存基址)
 
 ::: tip 小贴士
 
-如果您没有打算自己编写一整套适用于VBE的终端, `plos-clan` 社区提供了 
-* `os_terminal` 一款适用于自制操作系统的虚拟终端,支持绝大部分常用的VT100控制字符
+如果您没有打算自己编写一整套适用于 VBE 的终端，`plos-clan` 社区提供了
+
+- `os_terminal` 一款适用于自制操作系统的虚拟终端，支持绝大部分常用的 VT100 控制字符
 
 [GitHub - plos-clan/os_terminal](https://github.com/plos-clan/libos-terminal/releases)
 

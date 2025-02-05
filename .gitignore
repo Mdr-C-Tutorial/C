@@ -91,3 +91,6 @@ deps/*
 dist
 examples-temp
 *.timestamp-*.mjs
+
+# linter&formatter
+.cpp-linter_cache

@@ -11,9 +11,9 @@ int main() {
     double num1, num2, result;
 
     // 获取用户输入
-    printf("请输入两个数字: ");
+    printf("请输入两个数字：");
     scanf("%lf %lf", &num1, &num2);
-    printf("请输入运算符(+, -, *, /): ");
+    printf("请输入运算符 (+, -, *, /): ");
     scanf("%c", &operator);
 
     // 判断运算符是否有效
@@ -31,7 +31,7 @@ int main() {
         return 1;
     }
 
-    printf("结果: %lf\n", result);
+    printf("结果：%lf\n", result);
 
     return 0;
 }
@@ -48,7 +48,7 @@ double multiply(double a, double b) { return a * b; }
 // 除法函数
 double divide(double a, double b) {
     if (b == 0) {
-        perror("除数不能为0\n");
+        perror("除数不能为 0\n");
         return 0.0;
     }
     return a / b;
