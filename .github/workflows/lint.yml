@@ -77,8 +77,9 @@ jobs:
       - name: Markdown Lint
         uses: DavidAnson/markdownlint-cli2-action@v19
         with:
-          globs: "**/*.{md,markdown} !node_modules"
+          globs: "**/*.{md,markdown};!node_modules"
           fix: true
+          separator: ";"
         continue-on-error: true
 
       - name: Autocorrect Lint
