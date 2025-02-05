@@ -65,8 +65,8 @@ void alloc_frame(page_t *page, int is_kernel, int is_writable) {
         set_frame(idx * 0x1000);
         memset(page, 0, 4);
         page->present = 1;              // 现在这个页存在了
-        page->rw = is_writable ? 1 : 0; // 是否可写由is_writable决定
-        page->user = is_kernel ? 0 : 1; // 是否为用户态由is_kernel决定
+        page->rw = is_writable ? 1 : 0; // 是否可写由 is_writable 决定
+        page->user = is_kernel ? 0 : 1; // 是否为用户态由 is_kernel 决定
         page->frame = idx;
     }
 }
@@ -75,8 +75,8 @@ void alloc_frame_line(page_t *page, uint32_t line, int is_kernel,
     set_frame(line);
     memset(page, 0, 4);
     page->present = 1;              // 现在这个页存在了
-    page->rw = is_writable ? 1 : 0; // 是否可写由is_writable决定
-    page->user = is_kernel ? 0 : 1; // 是否为用户态由is_kernel决定
+    page->rw = is_writable ? 1 : 0; // 是否可写由 is_writable 决定
+    page->user = is_kernel ? 0 : 1; // 是否为用户态由 is_kernel 决定
     page->frame = line / 0x1000;
 }
 
@@ -140,7 +140,7 @@ void page_fault(registers_t *regs) {
     int present = !(regs->err_code & 0x1); // 页不存在
     int rw = regs->err_code & 0x2;         // 只读页被写入
     int us = regs->err_code & 0x4;         // 用户态写入内核页
-    int reserved = regs->err_code & 0x8;   // 写入CPU保留位
+    int reserved = regs->err_code & 0x8;   // 写入 CPU 保留位
     int id = regs->err_code & 0x10;        // 由取指引起
 
     printf("[ERROR]: Page fault |");
@@ -238,9 +238,9 @@ void init_page(multiboot_t *mboot) {
 
     while (i < placement_address + 0x30000) {
         /*
-         * 内核部分对ring3而言不可读不可写
+         * 内核部分对 ring3 而言不可读不可写
          * 无偏移页表映射
-         * 因为刚开始分配, 所以内核线性地址与物理地址对应
+         * 因为刚开始分配，所以内核线性地址与物理地址对应
          */
         alloc_frame(get_page(i, 1, kernel_directory, false), 1, 1);
         i += 0x1000;

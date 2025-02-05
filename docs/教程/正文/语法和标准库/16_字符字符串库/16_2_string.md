@@ -233,7 +233,7 @@
           printf("%s\n", s3); // OK
 
           char s4[8];
-          // strncpy(s4, s2, 6);   // UB: s2 空间为3，小于6
+          // strncpy(s4, s2, 6);   // UB: s2 空间为 3，小于 6
           strncpy(s4, s3, 8); // {'m', 'd', 'r', '\0', '\0',       '\0', '\0', '\0'}
 
           for (size_t n = 0; n < sizeof s2; ++n) {

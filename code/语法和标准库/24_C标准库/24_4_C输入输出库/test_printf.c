@@ -49,7 +49,7 @@ int main(void) {
     unsigned long n12 = 47;
     unsigned long long n13 = 47;
     uintmax_t n14 = 47;
-    printf("\tunsigned char 十/八/十六进制: \t%hhu %hho %hhx %hhX\n", n10, n10,
+    printf("\tunsigned char 十/八/十六进制：\t%hhu %hho %hhx %hhX\n", n10, n10,
            n10, n10);
     printf("\tunsigned short:\t\t%hu\n", n11);
     printf("\tunsigned long:\t\t%lu\n", n12);

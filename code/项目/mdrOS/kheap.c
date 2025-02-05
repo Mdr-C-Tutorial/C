@@ -37,7 +37,7 @@ uint32_t kmalloc_i_ap(uint32_t size, uint32_t *phys) {
 static uint32_t kmalloc_int(size_t sz, uint32_t align, uint32_t *phys) {
     if (program_break) {
         // 有内存堆
-        void *addr = alloc(sz); // 直接malloc，align丢掉了
+        void *addr = alloc(sz); // 直接 malloc，align 丢掉了
         if (phys) {
             // 需要物理地址，先找到对应页
             page_t *page =
