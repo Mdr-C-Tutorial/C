@@ -101,5 +101,3 @@ double sin ( double arg );
 float  complex csinf( float  complex z );
 double complex csin ( double complex z );
 ```
-
-## 5. 泛型数学
