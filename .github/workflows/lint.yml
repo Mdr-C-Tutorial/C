@@ -20,8 +20,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Git
         run: |
@@ -66,7 +64,7 @@ jobs:
           thread-comments: update
         continue-on-error: true
 
-      - name: ESLint (+vue +prettier)
+      - name: ESLint (+vue +prettier +ts)
         run: yarn run eslint --fix --ignore-pattern .gitignore
         continue-on-error: true
 
@@ -98,11 +96,13 @@ jobs:
         continue-on-error: true
 
       - name: Create PullRequest
+        env:
+          lint_branch: lint/${{ github.sha }}
         run: |
-          git branch -f lint
-          git switch lint
+          git branch -f $lint_branch
+          git switch $lint_branch
           git add .
-          git commit -m "lint:${{ github.ref }}"
-          git push -f origin lint
-          gh pr create --fill -B main -H lint
+          git commit -m "lint:${{ github.sha }}"
+          git push -f origin $lint_branch
+          gh pr create --fill-verbose -t lint:${{ github.ref }} -B main -H $lint_branch -
         continue-on-error: true
