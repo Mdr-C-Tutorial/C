@@ -104,5 +104,5 @@ jobs:
           git add .
           git commit -m "lint:${{ github.sha }}"
           git push -f origin $lint_branch
-          gh pr create --fill-verbose -t lint:${{ github.ref }} -B main -H $lint_branch -
+          gh pr create --fill-verbose -t lint:${{ github.ref }} -B main -H $lint_branch
         continue-on-error: true
