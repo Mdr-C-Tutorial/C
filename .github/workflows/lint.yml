@@ -99,10 +99,8 @@ jobs:
         env:
           lint_branch: lint/${{ github.sha }}
         run: |
-          git branch -f $lint_branch
-          git switch $lint_branch
-          git add .
-          git commit -m "lint:${{ github.sha }}"
+          git switch -C $lint_branch
+          git commit -a --fixup=${{ github.sha }}
           git push -f origin $lint_branch
           gh pr create --fill-verbose -t lint:${{ github.ref }} -B main -H $lint_branch
         continue-on-error: true
