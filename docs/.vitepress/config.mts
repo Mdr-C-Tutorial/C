@@ -906,7 +906,7 @@ export default withMermaid(
       },
     },
     sitemap: {
-      hostname: "https://Mdr-C-Tutorial.github.io/C/",
+      hostname: "https://mdr.aymao.com/C/",
     },
   }),
 );
