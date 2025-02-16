@@ -169,7 +169,7 @@ int main() {
     print_rgb(rgb7);
     print_hsv(hsv7);
 
-    // 示例8  测试非整数hsv
+    // 示例 8  测试非整数 hsv
     HSV hsv8 = {200.5, 0.75, 0.85};
     RGB rgb8 = hsv_to_rgb(hsv8);
     printf("\nExample 8 (Non-integer HSV):\n");
