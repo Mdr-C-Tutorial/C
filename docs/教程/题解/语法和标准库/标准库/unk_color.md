@@ -38,7 +38,7 @@ HSV rgb_to_hsv(RGB rgb) {
     double chroma = max_val - min_val;
 
     if (chroma == 0) {
-        hsv.h = 0; // 无彩色
+        hsv.h = 0;
     } else if (max_val == r) {
         hsv.h = 60.0 * fmod(((g - b) / chroma), 6.0);
         if (hsv.h < 0) {
@@ -107,12 +107,10 @@ RGB hsv_to_rgb(HSV hsv) {
     return rgb;
 }
 
-// 打印 RGB 值
 void print_rgb(RGB rgb) {
     printf("RGB: (%d, %d, %d)\n", rgb.r, rgb.g, rgb.b);
 }
 
-// 打印 HSV 值 (使用 double)
 void print_hsv(HSV hsv) {
     printf("HSV: (%.2f, %.2f, %.2f)\n", hsv.h, hsv.s, hsv.v);
 }
@@ -133,21 +131,20 @@ int main() {
     print_hsv(hsv2);
     print_rgb(rgb2);
 
-    // 示例 3：RGB 转 HSV (另一种颜色)
+    // 示例 3：RGB 转 HSV
     RGB rgb3 = {100, 150, 200};
     HSV hsv3 = rgb_to_hsv(rgb3);
     printf("\nExample 3:\n");
     print_rgb(rgb3);
     print_hsv(hsv3);
 
-    // 示例 4：HSV 转 RGB (另一种颜色)
+    // 示例 4：HSV 转 RGB
     HSV hsv4 = {200, 0.7, 0.8};
     RGB rgb4 = hsv_to_rgb(hsv4);
     printf("\nExample 4:\n");
     print_hsv(hsv4);
     print_rgb(rgb4);
 
-    // 边界条件测试... (和之前一样，省略以节省空间)
     // 示例 5 测试边界条件：黑色
     RGB rgb5 = {0, 0, 0};
     HSV hsv5 = rgb_to_hsv(rgb5);

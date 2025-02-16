@@ -96,7 +96,7 @@ STM32 系列微控制器具有以下特点：
 
 ### 2.2 STM32 命名方法
 
-![STM32 命名方法图](/docs/images/嵌入式/STM32命名方法图.png)
+![STM32 命名方法图](/images/嵌入式/STM32命名方法图.png)
 
 > 注：摘自《STM32 选型手册》
 
@@ -119,7 +119,7 @@ STM32 系列微控制器具有以下特点：
 
 > 注：有关这一部分可以在 _Pinouts and pin descriptions_ 小节中找到
 
-![STM32 引脚定义图](/docs/images/嵌入式/STM32引脚定义图.png)
+![STM32 引脚定义图](/images/嵌入式/STM32引脚定义图.png)
 
 对引脚的解读如下：
 
