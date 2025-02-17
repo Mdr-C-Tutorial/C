@@ -35,7 +35,86 @@ switch (表达式) {
 
 `break;` 语句在 `switch` 语句中拥有特殊含义：如果在 `switch` 语句的任何位置执行时遇到跳转语句 `break;`，则会跳出 switch 语句。
 
+示例：
+
+```c
+#include <stdio.h>
+
+void func(int x) {
+    if (x != 1) {
+        putchar('\n');
+    }
+    printf("func(%d): ", x);
+    switch (x) {
+        case 1:
+            printf("case 1.");
+            [[fallthrough]];
+        case 2:
+            printf("case 2.");
+            [[fallthrough]];
+        case 3:
+            printf("case 3.");
+            break;
+        case 4:
+            printf("case 4.");
+            [[fallthrough]];
+        case 5:
+            [[fallthrough]];
+        case 6:
+            printf("case 6.");
+    }
+}
+
+int main(void) {
+    for (int i = 1; i < 7; ++i) func(i);
+}
+```
+
+可能的输出：
+
+```txt
+func(1): case 1.case 2.case 3.
+func(2): case 2.case 3.
+func(3): case 3.
+func(4): case 4.case 6.
+func(5): case 6.
+func(6): case 6.
+```
+
 ### default 子句
+
+```c
+#include <stdio.h>
+
+void func(int x) {
+    if (x != 1) {
+        putchar('\n');
+    }
+    printf("func(%d): ", x);
+    switch (x) {
+        case 1:
+            printf("case 1.");
+            break;
+        default:
+            printf("default.");
+            [[fallthrough]];
+        case 2:
+            printf("case 2.");
+    }
+}
+
+int main(void) {
+    for (int i = 1; i < 4; ++i) func(i);
+}
+```
+
+可能的输出：
+
+```c
+func(1): case 1.
+func(2): case 2.
+func(3): default.case 2.
+```
 
 ## 应用
 
