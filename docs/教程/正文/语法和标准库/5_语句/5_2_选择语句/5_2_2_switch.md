@@ -50,13 +50,13 @@ int main() {
     int state = 1;  // 初始状态：等待投币
     int money = 0;  // 投入的钱
     int choice = 0; // 选择的饮料
-    
+
     printf("欢迎使用自动售货机！\n");
-    
+
     while (1) {
         switch (state) {
             case 1:  // 等待投币状态
-                printf("请投币（1-10元）：");
+                printf("请投币（1-10 元）：");
                 scanf("%d", &money);
                 if (money > 0 && money <= 10) {
                     printf("收到 %d 元\n", money);
@@ -65,9 +65,9 @@ int main() {
                     printf("投币金额无效\n");
                 }
                 break;
-                
+
             case 2:  // 选择饮料状态
-                printf("请选择饮料（1-可乐 3元，2-雪碧 3元）：");
+                printf("请选择饮料（1-可乐 3 元，2-雪碧 3 元）：");
                 scanf("%d", &choice);
                 if (choice == 1 || choice == 2) {
                     if (money >= 3) {
@@ -80,13 +80,13 @@ int main() {
                     printf("选择无效\n");
                 }
                 break;
-                
+
             case 3:  // 出货状态
                 printf("正在出货...\n");
                 money -= 3;
                 state = 4;
                 break;
-                
+
             case 4:  // 找零状态
                 if (money > 0) {
                     printf("找零 %d 元\n", money);
@@ -96,13 +96,13 @@ int main() {
                 money = 0;   // 重置投币金额
                 choice = 0;  // 重置选择
                 break;
-                
+
             default:
                 printf("系统错误\n");
                 return 1;
         }
     }
-    
+
     return 0;
 }
 ```
