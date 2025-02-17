@@ -193,11 +193,11 @@ int main() {
 - 有限种状态
 - 每种状态的代码逻辑不同
 
-如果不满足以上两点，很可能有更适合的处理方法。下面举两个例子：
+的情况。如果不满足以上两点，很可能有更适合的处理方法。下面举两个例子：
 
 **1. 成绩等级：**
 
-::: details 教程中可能存在的不适用的代码
+教程中可能存在的不适用的代码：
 
 ```c
 #include <stdio.h>
@@ -227,7 +227,7 @@ int main() {
 }
 ```
 
-:::
+更合适的写法：
 
 ```c
 #include <stdio.h>
@@ -253,10 +253,13 @@ int main() {
 
 **2. 简单的菜单选择：**
 
-::: details 教程中可能存在的不适用的代码
+教程中可能存在的不适用的代码：
 
 ```c
 #include <stdio.h>
+
+// 省略函数声明...
+
 int main() {
     int choice = 0;
     printf("请选择操作：\n");
@@ -286,15 +289,15 @@ int main() {
 }
 ```
 
-:::
+更合适的写法（使用**表驱动**，涉及到函数指针）：
 
 ```c
 #include <stdio.h>
 
-void show_menu(void){}
-void add_student(void){}
-void delete_student(void){}
-void query_student(void){}
+void show_menu(void){ /* 一些操作 */ }
+void add_student(void){ /* 一些操作 */ }
+void delete_student(void){ /* 一些操作 */ }
+void query_student(void){ /* 一些操作 */ }
 
 static void (*menu[])(void) = {
     show_menu,
