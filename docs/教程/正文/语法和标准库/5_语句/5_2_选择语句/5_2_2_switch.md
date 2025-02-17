@@ -185,3 +185,139 @@ int main() {
     return 0;
 }
 ```
+
+::: warning 不适用的情况
+
+当今市面上很多教程在讲 switch 语句的时候，使用的示例实际上是不适用 switch 语句去处理的。具体地，`switch` 语句只适用于：
+
+- 有限种状态
+- 每种状态的代码逻辑不同
+
+如果不满足以上两点，很可能有更适合的处理方法。下面举两个例子：
+
+**1. 成绩等级：**
+
+::: details 教程中可能存在的不适用的代码
+
+```c
+#include <stdio.h>
+int main() {
+    int score = 0;
+    printf("请输入成绩：");
+    scanf("%d", &score);
+    switch (score / 10) {
+        case 10:
+        case 9:
+            printf("成绩等级：A\n");
+            break;
+        case 8:
+            printf("成绩等级：B\n");
+            break;
+        case 7:
+            printf("成绩等级：C\n");
+            break;
+        case 6:
+            printf("成绩等级：D\n");
+            break;
+        default:
+            printf("成绩等级：E\n");
+            break;
+    }
+    return 0;
+}
+```
+
+:::
+
+```c
+#include <stdio.h>
+
+int main() {
+    int score = 0;
+    printf("请输入成绩：");
+    scanf("%d", &score);
+    if (score >= 90) {
+        printf("成绩等级：A\n");
+    } else if (score >= 80) {
+        printf("成绩等级：B\n");
+    } else if (score >= 70) {
+        printf("成绩等级：C\n");
+    } else if (score >= 60) {
+        printf("成绩等级：D\n");
+    } else {
+        printf("成绩等级：E\n");
+    }
+    return 0;
+}
+```
+
+**2. 简单的菜单选择：**
+
+::: details 教程中可能存在的不适用的代码
+
+```c
+#include <stdio.h>
+int main() {
+    int choice = 0;
+    printf("请选择操作：\n");
+    printf("1. 显示菜单\n");
+    printf("2. 添加学生\n");
+    printf("3. 删除学生\n");
+    printf("4. 查询学生\n");
+    scanf("%d", &choice);
+    switch (choice) {
+        case 1:
+            printf("显示菜单\n");
+            break;
+        case 2:
+            printf("添加学生\n");
+            break;
+        case 3:
+            printf("删除学生\n");
+            break;
+        case 4:
+            printf("查询学生\n");
+            break;
+        default:
+            printf("无效的选择\n");
+            break;
+    }
+    return 0;
+}
+```
+
+:::
+
+```c
+#include <stdio.h>
+
+void show_menu(void){}
+void add_student(void){}
+void delete_student(void){}
+void query_student(void){}
+
+static void (*menu[])(void) = {
+    show_menu,
+    add_student,
+    delete_student,
+    query_student,
+};
+
+int main() {
+    int choice = 0;
+    printf("请选择操作：\n");
+    printf("1. 显示菜单\n");
+    printf("2. 添加学生\n");
+    printf("3. 删除学生\n");
+    printf("4. 查询学生\n");
+    scanf("%d", &choice);
+    if(choice >= 1 && choice <= 4){
+        menu[choice - 1]();
+    } else {
+        printf("无效的选择\n");
+    }
+    return 0;
+}
+```
+
+:::
