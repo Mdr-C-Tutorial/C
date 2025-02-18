@@ -4,10 +4,7 @@ permissions:
   contents: write
   pull-requests: write
 
-on:
-  push:
-    branches: [main]
-
+on: 
   workflow_dispatch:
 
 concurrency:
