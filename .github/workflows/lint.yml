@@ -59,6 +59,8 @@ jobs:
         with:
           style: file
           thread-comments: update
+          version: 19
+          files-changed-only: false
         continue-on-error: true
 
       - name: ESLint (+vue +prettier +ts)
