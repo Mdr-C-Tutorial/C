@@ -4,7 +4,7 @@ permissions:
   contents: write
   pull-requests: write
 
-on: 
+on:
   workflow_dispatch:
 
 concurrency:
@@ -59,6 +59,8 @@ jobs:
         with:
           style: file
           thread-comments: update
+          version: 19
+          files-changed-only: false
         continue-on-error: true
 
       - name: ESLint (+vue +prettier +ts)
@@ -77,19 +79,11 @@ jobs:
           separator: ";"
         continue-on-error: true
 
-      - name: Autocorrect Lint
-        id: autocorrect-lint
-        uses: huacnlee/autocorrect-action@v2
-        with:
-          use_npm: true
-          args: --lint --config 'https://raw.githubusercontent.com/huacnlee/autocorrect/main/.autocorrectrc.template'
-        continue-on-error: true
       - name: Autocorrect Fix
-        if: steps.autocorrect-lint.outcome == 'failure'
         uses: huacnlee/autocorrect-action@v2
         with:
           use_npm: true
-          args: --fix --config 'https://raw.githubusercontent.com/huacnlee/autocorrect/main/.autocorrectrc.template'
+          args: --fix
         continue-on-error: true
 
       - name: Create PullRequest

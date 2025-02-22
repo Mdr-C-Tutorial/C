@@ -884,6 +884,10 @@ export default withMermaid(
           },
         ],
       },
+      outline: {
+        level: "deep",
+        label: "页面导航",
+      },
 
       socialLinks: [
         {
@@ -891,6 +895,28 @@ export default withMermaid(
           link: "https://github.com/Mdr-C-Tutorial/C",
         },
       ],
+      editLink: {
+        pattern: "https://github.com/Mdr-C-Tutorial/C/edit/main/docs/:path",
+        text: "编辑此页",
+      },
+      lastUpdated: {
+        text: "最后更新于",
+        formatOptions: {
+          dateStyle: "full",
+          timeStyle: "full",
+        },
+      },
+      docFooter: {
+        prev: "上一页",
+        next: "下一页",
+      },
+      darkModeSwitchLabel: "主题",
+      lightModeSwitchTitle: "切换至浅色",
+      darkModeSwitchTitle: "切换至深色",
+
+      sidebarMenuLabel: "菜单",
+      returnToTopLabel: "返回顶部",
+      externalLinkIcon: true,
     },
     markdown: {
       lineNumbers: true,
