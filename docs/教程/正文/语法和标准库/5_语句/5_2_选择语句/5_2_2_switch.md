@@ -35,6 +35,16 @@ switch (表达式) {
 
 `break;` 语句在 `switch` 语句中拥有特殊含义：如果在 `switch` 语句的任何位置执行时遇到跳转语句 `break;`，则会跳出 `switch` 语句。
 
+在大多数场景下，我们希望在执行完某个 `case` 后的语句序列后跳出 `switch` 语句，所以在每个 `case` 后的语句序列末尾都需要添加 `break;` 语句。但有例外：有时候，我们希望在执行完某个 `case` 后的语句序列后继续执行下一个 `case` 后的语句序列，这时不加 `break;` 语句。这种情况被称为 **fallthrough**。
+
+在 C23 标准中，有了[属性](/教程/正文/语法和标准库/9_对象/9_6_属性.md)的语法，我们可以在 `case` 标签后使用 `[[fallthrough]];` 语句来提醒编译器：这个 fallthrough 是有意为之，而不是漏写了 `break;`，从而避免可能的警告。
+
+::: details 可能的警告
+
+在 GCC 中，如果编译选项 `-Wimplicit-fallthrough`（包含于 `-WExtra`）被启用，则会在 fallthrough 处发出警告。
+
+:::
+
 示例：
 
 ```c
