@@ -54,7 +54,7 @@ if (condition) {
 
 ```c
 if (hp == 0)
-    state = dead;
+    state = PLAYER_DEAD;
 if ( /* 其他条件 */ )
     // 其他代码
 ```
@@ -63,19 +63,19 @@ if ( /* 其他条件 */ )
 
 ```c
 if (hp == 0)
-    state = dead;
+    state = PLAYER_DEAD;
     printf("角色死亡\n");
 if ( /* 其他条件 */ )
     // 其他代码
 ```
 
-但是，当运行的时候，我会发现，无论角色生命值是否等于 0，都会打印消息。这是因为，`if` 语句只会包含其后的第一条语句，即 `state = dead;`，因此即使角色生命值不等于 0，`printf("角色死亡\n");` 也会被执行。
+但是，当运行的时候，我会发现，无论角色生命值是否等于 0，都会打印消息。这是因为，`if` 语句只会包含其后的第一条语句，即 `state = PLAYER_DEAD;`，因此即使角色生命值不等于 0，`printf("角色死亡\n");` 也会被执行。
 
 为了避免这种情况，建议永远使用大括号包裹 `if` 之后的语句，使之成为复合语句，如下所示：
 
 ```c
 if (hp == 0) {
-    state = dead;
+    state = PLAYER_DEAD;
 }
 if ( /* 其他条件 */ ) {
     // 其他代码
@@ -86,7 +86,7 @@ if ( /* 其他条件 */ ) {
 
 ```c
 if (hp == 0) {
-    state = dead;
+    state = PLAYER_DEAD;
     printf("角色死亡\n");
 }
 if ( /* 其他条件 */ )
