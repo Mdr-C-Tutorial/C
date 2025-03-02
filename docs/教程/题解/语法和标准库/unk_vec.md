@@ -39,32 +39,32 @@ int main(void) {
     int n;
     printf("请输入向量维数：");
     scanf("%d", &n);
-    
+
     if (n <= 0) {
         printf("错误：维数必须为正整数\n");
         return 1;
     }
-    
+
     double* v1 = malloc(n * sizeof(double));
     double* v2 = malloc(n * sizeof(double));
-    
+
     if (!v1 || !v2) {
         printf("错误：内存分配失败\n");
         free(v1);
         free(v2);
         return 1;
     }
-    
+
     printf("请输入第一个向量的坐标：\n");
     for (int i = 0; i < n; i++) {
         scanf("%lf", &v1[i]);
     }
-    
+
     printf("请输入第二个向量的坐标：\n");
     for (int i = 0; i < n; i++) {
         scanf("%lf", &v2[i]);
     }
-    
+
     // 检查零向量
     if (is_zero_vector(v1, n) || is_zero_vector(v2, n)) {
         printf("错误：零向量没有方向，无法计算夹角\n");
@@ -72,18 +72,18 @@ int main(void) {
         free(v2);
         return 1;
     }
-    
-    double cos_theta = dot_product(v1, v2, n) / 
+
+    double cos_theta = dot_product(v1, v2, n) /
                       (vector_length(v1, n) * vector_length(v2, n));
-                      
+
     // 处理数值误差导致的 cos_theta > 1 或 cos_theta < -1 的情况
     if (cos_theta > 1) cos_theta = 1;
     if (cos_theta < -1) cos_theta = -1;
-    
+
     double angle = acos(cos_theta) * 180.0 / M_PI;
-    
-    printf("两向量的夹角为：%.2f度\n", angle);
-    
+
+    printf("两向量的夹角为：%.2f 度\n", angle);
+
     free(v1);
     free(v2);
     return 0;

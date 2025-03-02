@@ -22,12 +22,12 @@ int main(void) {
     int n;
     printf("输入人数：");
     scanf("%d", &n);
-    
-    int* alive = calloc(n + 1, sizeof(int));  // 0表示在圈中
+
+    int* alive = calloc(n + 1, sizeof(int));  // 0 表示在圈中
     int remain = n;  // 剩余人数
     int count = 1;   // 报数
     int pos = 1;     // 当前位置
-    
+
     while(remain > 1) {
         if(!alive[pos]) {  // 如果这个人还在圈中
             if(count % 2 == 0) {  // 报到偶数
@@ -38,7 +38,7 @@ int main(void) {
         }
         pos = pos % n + 1;  // 移到下一个位置
     }
-    
+
     // 找到最后剩下的人
     for(int i = 1; i <= n; i++) {
         if(!alive[i]) {
@@ -46,7 +46,7 @@ int main(void) {
             break;
         }
     }
-    
+
     free(alive);
     return 0;
 }
