@@ -25,10 +25,10 @@ int main(void) {
     int M;
     printf("输入投掷次数：");
     scanf("%d", &M);
-    
+
     srand(time(NULL));
     int in_circle = 0;
-    
+
     for(int i = 0; i < M; i++) {
         // 使用 -1 到 1 的范围以充分利用圆形区域
         double x = 2.0 * rand() / RAND_MAX - 1.0;
@@ -37,7 +37,7 @@ int main(void) {
             in_circle++;
         }
     }
-    
+
     double pi = 4.0 * in_circle / M;
     printf("π ≈ %.6f\n", pi);
     return 0;

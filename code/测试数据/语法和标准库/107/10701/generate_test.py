@@ -18,14 +18,14 @@ def factorial(n):
     return ''.join(map(str, result[::-1]))
 
 test_cases = [
-    random.randint(1, 20),  # 组1：1-20
+    random.randint(1, 20),  # 组 1:1-20
     random.randint(5, 20),
     random.randint(10, 20),
-    random.randint(21, 50),  # 组2：21-100
+    random.randint(21, 50),  # 组 2:21-100
     random.randint(40, 80),
     random.randint(60, 100),
     random.randint(80, 100),
-    random.randint(101, 300),  # 组3：101-1000
+    random.randint(101, 300),  # 组 3:101-1000
     random.randint(300, 700),
     random.randint(700, 1000)
 ]
