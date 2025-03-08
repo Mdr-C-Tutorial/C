@@ -8,7 +8,7 @@ def generate_orthogonal_vectors(n):
     v1 = np.random.randn(n)
     v1 = v1 / np.linalg.norm(v1)
     
-    # 生成一个随机向量并使其与v1正交
+    # 生成一个随机向量并使其与 v1 正交
     v2 = np.random.randn(n)
     v2 = v2 - np.dot(v2, v1) * v1
     v2 = v2 / np.linalg.norm(v2)
@@ -25,7 +25,7 @@ def generate_vectors_with_angle(n, angle_degrees):
     v2_base = v2_base - np.dot(v2_base, v1) * v1
     v2_base = v2_base / np.linalg.norm(v2_base)
     
-    # 根据指定角度旋转v2
+    # 根据指定角度旋转 v2
     angle_rad = math.radians(angle_degrees)
     v2 = v1 * math.cos(angle_rad) + v2_base * math.sin(angle_rad)
     
@@ -51,18 +51,18 @@ def format_vector(v):
 base_dir = 'd:\\Projects\\C\\code\\测试数据\\数据结构与算法\\107\\10702'
 os.makedirs(base_dir, exist_ok=True)
 
-# 生成20组测试数据（10组原始数据 + 10组新的随机数据）
+# 生成 20 组测试数据（10 组原始数据 + 10 组新的随机数据）
 test_cases = [
-    (2, 90),      # 2维正交向量
-    (3, 0),       # 3维相同向量
-    (4, 180),     # 4维相反向量
-    (5, 90),      # 5维正交向量
-    (10, 14.42),  # 10维特定角度
-    (20, 90),     # 20维正交向量
-    (50, 90),     # 50维正交向量
-    (100, 180),   # 100维相反向量
-    (3, 90),      # 3维正交向量（带小数）
-    (4, 19.47),   # 4维特定角度
+    (2, 90),      # 2 维正交向量
+    (3, 0),       # 3 维相同向量
+    (4, 180),     # 4 维相反向量
+    (5, 90),      # 5 维正交向量
+    (10, 14.42),  # 10 维特定角度
+    (20, 90),     # 20 维正交向量
+    (50, 90),     # 50 维正交向量
+    (100, 180),   # 100 维相反向量
+    (3, 90),      # 3 维正交向量（带小数）
+    (4, 19.47),   # 4 维特定角度
     (20, None),   # 随机向量对
     (30, None),   # 随机向量对
     (40, None),   # 随机向量对

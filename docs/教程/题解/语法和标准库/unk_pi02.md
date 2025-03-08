@@ -38,24 +38,24 @@ int main(void) {
     int M;
     printf("输入投掷次数：");
     scanf("%d", &M);
-    
+
     srand(time(NULL));
     int cross = 0;
     const double d = 1.0;  // 线间距
     const double l = 1.0;  // 针长
-    
+
     for(int i = 0; i < M; i++) {
-        // y是针中点到最近线的距离
+        // y 是针中点到最近线的距离
         double y = (double)rand() / RAND_MAX * (d/2);
-        // theta是针与线的夹角
+        // theta 是针与线的夹角
         double theta = (double)rand() / RAND_MAX * M_PI;
-        
+
         // 判断是否相交
         if(y <= (l/2) * sin(theta)) {
             cross++;
         }
     }
-    
+
     double pi = 2.0 * M / cross;
     printf("π ≈ %.6f\n", pi);
     return 0;
