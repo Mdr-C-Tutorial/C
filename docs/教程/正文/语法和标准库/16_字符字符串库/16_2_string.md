@@ -1,26 +1,35 @@
 # 字符串库 `<string.h>`
 
 # 第一类：最最常用的字符串处理函数
+
+
 ## `strlen()` ：字符串长度计算
 ### 说文解字
+
 `str` 是 ”string“ 的缩写
 
 `len` 是 ”length” 的缩写
 
 `strlen` 即 length of string，它的作用是计算字符串长度
+
 ### 函数原型
+
 **`size_t strlen(const char *s)`**
 
 `s`：是要计算长度的字符串
 
 返回字符串`s`的长度
+
 ### 注意事项
+
 这个函数的使用要区别于`sizeof()`运算符计算数组长度的方法
 
 有一种计算数组长度的方法是使用`sizeof()`计算数组占用的总内存，除以单个数据元素占用的内存空间得到数组长度，即`sizeof(array) / sizeof(type)`
 
 在字符串这里你会发现使用`strlen()`函数和使用以上方法的结果不同，原因在于C语言中，字符串以空字符(Nul Character, ASCII: 0)为结束标志。`strlen()`函数只统计字符串中非空字符的数量，而`sizeof`运算符会把空字符也算上，请注意这个特殊的地方。
+
 ### 衍生函数
+
 `size_t strnlen(const char *s, size_t maxlen)`
 
 `strlen()`的字符数限制版，返回字符串 `s` 的长度，但最多返回 `maxlen`
@@ -303,6 +312,7 @@ int main() {
     return 0;
 }
 ```
+
 输出：
 > Hello
 > world
@@ -311,14 +321,19 @@ int main() {
 > a
 > strtok
 > example
+
 ## `strpbrk()`：在字符串中查找字符集中字符的位置
+
 ### 说文解字
+
 `p`：“pointer”的缩写
 
 `brk`：“break”的缩写
 
 意思就是查找字符集中的任一字符在字符串中的首次出现位置
+
 ### 函数原型
+
 `char *strpbrk(const char *s1, const char *s2)`
 
 `s1`：目标字符串
@@ -326,7 +341,8 @@ int main() {
 `s2`：字符集字符串，包含要查找的字符集合
 
 如果查找到匹配字符，返回指向它的指针，否则返回`NULL`
-``` C
+
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -346,14 +362,21 @@ int main() {
     return 0;
 }
 ```
+
 输出：
+
 > First matching character found at position: 1
+
 ## `strspn()`：计算一个字符串中包含另一个字符串中字符的最长连续子串的长度
+
 ### 说文解字
+
 `spn`：“span”的缩写
 
 可以理解为“计算字符串中某个范围的长度”
+
 ### 函数原型
+
 `char *strspn(const char *s1, const char *s2)`
 
 `s1`：目标字符串，也就是需要检查的字符串
@@ -466,13 +489,19 @@ int main() {
     return 0;
 }
 ```
+
 输出：
 > str2: Hello, World!
 > str3: memmove can be very very useful.
+
 ## `memset()`：设置指定长度的内存区域为指定的值
+
 ### 说文解字
+
 这也没啥好说的了吧，`set`：“设置”
+
 ### 函数原型
+
 `void *memset(void *s, int c, size_t n)`
 
 `s`：目标内存的起始地址。
@@ -570,8 +599,11 @@ int main() {
 
 如果未找到字符 `c`，返回 `NULL`
 ### 注意事项
+
 数组越界：孩子们，还是我，想我了吗
+
 ### 示例程序
+
 ``` C
 #include <stdio.h>
 #include <string.h>
@@ -592,10 +624,12 @@ int main() {
     return 0;
 }
 ```
+
 输出：
 > Character 'w' found at position: 7
 
 # 写在最后
+
 这个文档里面只列举了我用过的函数，有些我实在是没用过的，我也没有什么自己的理解，就没有写进来，我把他们在下面列出来：
 
 `strcoll()`、`strxfrm()`、`strerror()`、`strsignal()`
