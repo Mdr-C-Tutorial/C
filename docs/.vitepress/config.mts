@@ -100,7 +100,6 @@ export default withMermaid(
     lang: "zh-CN",
     base: "/C/",
     cleanUrls: true,
-    cacheDir: ".vitepress/cache",
     metaChunk: true,
     lastUpdated: true,
     themeConfig: {
