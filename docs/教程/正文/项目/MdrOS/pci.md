@@ -4,6 +4,8 @@
 
 很多外围设备的通信都要通过 PCI 总线进行，诸如 显卡/声卡/网卡/USB 接口/硬盘 等
 
+### 如何遍历PCI总线
+
 ## PCIe
 
 PCI-Express(peripheral component interconnect express) 是一种高速串行计算机扩展总线标准，它原来的名称为“3GIO”，是由英特尔在 2001 年提出的，旨在替代旧的 PCI，PCI-X 和 AGP 总线标准。
