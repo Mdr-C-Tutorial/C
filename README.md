@@ -21,7 +21,7 @@ int main(int argc, char* argv[]){
 1. 这里是 **Mdr's C Tutorial**，欢迎来这里共同学习！
 2. 此仓库中文档的定位是**教程讲义**：  
    对于贡献者，意味着无需引导和废话，只需讲干货；  
-   对于读者，意味着阅读这些文档可以快速获得与**C 语言**以及**计算机科学**相关知识；
+   对于读者，意味着阅读这些文档可以快速获得与 **C 语言**以及**计算机科学**相关知识；
 3. 本教程以及本讲义的目标：在**准确**的基础上力争**简洁**和**生动**；
 4. 此教程并非一时兴起而作，实则怀「为往圣继绝学，为万世开太平」之愿，深思熟虑打造而成。
 5. 得天独厚者，替天行善！
@@ -29,7 +29,7 @@ int main(int argc, char* argv[]){
 ## 构建与部署
 
 1. 本文档使用 [VitePress](https://vitejs.cn/vitepress/) 构建，需最新版 yarn 以在本地 build 和 dev。
-2. 本仓库采用 GitHub Actions 在每次提交时自动构建和部署。
+2. 本仓库采用 [GitHub Actions](https://github.com/features/actions) 在每次提交时自动构建和部署。
 
 ## 文档规范
 
@@ -111,8 +111,9 @@ int main(int argc, char* argv[]){
 - [**_C++ 参考手册_**](https://zh.cppreference.com/w/c/language)
 - **_C Primer Plus_** （ISBN 978-0-321-92842-9）
 - **_算法导论_** （ISBN 978-7-111-40701-0）
+- **_计算机程序设计艺术_**
 - [**_Let's Build a Simple Database_**](https://cstack.github.io/db_tutorial/)
 - [**_pldocs_**](https://github.com/FrankHB/pl-docs/blob/master/zh-CN)
 - **_陶哲轩实分析_** （ISBN 978-7-115-48025-5）
-- [**OSDEV**](https://wiki.osdev.org/)
-- [**Hello 算法**](https://hello-algo.com/)
+- [**_OSDEV_**](https://wiki.osdev.org/)
+- [**_Hello 算法_**](https://hello-algo.com/)
