@@ -765,52 +765,79 @@ export default withMermaid(
                   },
                   {
                     text: "Mdr Server",
+                    link: "/教程/正文/项目/Mdr_Server/项目概述",
                     collapsed: true,
-                    items: [
-                      {
-                        text: "1. 项目概述 - Mdr Server",
-                        link: "/教程/正文/项目/Mdr_Server/项目概述",
-                      },
-                    ],
+                    items: [],
                   },
                   {
                     text: "Mdr Chat Room",
+                    link: "/教程/正文/项目/Mdr_Chat_Room/项目概述",
                     collapsed: true,
-                    items: [
-                      {
-                        text: "1. 项目概述 - Mdr Chat Room",
-                        link: "/教程/正文/项目/Mdr_Chat_Room/项目概述",
-                      },
-                    ],
+                    items: [],
                   },
                   {
                     text: "Mdr Lang",
+                    link: "/教程/正文/项目/Mdr_Lang/项目概述",
                     collapsed: true,
-                    items: [
-                      {
-                        text: "1. 项目概述 - Mdr Lang",
-                        link: "/教程/正文/项目/Mdr_Lang/项目概述",
-                      },
-                    ],
+                    items: [],
                   },
                   {
                     text: "MdrDB",
+                    link: "/教程/正文/项目/MdrDB/项目概述",
                     collapsed: true,
-                    items: [
-                      {
-                        text: "1. 项目概述 - MdrDB",
-                        link: "/教程/正文/项目/MdrDB/项目概述",
-                      },
-                    ],
+                    items: [],
                   },
                   {
                     text: "MdrOS",
+                    link: "/教程/正文/项目/MdrOS/项目概述",
                     collapsed: true,
                     items: [
                       {
-                        text: "1. 项目概述 - MdrOS",
-                        link: "/教程/正文/项目/MdrOS/项目概述",
+                        text: "项目构建",
+                        link: "/教程/正文/项目/MdrOS/build"
                       },
+                      {
+                        text: "引导程序",
+                        link: "/教程/正文/项目/MdrOS/bootloader"
+                      },
+                      {
+                        text: "视频驱动",
+                        link: "/教程/正文/项目/MdrOS/video_driver"
+                      },
+                      {
+                        text: "中断系统",
+                        link: "/教程/正文/项目/MdrOS/interrupt"
+                      },
+                      {
+                        text: "内存管理",
+                        link: "/教程/正文/项目/MdrOS/memory"
+                      },
+                      {
+                        text: "文件系统",
+                        link: "/教程/正文/项目/MdrOS/filesystem"
+                      },
+                      {
+                        text: "多任务",
+                        link: "/教程/正文/项目/MdrOS/task"
+                      },
+                      {
+                        text: "番外",
+                        collapsed: true,
+                        items: [
+                          {
+                            text: "ACPI",
+                            link: "/教程/正文/项目/MdrOS/acpi"
+                          },
+                          {
+                            text: "PCI",
+                            link: "/教程/正文/项目/MdrOS/pci"
+                          },
+                          {
+                            text: "OSDEV 代码矫正",
+                            link: "/教程/正文/项目/MdrOS/osdev"
+                          }
+                        ]
+                      }
                     ],
                   },
                   {
@@ -822,7 +849,9 @@ export default withMermaid(
               },
               {
                 text: "嵌入式",
+                link: "/教程/正文/嵌入式/引言",
                 collapsed: true,
+                items: [],
               },
             ],
           },
