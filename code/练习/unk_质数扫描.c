@@ -1,13 +1,12 @@
 #include <stdio.h>
 int main(void) {
-    int num;
-    int t;
-    for (num = 101; num < 200; num++) {
-        for (t = 2; t <= num; t++) {
-            if (num == t) {
-                printf("%d", num);
+    const int NUM_MIN = 101, NUM_MAX = 200;
+    for (int num = NUM_MIN; NUM_MAX < 200; ++num) {
+        for (int try = 2; try <= num; ++try) {
+            if (num == try) {
+                printf("%d ", num);
             }
-            if (num % t == 0) {
+            if (num % try == 0) {
                 break;
             }
         }

@@ -278,7 +278,8 @@ int sprintf(char *buf, const char *fmt, ...) {
 
 /*
  * 记住，该函数只是打印字符串。
- * 你可以将其改成 vga_writestring 也可以改成 vbe_writestring 取决于你的视频显示模式
+ * 你可以将其改成 vga_writestring 也可以改成 vbe_writestring
+ * 取决于你的视频显示模式
  */
 void print(char *string);
 

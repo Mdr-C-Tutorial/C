@@ -4,6 +4,4 @@
 
 #include <stdio.h>
 
-int main(void) { 
-    puts("hello world"); 
-}
+int main(void) { puts("hello world"); }

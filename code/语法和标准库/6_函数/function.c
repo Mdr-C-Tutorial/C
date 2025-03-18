@@ -1,16 +1,10 @@
 #include <stdio.h>
 
-void say_hello() {
-    puts("Hello, world!\n");
-}
+void say_hello() { puts("Hello, world!\n"); }
 
-void print_add(int a, int b) {
-    printf("%d + %d = %d\n", a, b, a + b);
-}
+void print_add(int a, int b) { printf("%d + %d = %d\n", a, b, a + b); }
 
-int add(int a, int b) {
-    return a + b;
-}
+int add(int a, int b) { return a + b; }
 
 int main(void) {
     say_hello();

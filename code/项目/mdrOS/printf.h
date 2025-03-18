@@ -1,9 +1,9 @@
 #ifndef CRASHPOWEROS_PRINTF_H
 #define CRASHPOWEROS_PRINTF_H
 
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdarg.h>
 
 #include "common.h"
 

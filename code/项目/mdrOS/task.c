@@ -1,13 +1,13 @@
 #include "../include/task.h"
 #include "../include/common.h"
-#include "../include/graphics.h"
-#include "../include/io.h"
 #include "../include/description_table.h"
-#include "../include/vfs.h"
-#include "../include/timer.h"
-#include "../include/shell.h"
-#include "../include/heap.h"
 #include "../include/elf.h"
+#include "../include/graphics.h"
+#include "../include/heap.h"
+#include "../include/io.h"
+#include "../include/shell.h"
+#include "../include/timer.h"
+#include "../include/vfs.h"
 
 #define SA_RPL_MASK 0xFFFC
 #define SA_TI_MASK 0xFFFB
@@ -26,54 +26,63 @@ extern void taskX_switch(struct context *prev, struct context *next);
 int now_pid = 0;
 int can_sche = 1;
 
-struct task_struct *get_current() {
-    return current;
-}
+struct task_struct *get_current() { return current; }
 
 static uint32_t padding_up(uint32_t num, uint32_t size) {
     return (num + size - 1) / size;
 }
 
-void print_proc_t(int *i, struct task_struct *base, struct task_struct *cur, int is_print) {
+void print_proc_t(int *i, struct task_struct *base, struct task_struct *cur,
+                  int is_print) {
     if (cur->pid == base->pid) {
         if (is_print) {
             switch (cur->state) {
-                case TASK_RUNNABLE:
-                    printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid, "Running");
-                    break;
-                case TASK_SLEEPING:
-                    printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid, "Sleeping");
-                    break;
-                case TASK_UNINIT:
-                    printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid, "Init");
-                    break;
-                case TASK_ZOMBIE:
-                    printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid, "Zombie");
-                    break;
-                case TASK_DEATH:
-                    printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid, "Death");
-                    break;
+            case TASK_RUNNABLE:
+                printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid,
+                       "Running");
+                break;
+            case TASK_SLEEPING:
+                printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid,
+                       "Sleeping");
+                break;
+            case TASK_UNINIT:
+                printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid,
+                       "Init");
+                break;
+            case TASK_ZOMBIE:
+                printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid,
+                       "Zombie");
+                break;
+            case TASK_DEATH:
+                printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid,
+                       "Death");
+                break;
             }
         }
         (*i)++;
     } else {
         if (is_print) {
             switch (cur->state) {
-                case TASK_RUNNABLE:
-                    printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid, "Running");
-                    break;
-                case TASK_SLEEPING:
-                    printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid, "Sleeping");
-                    break;
-                case TASK_UNINIT:
-                    printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid, "Init");
-                    break;
-                case TASK_ZOMBIE:
-                    printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid, "Zombie");
-                    break;
-                case TASK_DEATH:
-                    printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid, "Death");
-                    break;
+            case TASK_RUNNABLE:
+                printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid,
+                       "Running");
+                break;
+            case TASK_SLEEPING:
+                printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid,
+                       "Sleeping");
+                break;
+            case TASK_UNINIT:
+                printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid,
+                       "Init");
+                break;
+            case TASK_ZOMBIE:
+                printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid,
+                       "Zombie");
+                break;
+            case TASK_DEATH:
+                printf("%-17s      %-2d     %s   %d\n", cur->name, cur->pid,
+                       "Death");
+                break;
             }
         }
         (*i)++;
@@ -91,11 +100,14 @@ void print_proc() {
     int index = 0;
     print_proc_t(&index, current, current->next, 1);
     printf("====---------------[Processes]----------------====\n");
-    printf("Name                  Pid     Status    MemUsage [All Proc: %d]\n\n", index);
+    printf(
+        "Name                  Pid     Status    MemUsage [All Proc: %d]\n\n",
+        index);
 }
 
-static void
-found_task(int pid, struct task_struct *head, struct task_struct *base, struct task_struct **argv, int first) {
+static void found_task(int pid, struct task_struct *head,
+                       struct task_struct *base, struct task_struct **argv,
+                       int first) {
     struct task_struct *t = base;
     if (t == NULL) {
         argv = NULL;
@@ -124,13 +136,9 @@ struct task_struct *found_task_pid(int pid) {
     return argv;
 }
 
-void wait_task(struct task_struct *task) {
-    task->state = TASK_SLEEPING;
-}
+void wait_task(struct task_struct *task) { task->state = TASK_SLEEPING; }
 
-void start_task(struct task_struct *task) {
-    task->state = TASK_RUNNABLE;
-}
+void start_task(struct task_struct *task) { task->state = TASK_RUNNABLE; }
 
 void task_kill(int pid) {
     io_cli();
@@ -141,7 +149,8 @@ void task_kill(int pid) {
         return;
     }
     if (argv->pid == 0) {
-        printf("\033ff3030;[kernel]: Taskkill cannot terminate kernel processes.\033c6c6c6;\n");
+        printf("\033ff3030;[kernel]: Taskkill cannot terminate kernel "
+               "processes.\033c6c6c6;\n");
         io_sti();
         return;
     }
@@ -168,23 +177,22 @@ void schedule(registers_t *reg) {
     io_cli();
     if (current && can_sche) {
         current->cpu_clock++;
-        change_task_to(reg,current->next);
+        change_task_to(reg, current->next);
     }
 }
 
-void change_task_to(registers_t *reg,struct task_struct *next) {
+void change_task_to(registers_t *reg, struct task_struct *next) {
     if (current != next) {
         struct task_struct *prev = current;
         current = next;
         page_switch(current->pgd_dir);
         set_kernel_stack(current->stack + STACK_SIZE);
 
-
         /*
         if(current->fpu_flag) {
             set_cr0(get_cr0() & ~((1 << 2) | (1 << 3)));
-            asm volatile("fnsave (%%eax) \n" ::"a"(&(current->context.fpu_regs)) : "memory");
-            set_cr0(get_cr0() | (1 << 2) | (1 << 3));
+            asm volatile("fnsave (%%eax) \n" ::"a"(&(current->context.fpu_regs))
+        : "memory"); set_cr0(get_cr0() | (1 << 2) | (1 << 3));
         }
          */
 
@@ -202,23 +210,24 @@ void change_task_to(registers_t *reg,struct task_struct *next) {
     }
 }
 
-int32_t user_process(char *path, char *name,char* argv,uint8_t level){ // 用户进程创建
+int32_t user_process(char *path, char *name, char *argv,
+                     uint8_t level) { // 用户进程创建
     can_sche = 0;
-    if(path == NULL){
+    if (path == NULL) {
         return NULL;
     }
     io_sti();
 
     uint32_t size = vfs_filesize(path);
 
-    if(size == -1){
+    if (size == -1) {
         can_sche = 1;
         return NULL;
     }
 
     io_cli();
 
-    struct task_struct *new_task = (struct task_struct *) kmalloc(STACK_SIZE);
+    struct task_struct *new_task = (struct task_struct *)kmalloc(STACK_SIZE);
     assert(new_task != NULL, "user_pcb: kmalloc error");
 
     // 将栈低端结构信息初始化为 0
@@ -243,16 +252,14 @@ int32_t user_process(char *path, char *name,char* argv,uint8_t level){ // 用户
     init_default_tty(new_task);
     io_sti();
 
+    vfs_copy(new_task, get_current()->vfs_now);
 
-
-    vfs_copy(new_task,get_current()->vfs_now);
-
-    char* ker_path = kmalloc(strlen(path) + 1);
-    char* use_arg = kmalloc(strlen(argv) + 1);
-    char* k_name = kmalloc(strlen(name) + 1);
-    strcpy(k_name,name);
-    strcpy(use_arg,argv);
-    strcpy(ker_path,path);
+    char *ker_path = kmalloc(strlen(path) + 1);
+    char *use_arg = kmalloc(strlen(argv) + 1);
+    char *k_name = kmalloc(strlen(name) + 1);
+    strcpy(k_name, name);
+    strcpy(use_arg, argv);
+    strcpy(ker_path, path);
 
     new_task->name = k_name;
 
@@ -261,42 +268,42 @@ int32_t user_process(char *path, char *name,char* argv,uint8_t level){ // 用户
     page_directory_t *cur_page_dir = get_current()->pgd_dir;
     page_switch(page);
 
-
-    for (int i = USER_START; i < USER_END + 0x1000;i++) { //用户堆以及用户栈映射
-        page_t *pg = get_page(i,1,page, false);
-        alloc_frame(pg,0,1);
+    for (int i = USER_START; i < USER_END + 0x1000;
+         i++) { // 用户堆以及用户栈映射
+        page_t *pg = get_page(i, 1, page, false);
+        alloc_frame(pg, 0, 1);
     }
 
     for (int i = USER_EXEC_FILE_START; i < USER_EXEC_FILE_START + size; i++) {
-        page_t *pg = get_page(i,1,page, false);
-        alloc_frame(pg,0,1);
+        page_t *pg = get_page(i, 1, page, false);
+        alloc_frame(pg, 0, 1);
     }
 
-    char* buffer =  USER_EXEC_FILE_START;
+    char *buffer = USER_EXEC_FILE_START;
 
-    memset(buffer,0,size);
-    int r = vfs_readfile(ker_path,buffer);
+    memset(buffer, 0, size);
+    int r = vfs_readfile(ker_path, buffer);
 
     Elf32_Ehdr *ehdr = buffer;
 
-    if(!elf32Validate(ehdr)){
+    if (!elf32Validate(ehdr)) {
         printf("Unknown exec file format.\n");
         kfree(ker_path);
         can_sche = 1;
         return NULL;
     }
     uint32_t main = ehdr->e_entry;
-    load_elf(ehdr,page);
+    load_elf(ehdr, page);
 
+    uint32_t *stack_top = (uint32_t *)((uint32_t)new_task + STACK_SIZE);
 
-    uint32_t *stack_top = (uint32_t * )((uint32_t) new_task + STACK_SIZE); 
-
-    *(--stack_top) = (uint32_t) main;
+    *(--stack_top) = (uint32_t)main;
     //*(--stack_top) = (uint32_t) buffer;
-    *(--stack_top) = (uint32_t) kthread_exit;
-    *(--stack_top) = (uint32_t) switch_to_user_mode;
+    *(--stack_top) = (uint32_t)kthread_exit;
+    *(--stack_top) = (uint32_t)switch_to_user_mode;
 
-    new_task->context.esp = (uint32_t) new_task + STACK_SIZE - sizeof(uint32_t) * 3;
+    new_task->context.esp =
+        (uint32_t)new_task + STACK_SIZE - sizeof(uint32_t) * 3;
 
     // 设置新任务的标志寄存器未屏蔽中断，很重要
     new_task->context.eflags = (0 << 12 | 0b10 | 1 << 9);
@@ -319,9 +326,10 @@ int32_t user_process(char *path, char *name,char* argv,uint8_t level){ // 用户
     return new_task->pid;
 }
 
-int32_t kernel_thread(int (*fn)(void *), void *arg, char *name) { // 内核进程 (线程) 创建
+int32_t kernel_thread(int (*fn)(void *), void *arg,
+                      char *name) { // 内核进程 (线程) 创建
     io_cli();
-    struct task_struct *new_task = (struct task_struct *) kmalloc(STACK_SIZE);
+    struct task_struct *new_task = (struct task_struct *)kmalloc(STACK_SIZE);
     assert(new_task != NULL, "kern_thread: kmalloc error");
 
     // 将栈低端结构信息初始化为 0
@@ -352,13 +360,14 @@ int32_t kernel_thread(int (*fn)(void *), void *arg, char *name) { // 内核进�
     new_task->tty = kmalloc(sizeof(tty_t));
     init_default_tty(new_task);
 
-    uint32_t *stack_top = (uint32_t * )((uint32_t) new_task + STACK_SIZE);
+    uint32_t *stack_top = (uint32_t *)((uint32_t)new_task + STACK_SIZE);
 
-    *(--stack_top) = (uint32_t) arg;
-    *(--stack_top) = (uint32_t) kthread_exit;
-    *(--stack_top) = (uint32_t) fn;
+    *(--stack_top) = (uint32_t)arg;
+    *(--stack_top) = (uint32_t)kthread_exit;
+    *(--stack_top) = (uint32_t)fn;
 
-    new_task->context.esp = (uint32_t) new_task + STACK_SIZE - sizeof(uint32_t) * 3;
+    new_task->context.esp =
+        (uint32_t)new_task + STACK_SIZE - sizeof(uint32_t) * 3;
 
     // 设置新任务的标志寄存器未屏蔽中断，很重要
     new_task->context.eflags = 0x200;
@@ -377,10 +386,11 @@ int32_t kernel_thread(int (*fn)(void *), void *arg, char *name) { // 内核进�
 }
 
 void kthread_exit() {
-    register uint32_t val asm ("eax");
-    printf("Task [PID: %d] exited with value %d\n", current->pid,val);
+    register uint32_t val asm("eax");
+    printf("Task [PID: %d] exited with value %d\n", current->pid, val);
     task_kill(current->pid);
-    while (1);
+    while (1)
+        ;
 }
 
 void kill_all_task() {
@@ -390,7 +400,8 @@ void kill_all_task() {
         if (head == NULL || head->pid == running_proc_head->pid) {
             return;
         }
-        if (head->pid == current->pid) continue;
+        if (head->pid == current->pid)
+            continue;
         task_kill(head->pid);
     }
 }
@@ -417,11 +428,11 @@ void switch_to_user_mode(uint32_t func) {
     iframe.fs = GET_SEL(4 * 8, SA_RPL3);
     iframe.ss = GET_SEL(4 * 8, SA_RPL3);
     iframe.cs = GET_SEL(3 * 8, SA_RPL3);
-    iframe.eip = func; //用户可执行程序入口
+    iframe.eip = func; // 用户可执行程序入口
     iframe.eflags = (0 << 12 | 0b10 | 1 << 9);
     iframe.esp = esp; // 设置用户态堆栈
 
-    intr_frame_t  *a = &iframe;
+    intr_frame_t *a = &iframe;
     asm volatile("movl %0, %%esp\n"
                  "popa\n"
                  "pop %%gs\n"
@@ -433,11 +444,11 @@ void switch_to_user_mode(uint32_t func) {
 
 void init_sched() {
     // 为当前执行流创建信息结构体 该结构位于当前执行流的栈最低端
-    current = (struct task_struct *) kmalloc(sizeof(struct task_struct));
+    current = (struct task_struct *)kmalloc(sizeof(struct task_struct));
 
     current->state = TASK_RUNNABLE;
     current->pid = now_pid++;
-    current->stack = current;   // 该成员指向栈低地址
+    current->stack = current; // 该成员指向栈低地址
     current->pgd_dir = kernel_directory;
     current->name = "CPOS-System";
     current->mem_size = 0;
@@ -456,5 +467,6 @@ void init_sched() {
     current->program_break_end = program_break_end;
 
     running_proc_head = current;
-    klogf(true,"Load task schedule. | KernelTaskName: %s PID: %d\n",current->name,current->pid);
+    klogf(true, "Load task schedule. | KernelTaskName: %s PID: %d\n",
+          current->name, current->pid);
 }
