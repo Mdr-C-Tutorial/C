@@ -36,7 +36,7 @@
 
 #### 示例程序-`strlen()`
 
-```C
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -52,7 +52,9 @@ int main() {
 
 输出：
 
-> The length of the string "Hello, world!" is 13.
+```ansi
+The length of the string "Hello, world!" is 13.
+```
 
 ### `strcmp()`：字符串比较
 
@@ -88,7 +90,7 @@ int main() {
 
 但是实际使用中，我们用它来匹配比较多，所以有一个常用写法：
 
-```C
+```c
 if (!strcmp(str1, str2))
 {
  ...
@@ -104,7 +106,7 @@ if (!strcmp(str1, str2))
 
 #### 示例程序-`strcmp()`
 
-```C
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -125,8 +127,10 @@ int main() {
 
 输出：
 
-> Comparing 'Hello' and 'World': -1
-> Comparing 'Hello' and 'Hello': 0
+```ansi
+Comparing 'Hello' and 'World': -1
+Comparing 'Hello' and 'Hello': 0
+```
 
 ### `strcpy()`：字符串复制函数
 
@@ -165,7 +169,7 @@ int main() {
 
 #### 示例程序-`strcpy()`
 
-```C
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -185,7 +189,9 @@ int main() {
 
 输出：
 
-> Copied string: Hello, World!
+```ansi
+Copied string: Hello, World!
+```
 
 ### `strcat()`：字符串连接
 
@@ -216,7 +222,7 @@ int main() {
 
 #### 示例程序-`strcat()`
 
-```C
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -234,7 +240,9 @@ int main() {
 
 输出：
 
-> Resulting string: Hello, world!
+```ansi
+Resulting string: Hello, world!
+```
 
 ## 第二类：字符串解析函数
 
@@ -262,7 +270,7 @@ int main() {
 
 #### 示例程序-`strchr()`
 
-```C
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -283,7 +291,9 @@ int main() {
 
 输出：
 
-> Character 'w' found at position: 7
+```ansi
+Character 'w' found at position: 7
+```
 
 ### `strstr()`：在字符串中查找字符串
 
@@ -303,7 +313,7 @@ int main() {
 
 #### 示例程序-`strstr()`
 
-```C
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -326,7 +336,9 @@ int main() {
 
 输出：
 
-> Substring found at position: 22
+```ansi
+Substring found at position: 22
+```
 
 ### `strtok()`：用某些字符分割字符串
 
@@ -357,7 +369,7 @@ int main() {
 
 #### 示例程序-`strtok()`
 
-```C
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -380,13 +392,15 @@ int main() {
 
 输出：
 
-> Hello
-> world
-> This
-> is
-> a
-> strtok
-> example
+```ansi
+Hello
+world
+This
+is
+a
+strtok
+example
+```
 
 ### `strpbrk()`：在字符串中查找字符集中字符的位置
 
@@ -431,7 +445,9 @@ int main() {
 
 输出：
 
-> First matching character found at position: 1
+```ansi
+First matching character found at position: 1
+```
 
 ### `strspn()`：计算一个字符串中包含另一个字符串中字符的最长连续子串的长度
 
@@ -459,7 +475,7 @@ int main() {
 
 #### 示例程序-`strspn()`
 
-```C
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -477,7 +493,9 @@ int main() {
 
 输出：
 
-> The initial segment of str1 containing only characters from str2 is 5 characters long.
+```ansi
+The initial segment of str1 containing only characters from str2 is 5 characters long.
+```
 
 ## 第三类：内存操作函数
 
@@ -509,7 +527,7 @@ int main() {
 
 #### 示例程序-`memcpy()`
 
-```C
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -529,8 +547,10 @@ int main() {
 
 输出：
 
-> Source: Hello, World!
-> Destination: Hello, World!
+```ansi
+Source: Hello, World!
+Destination: Hello, World!
+```
 
 ### `memmove()`：移动指定长度的内存区域到指定位置
 
@@ -561,7 +581,7 @@ int main() {
 
 #### 示例程序-`memmove()`
 
-```C
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -586,8 +606,10 @@ int main() {
 
 输出：
 
-> str2: Hello, World!
-> str3: memmove can be very very useful.
+```ansi
+str2: Hello, World!
+str3: memmove can be very very useful.
+```
 
 ### `memset()`：设置指定长度的内存区域为指定的值
 
@@ -615,7 +637,7 @@ int main() {
 
 #### 示例程序-`memset()`
 
-```C
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -634,7 +656,9 @@ int main() {
 
 输出：
 
-> Buffer after memset: ------------------------
+```ansi
+Buffer after memset: ------------------------
+```
 
 ### `memcmp()`：内存区域比较函数
 
@@ -662,7 +686,7 @@ int main() {
 
 #### 示例程序-`memcmp()`
 
-```C
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -693,8 +717,10 @@ int main() {
 
 输出：
 
-> str1 and str2 are equal.
-> str1 and str3 are not equal.
+```ansi
+str1 and str2 are equal.
+str1 and str3 are not equal.
+```
 
 ### `memchr()`：在指定内存区域查找指定字符
 
@@ -722,7 +748,7 @@ int main() {
 
 #### 示例程序-`memchr()`
 
-```C
+```c
 #include <stdio.h>
 #include <string.h>
 
@@ -745,7 +771,9 @@ int main() {
 
 输出：
 
-> Character 'w' found at position: 7
+```ansi
+Character 'w' found at position: 7
+```
 
 ## 写在最后
 

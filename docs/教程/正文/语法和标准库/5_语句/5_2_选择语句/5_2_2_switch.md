@@ -82,7 +82,7 @@ int main(void) {
 
 可能的输出：
 
-```txt
+```ansi
 func(1): case 1.case 2.case 3.
 func(2): case 2.case 3.
 func(3): case 3.
@@ -120,7 +120,7 @@ int main(void) {
 
 可能的输出：
 
-```c
+```ansi
 func(1): case 1.
 func(2): case 2.
 func(3): default.case 2.
