@@ -973,10 +973,6 @@ export default withMermaid(
       config: (md) => {
         md.use(mathjax3);
       },
-      languageAlias: {
-        in: "txt",
-        out: "txt",
-      },
       lineNumbers: true,
       codeCopyButtonTitle: "复制代码",
     },
