@@ -1,98 +1,11 @@
 import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
-import mathjax3 from "markdown-it-mathjax3";
+import { withPwa } from "@vite-pwa/vitepress";
 
-const customElements = [
-  "math",
-  "maction",
-  "maligngroup",
-  "malignmark",
-  "menclose",
-  "merror",
-  "mfenced",
-  "mfrac",
-  "mi",
-  "mlongdiv",
-  "mmultiscripts",
-  "mn",
-  "mo",
-  "mover",
-  "mpadded",
-  "mphantom",
-  "mroot",
-  "mrow",
-  "ms",
-  "mscarries",
-  "mscarry",
-  "mscarries",
-  "msgroup",
-  "mstack",
-  "mlongdiv",
-  "msline",
-  "mstack",
-  "mspace",
-  "msqrt",
-  "msrow",
-  "mstack",
-  "mstack",
-  "mstyle",
-  "msub",
-  "msup",
-  "msubsup",
-  "mtable",
-  "mtd",
-  "mtext",
-  "mtr",
-  "munder",
-  "munderover",
-  "semantics",
-  "math",
-  "mi",
-  "mn",
-  "mo",
-  "ms",
-  "mspace",
-  "mtext",
-  "menclose",
-  "merror",
-  "mfenced",
-  "mfrac",
-  "mpadded",
-  "mphantom",
-  "mroot",
-  "mrow",
-  "msqrt",
-  "mstyle",
-  "mmultiscripts",
-  "mover",
-  "mprescripts",
-  "msub",
-  "msubsup",
-  "msup",
-  "munder",
-  "munderover",
-  "none",
-  "maligngroup",
-  "malignmark",
-  "mtable",
-  "mtd",
-  "mtr",
-  "mlongdiv",
-  "mscarries",
-  "mscarry",
-  "msgroup",
-  "msline",
-  "msrow",
-  "mstack",
-  "maction",
-  "semantics",
-  "annotation",
-  "annotation-xml",
-  "mjx-container",
-  "mjx-assistive-mml",
-];
+const customElements: string[] = [""];
+
 // https://vitepress.dev/reference/site-config
-export default withMermaid(
+export default withPwa(withMermaid(
   defineConfig({
     title: "Mdr-C-Tutorial",
     titleTemplate: "Mdr-C-Tutorial",
@@ -966,21 +879,32 @@ export default withMermaid(
       externalLinkIcon: true,
     },
     markdown: {
-      config: (md) => {
-        md.use(mathjax3);
-      },
       lineNumbers: true,
       codeCopyButtonTitle: "复制代码",
+      math: true,
+      image: {
+        lazyLoading: true
+      },
     },
     vue: {
-      template: {
-        compilerOptions: {
-          isCustomElement: (tag) => customElements.includes(tag),
-        },
-      },
+      customElement: customElements,
     },
     sitemap: {
       hostname: "https://mdr.aymao.com/C/",
     },
+    pwa: {
+      registerType: 'autoUpdate',
+      injectRegister: "script-defer",
+      pwaAssets: {
+        config: true,
+      },
+      workbox: {
+        globPatterns: ['**/*.{css,js,html,png,jpg,woff2}'],
+        maximumFileSizeToCacheInBytes: 10485760
+      },
+      experimental: {
+        includeAllowlist: true
+      }
+    }
   }),
-);
+));
