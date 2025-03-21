@@ -4,194 +4,182 @@
 
 ### `strlen()` ：字符串长度计算
 
-#### 说文解字-`strlen()`
+1. **说文解字**
 
-`str` 是”string“的缩写
+   - `str` 是”string“的缩写
+   - `len` 是”length”的缩写
+   - `strlen` 即 length of string，它的作用是计算字符串长度
 
-`len` 是”length”的缩写
+2. **函数原型**
 
-`strlen` 即 length of string，它的作用是计算字符串长度
+   - **`size_t strlen(const char *s)`**
 
-#### 函数原型-`strlen()`
+     - `s`：是要计算长度的字符串
 
-**`size_t strlen(const char *s)`**
+     返回字符串`s`的长度
 
-`s`：是要计算长度的字符串
+3. **注意事项**
 
-返回字符串`s`的长度
+   这个函数的使用要区别于`sizeof()`运算符计算数组长度的方法 \
+   有一种计算数组长度的方法是使用`sizeof()`计算数组占用的总内存，除以单个数据元素占用的内存空间得到数组长度，即`sizeof(array) / sizeof(type)` \
+   在字符串这里你会发现使用`strlen()`函数和使用以上方法的结果不同，原因在于 C 语言中，字符串以空字符 (Nul Character, ASCII: 0) 为结束标志。`strlen()`函数只统计字符串中非空字符的数量，而`sizeof`运算符会把空字符也算上，请注意这个特殊的地方。
 
-#### 注意事项-`strlen()`
+4. **衍生函数**
 
-这个函数的使用要区别于`sizeof()`运算符计算数组长度的方法
+   - `size_t strnlen(const char *s, size_t maxlen)` \
+     `strlen()`的字符数限制版，返回字符串 `s` 的长度，但最多返回 `maxlen`
 
-有一种计算数组长度的方法是使用`sizeof()`计算数组占用的总内存，除以单个数据元素占用的内存空间得到数组长度，即`sizeof(array) / sizeof(type)`
+5. **示例程序**
 
-在字符串这里你会发现使用`strlen()`函数和使用以上方法的结果不同，原因在于 C 语言中，字符串以空字符 (Nul Character, ASCII: 0) 为结束标志。`strlen()`函数只统计字符串中非空字符的数量，而`sizeof`运算符会把空字符也算上，请注意这个特殊的地方。
+   ```c {7}
+   #include <stdio.h>
+   #include <string.h>
 
-#### 衍生函数-`strlen()`
+   int main() {
+       char str[] = "Hello, world!";
 
-`size_t strnlen(const char *s, size_t maxlen)`
+       int length = strlen(str);
 
-`strlen()`的字符数限制版，返回字符串 `s` 的长度，但最多返回 `maxlen`
+       printf("The length of the string \"%s\" is %d.\n", str, length);
 
-#### 示例程序-`strlen()`
+       return 0;
+   }
 
-```c
-#include <stdio.h>
-#include <string.h>
+   ```
 
-int main() {
-    char str[] = "Hello, world!";
-    int length = strlen(str);
+   输出：
 
-    printf("The length of the string \"%s\" is %d.\n", str, length);
-
-    return 0;
-}
-```
-
-输出：
-
-```ansi
-The length of the string "Hello, world!" is 13.
-```
+   ```ansi
+   The length of the string "Hello, world!" is 13.
+   ```
 
 ### `strcmp()`：字符串比较
 
-#### 说文解字-`strcmp()`
+1. **说文解字**
 
-`str` 是 `string`的缩写
+   - `str` 是 `string`的缩写
+   - `cmp` 是 `compare`的缩写
+   - `strcmp` 即 compare string，比较字符串
 
-`cmp` 是 `compare`的缩写
+2. **函数原型**
 
-`strcmp` 即 compare string，比较字符串
+   - `int strcmp(const char *s1, const char *s2)`
+     - `s1`、`s2`：要比较的两个字符串常量
 
-#### 函数原型-`strcmp()`
+3. **注意事项**
 
-`int strcmp(const char *s1, const char *s2)`
+   注意这个函数的返回值。 \
+   常识当中，对于字符串只有相同与不同之分，给字符串分出来一个大小是比较反直觉的。 \
+   但这个函数能做到。
 
-`s1`、`s2`：要比较的两个字符串常量
+   ::: info 概念引入：字典序
+   字典序（Lexicographical Order）是一种基于字符或元素顺序的比较方法，类似于字典中单词的排序规则。它广泛应用于字符串、数组、序列等的比较和排序中。字典序的核心思想是按照从左到右的顺序逐个比较元素，直到找到第一个不同的位置，从而确定两个序列的大小关系。
+   :::
 
-#### 注意事项-`strcmp()`
+   说人话就是， 在比到不同字符之前会一直往下比，如果所有字符都相同，就返回 0，如果有一个字符不同，就停止比较，返回一个数字表示这两个字符字典序的关系（大于就返回正数，小于就负数，等于就是 0）。 \
+   基于此原理，我们就可以给字符串排序了。 \
+   但是实际使用中，我们用它来匹配比较多，所以有一个常用写法：
 
-注意这个函数的返回值
+   ```c {1}
+   if (!strcmp(str1, str2))
+   {
+    // ...
+   }
+   ```
 
-常识当中，对于字符串只有相同与不同之分，给字符串分出来一个大小是比较反直觉的。
+4. **衍生函数**
+   - `int strcasecmp(const char *str1, const char *str2)` \
+     `strcmp()`的大小写不敏感（case insensitive）版
+   - `int strncmp(const char *s1, const char *s2, size_t n)` \
+     `strcmp()`的字符数限制版，只比较前 n 个字符
+5. **示例程序**
 
-但这个函数能做到
+   ```c {9,10}
+   #include <stdio.h>
+   #include <string.h>
 
-::: info 概念引入：字典序
-字典序（Lexicographical Order）是一种基于字符或元素顺序的比较方法，类似于字典中单词的排序规则。它广泛应用于字符串、数组、序列等的比较和排序中。字典序的核心思想是按照从左到右的顺序逐个比较元素，直到找到第一个不同的位置，从而确定两个序列的大小关系。
-:::
+   int main() {
+       char str1[] = "Hello";
+       char str2[] = "World";
+       char str3[] = "Hello";
 
-说人话就是，在比到不同字符之前会一直往下比，如果所有字符都相同，就返回 0，如果有一个字符不同，就停止比较，返回一个数字表示这两个字符字典序的关系（大于就返回正数，小于就负数，等于就是 0）。
+       int result1 = strcmp(str1, str2);
+       int result2 = strcmp(str1, str3);
 
-基于此原理，我们就可以给字符串排序了
+       printf("Comparing '%s' and '%s': %d\n", str1, str2, result1);
+       printf("Comparing '%s' and '%s': %d\n", str1, str3, result2);
 
-但是实际使用中，我们用它来匹配比较多，所以有一个常用写法：
+       return 0;
+   }
+   ```
 
-```c
-if (!strcmp(str1, str2))
-{
- ...
-}
-```
+   输出：
 
-#### 衍生函数-`strcmp()`
-
-1. `int strcasecmp(const char *str1, const char *str2)`
-   `strcmp()`的大小写不敏感（case insensitive）版
-2. `int strncmp(const char *s1, const char *s2, size_t n)`
-   `strcmp()`的字符数限制版，只比较前 n 个字符
-
-#### 示例程序-`strcmp()`
-
-```c
-#include <stdio.h>
-#include <string.h>
-
-int main() {
-    char str1[] = "Hello";
-    char str2[] = "World";
-    char str3[] = "Hello";
-
-    int result1 = strcmp(str1, str2);
-    int result2 = strcmp(str1, str3);
-
-    printf("Comparing '%s' and '%s': %d\n", str1, str2, result1);
-    printf("Comparing '%s' and '%s': %d\n", str1, str3, result2);
-
-    return 0;
-}
-```
-
-输出：
-
-```ansi
-Comparing 'Hello' and 'World': -1
-Comparing 'Hello' and 'Hello': 0
-```
+   ```ansi
+   Comparing 'Hello' and 'World': -1
+   Comparing 'Hello' and 'Hello': 0
+   ```
 
 ### `strcpy()`：字符串复制函数
 
-#### 说文解字-`strcpy()`
+1. **说文解字**
 
-`cpy`是“copy”的缩写，建议直接读成“string copy”
+   - `cpy`是“copy”的缩写，建议直接读成“string copy”
 
-#### 函数原型-`strcpy()`
+2. **函数原型**
 
-`char *strcpy(char *dest, const char *src)`
+   - `char *strcpy(char *dest, const char *src)`
 
-`src`：被复制的字符串
+     - `src`：被复制的字符串
+     - `dest`：目标字符串
 
-`dest`：目标字符串
+     这个函数将字符串`src`复制到字符串`dest`的地址中，并返回指向`dest`的指针
 
-这个函数将字符串`src`复制到字符串`dest`的地址中，并返回指向`dest`的指针
+3. **注意事项** \
+   这个函数使用时很可能会发生越界问题 \
+   孩子们，这并不好笑 \
+   使用这个函数时，程序员要自己对程序的安全负责，检查字符串的长度
 
-#### 注意事项-`strcpy()`
+4. **衍生函数**
 
-这个函数使用时很可能会发生越界问题
+   - `char *stpncpy(char *dest, const char *src, size_t n)` \
+     将 `src` 的前 `n` 个字符复制到 `dest`，返回指向 `dest` 的指针
+   - `size_t strlcpy(char *dest, const char *src, size_t size)` \
+      安全地将 `src` 复制到 `dest`，最多复制 `size - 1` 个字符。
 
-孩子们，这并不好笑
+   ::: tip
+   当`src`长度>=size 时，`strncpy`不添加空字符，而`strlcpy`会添加
 
-使用这个函数时，程序员要自己对程序的安全负责，检查字符串的长度
+   - `strlcpy()`：返回源字符串的长度，方便检查截断
+   - `strncpy()`：返回目标字符串长度
 
-#### 衍生函数-`strcpy()`
+   :::
 
-1. `char *stpncpy(char *dest, const char *src, size_t n)`
-   将 `src` 的前 `n` 个字符复制到 `dest`，返回指向 `dest` 的指针
-2. `size_t strlcpy(char *dest, const char *src, size_t size)`
-3. 安全地将 `src` 复制到 `dest`，最多复制 `size - 1` 个字符。
+5. **示例程序**
 
-> 当`src`长度>=size 时，`strncpy`不添加空字符，而`strlcpy`会添加
-> `strlcpy()`：返回源字符串的长度，方便检查截断
-> `strncpy()`：返回目标字符串长度
+   ```c {9}
+   #include <stdio.h>
+   #include <string.h>
 
-#### 示例程序-`strcpy()`
+   int main() {
+       char source[] = "Hello, World!";
+       char destination[50];
 
-```c
-#include <stdio.h>
-#include <string.h>
+       // Copy the contents of source to destination
+       strcpy(destination, source);
 
-int main() {
-    char source[] = "Hello, World!";
-    char destination[50];
+       // Print the copied string
+       printf("Copied string: %s\n", destination);
 
-    // Copy the contents of source to destination
-    strcpy(destination, source);
+       return 0;
+   }
+   ```
 
-    // Print the copied string
-    printf("Copied string: %s\n", destination);
+   输出：
 
-    return 0;
-}
-```
-
-输出：
-
-```ansi
-Copied string: Hello, World!
-```
+   ```ansi
+   Copied string: Hello, World!
+   ```
 
 ### `strcat()`：字符串连接
 

@@ -913,7 +913,7 @@ export default withMermaid(
         ],
       },
       outline: {
-        level: "deep",
+        level: [2, 4],
         label: "页面导航",
       },
 
