@@ -1,0 +1,6 @@
+function <T, N: i32> [T, N].get(n: i32) -> T {
+    if( n < N && n >= 0 ){
+        return this.n;
+    }
+    return null;
+}

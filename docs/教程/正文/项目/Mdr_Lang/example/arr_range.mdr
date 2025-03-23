@@ -1,0 +1,16 @@
+let arr = [3, 4, 5, 8, 9];
+// arr: array[i32, 5]
+for (i: arr) { print(i); }
+// 3 4 5 8 9
+print(arr);
+// [3, 4, 5, 8, 9]
+
+let ran = 3...8...2;
+// ran: range[3, 8, 2]
+print(ran);
+// [3, 5, 7]
+
+let arr = [3...8];
+// arr: array[i32, 6]
+
+// 范围可隐式转数组；print 没有对范围的特化版本
