@@ -1,0 +1,6 @@
+let X = ('2', 3.5, 6800);
+// X: tuple(char, f64, i32)
+let A = ['2', 3.5] // error!
+let A = [16, 12800];
+// A: array[i32, 2]
+let A = [-16, 12u]; // error!

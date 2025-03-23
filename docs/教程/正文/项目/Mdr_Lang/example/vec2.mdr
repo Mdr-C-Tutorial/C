@@ -1,0 +1,23 @@
+struct Vec2(a: i32, b: i32);
+function add(a: Vec2, b: Vec2) -> Vec2 {
+    return (a.a + b.a, a.b + b.b);
+}
+function Vec2.add(other: Vec2) -> () {
+    this.a += other.a;
+    this.b += other.b;
+}
+function mul(a: Vec2, n: i32) -> Vec2 {
+    return (a.a * n, a.b * n);
+}
+function Vec2.mul(n: i32) -> () {
+    this.a *= n;
+    this.b *= n;
+}
+
+use math; // i32.square() -> i64 和 i64.sqrt() -> f64 和 f64.floor() -> i32
+
+function Vec2.mod() -> f64 {
+    return (this.a.square() + this.b.square()).sqrt();
+}
+
+print(Vec2(4,5).mod().floor); // 6
