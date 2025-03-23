@@ -117,3 +117,4 @@ int main(int argc, char* argv[]){
 - **_陶哲轩实分析_** （ISBN 978-7-115-48025-5）
 - [**_OSDEV_**](https://wiki.osdev.org/)
 - [**_Hello 算法_**](https://hello-algo.com/)
+- [**_Linux man-pages_**](https://www.kernel.org/doc/man-pages/)

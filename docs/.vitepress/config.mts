@@ -628,6 +628,10 @@ export default withPwa(withMermaid(
                     text: "23. 标准库扩展",
                     link: "/教程/正文/语法和标准库/23_标准库扩展",
                   },
+                  {
+                    text: "24. 应用：JSON parser",
+                    link: "/教程/正文/语法和标准库/24_应用_JSON_parser",
+                  },
                 ],
               },
               {
