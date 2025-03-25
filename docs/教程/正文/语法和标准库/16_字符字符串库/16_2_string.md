@@ -1,8 +1,8 @@
 # 字符串库 `<string.h>`
 
-## 第一类：最最常用的字符串处理函数
+## 1. 最最常用的字符串处理函数
 
-### `strlen()` ：字符串长度计算
+### 1.1 `strlen()` ：字符串长度计算
 
 1. **说文解字**
 
@@ -22,11 +22,13 @@
 
    这个函数的使用要区别于`sizeof()`运算符计算数组长度的方法 \
    有一种计算数组长度的方法是使用`sizeof()`计算数组占用的总内存，除以单个数据元素占用的内存空间得到数组长度，即`sizeof(array) / sizeof(type)` \
-   在字符串这里你会发现使用`strlen()`函数和使用以上方法的结果不同，原因在于 C 语言中，字符串以空字符 (Nul Character, ASCII: 0) 为结束标志。`strlen()`函数只统计字符串中非空字符的数量，而`sizeof`运算符会把空字符也算上，请注意这个特殊的地方。
+   在字符串这里你会发现使用`strlen()`函数和使用以上方法的结果不同，原因在于 C 语言中，字符串以空字符 (Nul Character, ASCII: 0) 为结束标志。 \
+   `strlen()`函数只统计字符串中非空字符的数量，而`sizeof`运算符会把空字符也算上，请注意这个特殊的地方。
 
 4. **衍生函数**
 
-   - `size_t strnlen(const char *s, size_t maxlen)` \
+   - `size_t strnlen(const char *s, size_t maxlen)`
+
      `strlen()`的字符数限制版，返回字符串 `s` 的长度，但最多返回 `maxlen`
 
 5. **示例程序**
@@ -53,7 +55,7 @@
    The length of the string "Hello, world!" is 13.
    ```
 
-### `strcmp()`：字符串比较
+### 1.2 `strcmp()`：字符串比较
 
 1. **说文解字**
 
@@ -88,10 +90,15 @@
    ```
 
 4. **衍生函数**
-   - `int strcasecmp(const char *str1, const char *str2)` \
+
+   - `int strcasecmp(const char *str1, const char *str2)`
+
      `strcmp()`的大小写不敏感（case insensitive）版
-   - `int strncmp(const char *s1, const char *s2, size_t n)` \
+
+   - `int strncmp(const char *s1, const char *s2, size_t n)`
+
      `strcmp()`的字符数限制版，只比较前 n 个字符
+
 5. **示例程序**
 
    ```c {9,10}
@@ -120,7 +127,7 @@
    Comparing 'Hello' and 'Hello': 0
    ```
 
-### `strcpy()`：字符串复制函数
+### 1.3 `strcpy()`：字符串复制函数
 
 1. **说文解字**
 
@@ -135,17 +142,21 @@
 
      这个函数将字符串`src`复制到字符串`dest`的地址中，并返回指向`dest`的指针
 
-3. **注意事项** \
+3. **注意事项**
+
    这个函数使用时很可能会发生越界问题 \
    孩子们，这并不好笑 \
    使用这个函数时，程序员要自己对程序的安全负责，检查字符串的长度
 
 4. **衍生函数**
 
-   - `char *stpncpy(char *dest, const char *src, size_t n)` \
+   - `char *stpncpy(char *dest, const char *src, size_t n)`
+
      将 `src` 的前 `n` 个字符复制到 `dest`，返回指向 `dest` 的指针
-   - `size_t strlcpy(char *dest, const char *src, size_t size)` \
-      安全地将 `src` 复制到 `dest`，最多复制 `size - 1` 个字符。
+
+   - `size_t strlcpy(char *dest, const char *src, size_t size)`
+
+     安全地将 `src` 复制到 `dest`，最多复制 `size - 1` 个字符。
 
    ::: tip
    当`src`长度>=size 时，`strncpy`不添加空字符，而`strlcpy`会添加
@@ -181,605 +192,598 @@
    Copied string: Hello, World!
    ```
 
-### `strcat()`：字符串连接
+### 1.4 `strcat()`：字符串连接
 
-#### 说文解字-`strcat()`
+1. **说文解字**
 
-`cat`是“concatenate”的缩写，意思是连接或合并。
+   - `cat`是“concatenate”的缩写，意思是连接或合并。
 
-#### 函数原型-`strcat()`
+2. **函数原型**
 
-`char *strcat(char *dest, const char *src)`
+   - `char *strcat(char *dest, const char *src)`
 
-`src`：源字符串
+     - `src`：源字符串
+     - `dest`：目标字符串
 
-`dest`：目标字符串
+     将 `src` 连接到 `dest` 的末尾，返回指向`dest`的指针。
 
-将 `src` 连接到 `dest` 的末尾，返回指向`dest`的指针。
+3. **注意事项**
 
-#### 注意事项-`strcat()`
+   同上，程序员要自己负责安全问题，使用时要考虑到字符串长度。
 
-同上，程序员要自己负责安全问题，使用时要考虑到字符串长度。
+4. **衍生函数**
 
-#### 衍生函数-`strcat()`
+   - `char *strncat(char *dest, const char *src, size_t n)`
 
-1. `char *strncat(char *dest, const char *src, size_t n)`
-   将 `src` 的前 `n` 个字符连接到 `dest` 的末尾，返回指向`dest`末尾的指针。
-2. `size_t strlcat(char *dest, const char *src, size_t size)`
-   安全地将 `src` 连接到 `dest`，最多写入 `size - 1` 个字符。
+     将 `src` 的前 `n` 个字符连接到 `dest` 的末尾，返回指向`dest`末尾的指针。
 
-#### 示例程序-`strcat()`
+   - `size_t strlcat(char *dest, const char *src, size_t size)`
 
-```c
-#include <stdio.h>
-#include <string.h>
+     安全地将 `src` 连接到 `dest`，最多写入 `size - 1` 个字符。
 
-int main() {
-    char str1[100] = "Hello, ";
-    char str2[] = "world!";
+5. **示例程序**
 
-    strcat(str1, str2);
+   ```c {8}
+   #include <stdio.h>
+   #include <string.h>
 
-    printf("Resulting string: %s\n", str1);
+   int main() {
+       char str1[100] = "Hello, ";
+       char str2[] = "world!";
 
-    return 0;
-}
-```
+       strcat(str1, str2);
 
-输出：
+       printf("Resulting string: %s\n", str1);
 
-```ansi
-Resulting string: Hello, world!
-```
+       return 0;
+   }
+   ```
 
-## 第二类：字符串解析函数
+   输出：
 
-### `strchr()`：在字符串中定位特定字符
+   ```ansi
+   Resulting string: Hello, world!
+   ```
 
-#### 说文解字-`strchr()`
+## 2. 字符串解析函数
 
-`chr` 是“char”也就是“character”的缩写，可以把它理解成在"str"中寻找一个"char"。
+### 2.1 `strchr()`：在字符串中定位特定字符
 
-#### 函数原型-`stechr()`
+1. **说文解字**
 
-`char *strchr(const char *s, int c)`
+   - `chr` 是“char”也就是“character”的缩写，可以把它理解成在"str"中寻找一个"char"。
 
-`s`：被查找的字符串
+2. **函数原型**
 
-`c`：要匹配的字符
+   - `char *strchr(const char *s, int c)`
 
-查找字符 `c` 在字符串 `s` 中的第一次出现，返回字符串中首次出现字符`c`的指针，如果未找到字符，则返回`NULL`。
+     - `s`：被查找的字符串
+     - `c`：要匹配的字符
 
-#### 衍生函数-`strchr()`
+     查找字符 `c` 在字符串 `s` 中的第一次出现，返回字符串中首次出现字符`c`的指针，如果未找到字符，则返回`NULL`。
 
-`char *strrchr(const char *s, int c)`
+3. **衍生函数**
 
-查找字符 `c` 在字符串 `s` 中的最后一次出现，其中`r`可以理解为“reverse”，这个函数相当于是反向遍历版的 strchr()
+   - `char *strrchr(const char *s, int c)`
 
-#### 示例程序-`strchr()`
+     查找字符 `c` 在字符串 `s` 中的最后一次出现，其中`r`可以理解为“reverse”，这个函数相当于是反向遍历版的 strchr()
 
-```c
-#include <stdio.h>
-#include <string.h>
+4. **示例程序**
 
-int main() {
-    const char *str = "Hello, world!";
-    char ch = 'w';
-    char *result = strchr(str, ch);
+   ```c {7}
+   #include <stdio.h>
+   #include <string.h>
 
-    if (result != NULL) {
-        printf("Character '%c' found at position: %ld\n", ch, result - str);
-    } else {
-        printf("Character '%c' not found.\n", ch);
-    }
+   int main() {
+       const char *str = "Hello, world!";
+       char ch = 'w';
+       char *result = strchr(str, ch);
 
-    return 0;
-}
-```
+       if (result != NULL) {
+           printf("Character '%c' found at position: %ld\n", ch, result - str);
+       } else {
+           printf("Character '%c' not found.\n", ch);
+       }
 
-输出：
+       return 0;
+   }
+   ```
 
-```ansi
-Character 'w' found at position: 7
-```
+   输出：
 
-### `strstr()`：在字符串中查找字符串
+   ```ansi
+   Character 'w' found at position: 7
+   ```
 
-#### 说文解字-`strstr()`
+### 2.2 `strstr()`：在字符串中查找字符串
 
-没什么好说的了，在“str”里查找“str”
+1. **说文解字**
 
-#### 函数原型-`strstr()`
+   - 没什么好说的了，在“str”里查找“str”
 
-`char *strstr(const char *s1, const char *s2)`
+2. **函数原型**
 
-`s1`：被查找的字符串
+   - `char *strstr(const char *s1, const char *s2)`
 
-`s2`：要匹配的字符串
+     - `s1`：被查找的字符串
+     - `s2`：要匹配的字符串
 
-查找子字符串 `s2` 在字符串 `s1` 中的位置
+     查找子字符串 `s2` 在字符串 `s1` 中的位置
 
-#### 示例程序-`strstr()`
+3. **示例程序**
 
-```c
-#include <stdio.h>
-#include <string.h>
+   ```c {9}
+   #include <stdio.h>
+   #include <string.h>
 
-int main() {
-    const char haystack[] = "Hello, welcome to the world of programming.";
-    const char needle[] = "world";
-    char *result;
+   int main() {
+       const char haystack[] = "Hello, welcome to the world of programming.";
+       const char needle[] = "world";
+       char *result;
 
-    result = strstr(haystack, needle);
+       result = strstr(haystack, needle);
 
-    if (result) {
-        printf("Substring found at position: %ld\n", result - haystack);
-    } else {
-        printf("Substring not found.\n");
-    }
+       if (result) {
+           printf("Substring found at position: %ld\n", result - haystack);
+       } else {
+           printf("Substring not found.\n");
+       }
 
-    return 0;
-}
-```
+       return 0;
+   }
+   ```
 
-输出：
+   输出：
 
-```ansi
-Substring found at position: 22
-```
+   ```ansi
+   Substring found at position: 22
+   ```
 
-### `strtok()`：用某些字符分割字符串
+### 2.3 `strtok()`：用某些字符分割字符串
 
-#### 说文解字-`strtok()`
+1. **说文解字**
 
-`tok`：可以理解成“tokenize”的缩写，是“分词”的意思，它把一个字符串分解成若干个单词
+   - `tok`：可以理解成“tokenize”的缩写，是“分词”的意思，它把一个字符串分解成若干个单词
 
-#### 函数原型-`strtok()`
+2. **函数原型**
 
-`char *strtok(char *s, const char *delim)`
+   - `char *strtok(char *s, const char *delim)`
 
-`s`：被分割的字符串
+     - `s`：被分割的字符串
+     - `delim`：分割符集合，是一个包含所有分隔符的字符串
 
-`delim`：分割符集合，是一个包含所有分隔符的字符串
+     将字符串 `s` 按分隔符 `delim` 分割成多个子字符串，并返回指向第一个子字符串的指针。其中，`delim`是一个字符串，里面包含了所有用来分割字符串的字符。如果没有可供分割的子字符串了，则返回 NULL。
 
-将字符串 `s` 按分隔符 `delim` 分割成多个子字符串，并返回指向第一个子字符串的指针。其中，`delim`是一个字符串，里面包含了所有用来分割字符串的字符。如果没有可供分割的子字符串了，则返回 NULL。
+3. **注意事项**
 
-#### 注意事项-`strtok()`
+   1. 如果你要将一个字符串分割成多个词元的话，分割第二个词元时要注意一下参数的写法，如果你还写那个目标字符串的话，分割出来的词元还是第一个，正确的写法应该是`char *token = strtok(NULL, delim);`注意字符串参数传一个空指针进去就行。
+   2. 这个函数是在原字符串上直接修改的，具体实现为将分隔符置为空字符来标识子字符串的末尾，如果需要原字符串保持不变的，程序员应当提前保存。
 
-1. 如果你要将一个字符串分割成多个词元的话，分割第二个词元时要注意一下参数的写法，如果你还写那个目标字符串的话，分割出来的词元还是第一个，正确的写法应该是`char *token = strtok(NULL, delim);`注意字符串参数传一个空指针进去就行。
-2. 这个函数是在原字符串上直接修改的，具体实现为将分隔符置为空字符来标识子字符串的末尾，如果需要原字符串保持不变的，程序员应当提前保存。
+4. **衍生函数**
 
-#### 衍生函数-`strtok()`
+   - `char *strtok_r(char *s, const char *delim, char **ptr)`
 
-`char *strtok_r(char *s, const char *delim, char **ptr)`
+     线程安全版本的 `strtok`，其中，`char **ptr`是一个指针的指针，用来记录上一次分割的位置
 
-线程安全版本的 `strtok`，其中，`char **ptr`是一个指针的指针，用来记录上一次分割的位置
+5. **示例程序**
 
-#### 示例程序-`strtok()`
+   ```c {9,14}
+   #include <stdio.h>
+   #include <string.h>
 
-```c
-#include <stdio.h>
-#include <string.h>
+   int main() {
+       char str[] = "Hello, world! This is a strtok example.";
+       char delim[] = " ,.!";
 
-int main() {
-    char str[] = "Hello, world! This is a strtok example.";
-    char delim[] = " ,.!";
+       // 获取第一个标记
+       char *token = strtok(str, delim);
 
-    // 获取第一个标记
-    char *token = strtok(str, delim);
+       // 遍历其他标记
+       while (token != NULL) {
+           printf("%s\n", token);
+           token = strtok(NULL, delim);
+       }
 
-    // 遍历其他标记
-    while (token != NULL) {
-        printf("%s\n", token);
-        token = strtok(NULL, delim);
-    }
+       return 0;
+   }
+   ```
 
-    return 0;
-}
-```
+   输出：
 
-输出：
+   ```ansi
+   Hello
+   world
+   This
+   is
+   a
+   strtok
+   example
+   ```
 
-```ansi
-Hello
-world
-This
-is
-a
-strtok
-example
-```
+### 2.4 `strpbrk()`：在字符串中查找字符集中字符的位置
 
-### `strpbrk()`：在字符串中查找字符集中字符的位置
+1. **说文解字**
 
-#### 说文解字-`strpbrk()`
+   - `p`：“pointer”的缩写
+   - `brk`：“break”的缩写
 
-`p`：“pointer”的缩写
+   意思就是查找字符集中的任一字符在字符串中的首次出现位置
 
-`brk`：“break”的缩写
+2. **函数原型**
 
-意思就是查找字符集中的任一字符在字符串中的首次出现位置
+   - `char *strpbrk(const char *s1, const char *s2)`
 
-#### 函数原型-`strpbrk()`
+     - `s1`：目标字符串
+     - `s2`：字符集字符串，包含要查找的字符集合
 
-`char *strpbrk(const char *s1, const char *s2)`
+     如果查找到匹配字符，返回指向它的指针，否则返回`NULL`
 
-`s1`：目标字符串
+3. **示例程序**
 
-`s2`：字符集字符串，包含要查找的字符集合
+   ```c {9}
+   #include <stdio.h>
+   #include <string.h>
 
-如果查找到匹配字符，返回指向它的指针，否则返回`NULL`
+   int main() {
+       const char haystack[] = "Hello, welcome to the world of programming.";
+       const char needle[] = "aeiou"; // Example set of characters to search for
+       char *result;
 
-```c
-#include <stdio.h>
-#include <string.h>
+       result = strpbrk(haystack, needle);
 
-int main() {
-    const char haystack[] = "Hello, welcome to the world of programming.";
-    const char needle[] = "aeiou"; // Example set of characters to search for
-    char *result;
+       if (result) {
+           printf("First matching character found at position: %ld\n", result - haystack);
+       } else {
+           printf("No matching characters found.\n");
+       }
 
-    result = strpbrk(haystack, needle);
+       return 0;
+   }
+   ```
 
-    if (result) {
-        printf("First matching character found at position: %ld\n", result - haystack);
-    } else {
-        printf("No matching characters found.\n");
-    }
+   输出：
 
-    return 0;
-}
-```
+   ```ansi
+   First matching character found at position: 1
+   ```
 
-输出：
+### 2.5 `strspn()`：计算一个字符串中包含另一个字符串中字符的最长连续子串的长度
 
-```ansi
-First matching character found at position: 1
-```
+1. **说文解字**
 
-### `strspn()`：计算一个字符串中包含另一个字符串中字符的最长连续子串的长度
+   - `spn`：“span”的缩写
 
-#### 说文解字-`strspn()`
+   可以理解为“计算字符串中某个范围的长度”
 
-`spn`：“span”的缩写
+2. **函数原型**
 
-可以理解为“计算字符串中某个范围的长度”
+   - `char *strspn(const char *s1, const char *s2)`
 
-#### 函数原型-`strspn()`
+     - `s1`：目标字符串，也就是需要检查的字符串
+     - `s2`：字符集字符串，包含需要匹配的字符集合。
 
-`char *strspn(const char *s1, const char *s2)`
+     返回字符串 `s1` 中仅包含 `s2` 中字符的连续子串的长度，具体地说，是从 `s1` 的开头开始，计算最长的连续子串的长度，该子串中的所有字符都必须属于 `s2`，一旦遇到 `s1` 中不属于 `s2` 的字符，计数停止。
 
-`s1`：目标字符串，也就是需要检查的字符串
+3. **衍生函数**
 
-`s2`：字符集字符串，包含需要匹配的字符集合。
+   - `char *strcspn(const char *s1, const char *s2)`
 
-返回字符串 `s1` 中仅包含 `s2` 中字符的连续子串的长度，具体地说，是从 `s1` 的开头开始，计算最长的连续子串的长度，该子串中的所有字符都必须属于 `s2`，一旦遇到 `s1` 中不属于 `s2` 的字符，计数停止。
+     多出来的那个`c`可以理解为“complement”，意为“补集”，表示的是查找字符串`s1`中，**不包含**字符串`s2`中字符的最大长度
 
-#### 衍生函数-`strspn()`
+4. **示例程序**
 
-`char *strcspn(const char *s1, const char *s2)`
+   ```c {8}
+   #include <stdio.h>
+   #include <string.h>
 
-多出来的那个`c`可以理解为“complement”，意为“补集”，表示的是查找字符串`s1`中，**不包含**字符串`s2`中字符的最大长度
+   int main() {
+       const char *str1 = "abcde312$#@";
+       const char *str2 = "abcde";
 
-#### 示例程序-`strspn()`
+       size_t len = strspn(str1, str2);
 
-```c
-#include <stdio.h>
-#include <string.h>
+       printf("The initial segment of str1 containing only characters from str2 is %zu characters long.\n", len);
 
-int main() {
-    const char *str1 = "abcde312$#@";
-    const char *str2 = "abcde";
+       return 0;
+   }
+   ```
 
-    size_t len = strspn(str1, str2);
+   输出：
 
-    printf("The initial segment of str1 containing only characters from str2 is %zu characters long.\n", len);
+   ```ansi
+   The initial segment of str1 containing only characters from str2 is 5 characters long.
+   ```
 
-    return 0;
-}
-```
+## 3. 内存操作函数
 
-输出：
+### 3.1 `memcpy()`：复制指定长度的内存区域到指定位置
 
-```ansi
-The initial segment of str1 containing only characters from str2 is 5 characters long.
-```
+1. **说文解字**
 
-## 第三类：内存操作函数
+   - `mem`：“memory”的缩写，意为“内存”
 
-### `memcpy()`：复制指定长度的内存区域到指定位置
+   其实就是“memory copy”，复制内存
 
-#### 说文解字-`memcpy()`
+2. **函数原型**
 
-`mem`：“memory”的缩写，意为“内存”
+   - `void *memcpy(void *dest, const void *src, size_t n)`
 
-其实就是“memory copy”，复制内存
+     - `dest`：目标内存的起始地址
+     - `src`：源内存的起始地址
+     - `n`：要复制的字节数
 
-#### 函数原型-`memcpy()`
+     返回值：`dest`
 
-`void *memcpy(void *dest, const void *src, size_t n)`
+3. **注意事项**
 
-`dest`：目标内存的起始地址
+   1. 若内存区域有重叠，`memcpy`的行为是未定义的，谨慎使用
+   2. 尽管可以用于任意类型的复制，但是要确保`dest`和`src`的类型兼容
+   3. `n`的值决定了有可能存在数组越界的问题，孩子们，这并不好笑
 
-`src`：源内存的起始地址
+4. **示例程序**
 
-`n`：要复制的字节数
+   ```c {9}
+   #include <stdio.h>
+   #include <string.h>
 
-返回值：`dest`
+   int main() {
+       char src[50] = "Hello, World!";
+       char dest[50];
 
-#### 注意事项-`memcpy()`
+       // Copy contents of src to dest
+       memcpy(dest, src, strlen(src) + 1);
 
-1. 若内存区域有重叠，`memcpy`的行为是未定义的，谨慎使用
-2. 尽管可以用于任意类型的复制，但是要确保`dest`和`src`的类型兼容
-3. `n`的值决定了有可能存在数组越界的问题，孩子们，这并不好笑
+       printf("Source: %s\n", src);
+       printf("Destination: %s\n", dest);
 
-#### 示例程序-`memcpy()`
+       return 0;
+   }
+   ```
 
-```c
-#include <stdio.h>
-#include <string.h>
+   输出：
 
-int main() {
-    char src[50] = "Hello, World!";
-    char dest[50];
+   ```ansi
+   Source: Hello, World!
+   Destination: Hello, World!
+   ```
 
-    // Copy contents of src to dest
-    memcpy(dest, src, strlen(src) + 1);
+### 3.2 `memmove()`：移动指定长度的内存区域到指定位置
 
-    printf("Source: %s\n", src);
-    printf("Destination: %s\n", dest);
+1. **说文解字**
 
-    return 0;
-}
-```
+   ~~这真没啥好说的了吧~~
 
-输出：
+2. **函数原型**
 
-```ansi
-Source: Hello, World!
-Destination: Hello, World!
-```
+   - `void *memmove(void *dest, const void *src, size_t n)`
 
-### `memmove()`：移动指定长度的内存区域到指定位置
+     - `dest`：目标内存的起始地址。
+     - `src`：源内存的起始地址。
+     - `n`：要移动的字节数。
 
-#### 说文解字-`memmove()`
+     返回值: `dest`
 
-这真没啥好说的了吧
+3. **注意事项**
 
-#### 函数原型-`memmove()`
+   同上，但是不用考虑内存重叠的问题了
 
-`void *memmove(void *dest, const void *src, size_t n)`
+   ::: tip 这里多提一嘴为什么`memmove()`可以不用考虑内存重叠的问题：
+   `memmove`内有检查机制，如果出现内存区域重叠，它会从后向前复制从而避免未复制的值被覆盖，如果没有重叠，它的实现机制和`memcpy()`是一样的。
+   那`memcpy()`存在的意义是什么？
+   `memcpy()`不需要进行额外的逻辑检查，执行速度快于`memmove()`
+   :::
 
-`dest`：目标内存的起始地址。
+4. **示例程序**
 
-`src`：源内存的起始地址。
+   ```c {9,15}
+   #include <stdio.h>
+   #include <string.h>
 
-`n`：要移动的字节数。
+   int main() {
+       char str1[] = "Hello, World!";
+       char str2[50];
 
-返回`dest`
+       // Using memmove to copy str1 to str2
+       memmove(str2, str1, strlen(str1) + 1);
 
-#### 注意事项-`memmove()`
+       printf("str2: %s\n", str2);
 
-同上，但是不用考虑内存重叠的问题了
+       // Overlapping memory regions
+       char str3[] = "memmove can be very useful......";
+       memmove(str3 + 20, str3 + 15, 11);
 
-> 这里多提一嘴为什么`memmove()`可以不用考虑内存重叠的问题：
-> `memmove`内有检查机制，如果出现内存区域重叠，它会从后向前复制从而避免未复制的值被覆盖，如果没有重叠，它的实现机制和`memcpy()`是一样的。
-> 那`memcpy()`存在的意义是什么？
-> `memcpy()`不需要进行额外的逻辑检查，执行速度快于`memmove()`
+       printf("str3: %s\n", str3);
 
-#### 示例程序-`memmove()`
+       return 0;
+   }
+   ```
 
-```c
-#include <stdio.h>
-#include <string.h>
+   输出：
 
-int main() {
-    char str1[] = "Hello, World!";
-    char str2[50];
+   ```ansi
+   str2: Hello, World!
+   str3: memmove can be very very useful.
+   ```
 
-    // Using memmove to copy str1 to str2
-    memmove(str2, str1, strlen(str1) + 1);
+### 3.3 `memset()`：设置指定长度的内存区域为指定的值
 
-    printf("str2: %s\n", str2);
+1. **说文解字**
 
-    // Overlapping memory regions
-    char str3[] = "memmove can be very useful......";
-    memmove(str3 + 20, str3 + 15, 11);
+   这也没啥好说的了吧
 
-    printf("str3: %s\n", str3);
+   - `set`：“设置”
 
-    return 0;
-}
-```
+2. **函数原型**
 
-输出：
+   - `void *memset(void *s, int c, size_t n)`
 
-```ansi
-str2: Hello, World!
-str3: memmove can be very very useful.
-```
+     - `s`：目标内存的起始地址。
+     - `c`：要设置的值（以 `int` 类型传入，但实际按字节处理）。
+     - `n`：要设置的字节数。
 
-### `memset()`：设置指定长度的内存区域为指定的值
+     返回值: `s`
 
-#### 说文解字-`memset()`
+3. **注意事项**
 
-这也没啥好说的了吧，`set`：“设置”
+   1. 虽然第二个参数是整型，但实际上是按照字节来操作的，也就是会被截断为无符号字符型
+   2. `n`，有可能数组越界
+   3. 确保类型的兼容性
 
-#### 函数原型-`memset()`
+4. **示例程序**
 
-`void *memset(void *s, int c, size_t n)`
+   ```c {8}
+   #include <stdio.h>
+   #include <string.h>
 
-`s`：目标内存的起始地址。
+   int main() {
+       char buffer[25];
 
-`c`：要设置的值（以 `int` 类型传入，但实际按字节处理）。
+       // Fill buffer with '-' characters
+       memset(buffer, '-', sizeof(buffer) - 1);
+       buffer[sizeof(buffer) - 1] = '\0'; // Null-terminate the string
 
-`n`：要设置的字节数。
+       printf("Buffer after memset: %s\n", buffer);
 
-返回目标内存的起始地址（`s`）
+       return 0;
+   }
+   ```
 
-#### 注意事项-`memset()`
+   输出：
 
-1. 虽然第二个参数是整型，但实际上是按照字节来操作的，也就是会被截断为无符号字符型
-2. `n`，有可能数组越界
-3. 确保类型的兼容性
+   ```ansi
+   Buffer after memset: ------------------------
+   ```
 
-#### 示例程序-`memset()`
+### 3.4 `memcmp()`：内存区域比较函数
 
-```c
-#include <stdio.h>
-#include <string.h>
+1. **说文解字**
 
-int main() {
-    char buffer[25];
+   ~~孩子们，这并不抽象~~
 
-    // Fill buffer with '-' characters
-    memset(buffer, '-', sizeof(buffer) - 1);
-    buffer[sizeof(buffer) - 1] = '\0'; // Null-terminate the string
+2. **函数原型**
 
-    printf("Buffer after memset: %s\n", buffer);
+   - `int memcmp(const void *s1, const void *s2, size_t n)`
 
-    return 0;
-}
-```
+     - `s1`：指向第一个内存区域的指针
+     - `s2`：指向第二个内存区域的指针
+     - `n`：要比较的字节数
 
-输出：
+     返回值类似`strcmp()`，是字节的差值。
 
-```ansi
-Buffer after memset: ------------------------
-```
+3. **注意事项**
 
-### `memcmp()`：内存区域比较函数
+   1. `memcmp()` 是按字节进行比较的，因此比较的是内存中的原始字节值。它不会考虑数据的类型（如整数、浮点数等），因此比较的结果可能与预期不同，尤其是当内存中存储的是非字节对齐的数据时。
+   2. 数组越界：孩子们，想我了吗？
+   3. 如果比较的内存区域包含未初始化的值，结果是未定义的。
 
-#### 说文解字-`memcmp()`
+4. **示例程序**
 
-孩子们，这并不抽象
+   ```c {10,18}
+   #include <stdio.h>
+   #include <string.h>
 
-#### 函数原型-`memcmp()`
+   int main() {
+       char str1[] = "Hello, World!";
+       char str2[] = "Hello, World!";
+       char str3[] = "Hello, C Programming!";
 
-`int memcmp(const void *s1, const void *s2, size_t n)`
+       // Compare str1 and str2
+       int result = memcmp(str1, str2, sizeof(str1));
+       if (result == 0) {
+           printf("str1 and str2 are equal.\n");
+       } else {
+           printf("str1 and str2 are not equal.\n");
+       }
 
-`s1`：指向第一个内存区域的指针
+       // Compare str1 and str3
+       result = memcmp(str1, str3, sizeof(str1));
+       if (result == 0) {
+       printf("str1 and str3 are equal.\n");
+       } else {
+           printf("str1 and str3 are not equal.\n");
+       }
 
-`s2`：指向第二个内存区域的指针
+       return 0;
+   }
+   ```
 
-`n`：要比较的字节数
+   输出：
 
-返回值类似`strcmp()`，也是 ASCII 码的差值。
+   ```ansi
+   str1 and str2 are equal.
+   str1 and str3 are not equal.
+   ```
 
-#### 注意事项-`memcmp()`
+### 3.5 `memchr()`：在指定内存区域查找指定字符
 
-1. `memcmp()` 是按字节进行比较的，因此比较的是内存中的原始字节值。它不会考虑数据的类型（如整数、浮点数等），因此比较的结果可能与预期不同，尤其是当内存中存储的是非字节对齐的数据时。
-2. 数组越界：孩子们，想我了吗？
-3. 如果比较的内存区域包含未初始化的值，结果是未定义的。
+1. **说文解字**
 
-#### 示例程序-`memcmp()`
+   ~~孩子们，前面都说过了~~
 
-```c
-#include <stdio.h>
-#include <string.h>
+2. **函数原型**
 
-int main() {
-    char str1[] = "Hello, World!";
-    char str2[] = "Hello, World!";
-    char str3[] = "Hello, C Programming!";
+   - `void *memchr(const void *s, int c, size_t n)`
 
-    // Compare str1 and str2
-    int result = memcmp(str1, str2, sizeof(str1));
-    if (result == 0) {
-        printf("str1 and str2 are equal.\n");
-    } else {
-        printf("str1 and str2 are not equal.\n");
-    }
+     - `s`：指向要搜索的内存块的指针。
+     - `c`：要搜索的字符，虽然以 `int` 类型传入，但在搜索时会被转换为 `unsigned char`。
+     - `n`：指定搜索的字节数。
 
-    // Compare str1 and str3
-    result = memcmp(str1, str3, sizeof(str1));
-    if (result == 0) {
-        printf("str1 and str3 are equal.\n");
-    } else {
-        printf("str1 and str3 are not equal.\n");
-    }
+     如果找到字符 `c`，返回指向该字符的指针（类型为 `void*`）；
+     如果未找到字符 `c`，返回 `NULL`。
 
-    return 0;
-}
-```
+3. **注意事项**
 
-输出：
+   数组越界：~~孩子们，还是我，想我了吗~~
 
-```ansi
-str1 and str2 are equal.
-str1 and str3 are not equal.
-```
+4. **示例程序**
 
-### `memchr()`：在指定内存区域查找指定字符
+   ```c {9}
+   #include <stdio.h>
+   #include <string.h>
 
-#### 说文解字-`memchr()`
+   int main() {
+       const char str[] = "Hello, world!";
+       const char ch = 'w';
+       char *result;
 
-孩子们，前面都说过了
+       result = memchr(str, ch, strlen(str));
 
-#### 函数原型-`memchr()`
+       if (result != NULL) {
+           printf("Character '%c' found at position: %ld\n", ch, result - str);
+       } else {
+           printf("Character '%c' not found.\n", ch);
+       }
 
-`void *memchr(const void *s, int c, size_t n)`
+       return 0;
+   }
+   ```
 
-**`s`**：指向要搜索的内存块的指针。
+   输出：
 
-**`c`**：要搜索的字符，虽然以 `int` 类型传入，但在搜索时会被转换为 `unsigned char`。
-
-**`n`**：指定搜索的字节数。
-
-如果找到字符 `c`，返回指向该字符的指针（类型为 `void*`）。
-
-如果未找到字符 `c`，返回 `NULL`
-
-#### 注意事项-`memchr()`
-
-数组越界：孩子们，还是我，想我了吗
-
-#### 示例程序-`memchr()`
-
-```c
-#include <stdio.h>
-#include <string.h>
-
-int main() {
-    const char str[] = "Hello, world!";
-    const char ch = 'w';
-    char *result;
-
-    result = memchr(str, ch, strlen(str));
-
-    if (result != NULL) {
-        printf("Character '%c' found at position: %ld\n", ch, result - str);
-    } else {
-        printf("Character '%c' not found.\n", ch);
-    }
-
-    return 0;
-}
-```
-
-输出：
-
-```ansi
-Character 'w' found at position: 7
-```
+   ```ansi
+   Character 'w' found at position: 7
+   ```
 
 ## 写在最后
 
 这个文档里面只列举了我用过的函数，有些我实在是没用过的，我也没有什么自己的理解，就没有写进来，我把他们在下面列出来：
 
-`strcoll()`、`strxfrm()`、`strerror()`、`strsignal()`
+- `strcoll()`
+- `strxfrm()`
+- `strerror()`
+- `strsignal()`
 
 感兴趣的话请各位读者自行查阅[资料](https://zh.cppreference.com/w/c/header/string)。
 
 ## 习题
 
-1. _[3.5]_ 有机物的命名有一套完整的规则。以下是烃的部分命名规则：
+1. _[3.5](/教程/题解/语法和标准库/unk_chemistry.md)_ 有机物的命名有一套完整的规则。以下是烃的部分命名规则：
 
-   1. 甲烷到癸烷的名称分别为：`methane` `ethane` `propane` `butane`    `pentane` `hexane` `heptane` `octane` `nonane` `decane`。
-   2. 烷基的名称是将对应烷烃词尾的 `ane` 替换为 `yl`。同理，烯烃替换成    `ene`，炔烃替换成 `yne`，烯基替换成 `enyl`，炔基替换成 `ynyl`。例如：   乙基 `ethyl`，乙烯 `ethene`，乙炔 `ethyne`，乙烯基 `ethenyl`，乙炔   基 `ethynyl`。
-   3. 苯，萘，蒽，菲的名称分别为：`benzene`, `naphthalene`,    `anthracene`, `phenanthrene`。例如，甲基乙苯    `methylethylbenzene`，9-甲基菲 `9-methylphenanthrene`。
-   4. “环”用 `cyclo` 开头，例如：环丙烷 `cyclopropane`, 环丁烷    `cyclobutane`。
-   5. 标识取代基个数的“二 三 四 五 六”分别用 `di`，`tri`，`tetra`，   `penta`，`hexa` 开头。例如：1-2-3-三甲苯 `1,2,   3-trimethylbenzene`。
+   1. 甲烷到癸烷的名称分别为：`methane` `ethane` `propane` `butane` `pentane` `hexane` `heptane` `octane` `nonane` `decane`。
+   2. 烷基的名称是将对应烷烃词尾的 `ane` 替换为 `yl`。同理，烯烃替换成 `ene`，炔烃替换成 `yne`，烯基替换成 `enyl`，炔基替换成 `ynyl`。例如： 乙基 `ethyl`，乙烯 `ethene`，乙炔 `ethyne`，乙烯基 `ethenyl`，乙炔 基 `ethynyl`。
+   3. 苯，萘，蒽，菲的名称分别为：`benzene`, `naphthalene`, `anthracene`, `phenanthrene`。例如，甲基乙苯 `methylethylbenzene`，9-甲基菲 `9-methylphenanthrene`。
+   4. “环”用 `cyclo` 开头，例如：环丙烷 `cyclopropane`, 环丁烷 `cyclobutane`。
+   5. 标识取代基个数的“二 三 四 五 六”分别用 `di`，`tri`，`tetra`， `penta`，`hexa` 开头。例如：1-2-3-三甲苯 `1,2,   3-trimethylbenzene`。
 
    设计程序，输入有机物名称，输出其碳原子和氢原子个数。
 
