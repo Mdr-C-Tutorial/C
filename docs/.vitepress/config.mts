@@ -759,7 +759,7 @@ export default withPwa(
                       ],
                     },
                     {
-                      text: "6. MdrHAL",
+                      text: "MdrHAL",
                       collapsed: true,
                       items: [],
                     },
@@ -769,7 +769,44 @@ export default withPwa(
                   text: "嵌入式",
                   link: "/教程/正文/嵌入式/引言",
                   collapsed: true,
-                  items: [],
+                  items: [
+                    {
+                      text: "环境搭建",
+                      link: "/教程/正文/嵌入式/环境搭建",
+                    },
+                    {
+                      text: "程序下载与调试",
+                      link: "/教程/正文/嵌入式/程序下载与调试",
+                    },
+                    {
+                      text: "初识 STM32",
+                      link: "/教程/正文/嵌入式/初识STM32",
+                    },
+                    {
+                      text: "寄存器编程",
+                      link: "/教程/正文/嵌入式/寄存器编程",
+                    },
+                    {
+                      text: "自己写库——构建库函数雏形",
+                      link: "/教程/正文/嵌入式/库函数雏形",
+                    },
+                    {
+                      text: "初识 HAL 库",
+                      link: "/教程/正文/嵌入式/初识HAL库",
+                    },
+                    {
+                      text: "操作 GPIO",
+                      link: "/教程/正文/嵌入式/操作GPIO",
+                    },
+                    {
+                      text: "RCC——使用时钟",
+                      link: "/教程/正文/嵌入式/操作时钟",
+                    },
+                    {
+                      text: "术语表",
+                      link: "/教程/正文/嵌入式/术语表",
+                    },
+                  ],
                 },
               ],
             },

@@ -8,7 +8,9 @@ MD013: false
 MD033:
   allowed_elements:
     - table # 灵活表格
-    - tl # table
+    - thead #table
+    - tbody #table
+    - th # table
     - tr # table
     - td # table
     - br # 表格内换行

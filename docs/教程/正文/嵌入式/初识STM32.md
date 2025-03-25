@@ -25,73 +25,77 @@ STM32 系列微控制器具有以下特点：
 ### 2.1 STM32 分类
 
 <table>
-    <tr>
-        <td>CPU 位数</td>
-        <td>内核</td>
-        <td>系列</td>
-        <td>描述</td>
-    </tr>
-    <tr>
-        <td rowspan="9">32</td>
-        <td rowspan="2">Cortex-M0</td>
-        <td>STM32-F0</td>
-        <td>入门级</td>
-    </tr>
-    <tr>
-        <td>STM32-L0</td>
-        <td>低功耗</td>
-    </tr>
-    <tr>
-        <td rowspan="3">Cortex-M3</td>
-        <td>STM32-F1</td>
-        <td>基础型，主频 72MHz</td>
-    </tr>
-    <tr>
-        <td>STM32-F2</td>
-        <td>高性能</td>
-    </tr>
-    <tr>
-        <td>STM32-L1</td>
-        <td>低功耗</td>
-    </tr>
-    <tr>
-        <td rowspan="3">Cortex-M4</td>
-        <td>STM32-F3</td>
-        <td>混合信号</td>
-    </tr>
-    <tr>
-        <td>STM32-F4</td>
-        <td>高性能，主频 180MHz</td>
-    </tr>
-    <tr>
-        <td>STM32-L4</td>
-        <td>低功耗</td>
-    </tr>
-    <tr>
-        <td>Cortex-M7</td>
-        <td>STM32-F7</td>
-        <td>高性能</td>
-    </tr>
-    <tr>
-        <td rowspan="5">8</td>
-        <td rowspan="5">6502</td>
-    </tr>
-    <tr>
-        <td>STM8s</td>
-        <td>标准系列</td>
-    </tr>
-    <tr>
-        <td>STM8AF</td>
-        <td>标准车载</td>
-    </tr>
-    <tr>
-        <td>STM8AL</td>
-        <td>低功耗车载</td>
-    </tr>
-    <tr>
-        <td>STM8L</td>
-        <td>低功耗</td>
-    </tr>
+    <thead>
+        <tr>
+            <th scope="col">CPU 位数</th>
+            <th scope="col">内核</th>
+            <th scope="col">系列</th>
+            <th scope="col">描述</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td rowspan="9">32</td>
+            <td rowspan="2">Cortex-M0</td>
+            <td>STM32-F0</td>
+            <td>入门级</td>
+        </tr>
+        <tr>
+            <td>STM32-L0</td>
+            <td>低功耗</td>
+        </tr>
+        <tr>
+            <td rowspan="3">Cortex-M3</td>
+            <td>STM32-F1</td>
+            <td>基础型，主频 72MHz</td>
+        </tr>
+        <tr>
+            <td>STM32-F2</td>
+            <td>高性能</td>
+        </tr>
+        <tr>
+            <td>STM32-L1</td>
+            <td>低功耗</td>
+        </tr>
+        <tr>
+            <td rowspan="3">Cortex-M4</td>
+            <td>STM32-F3</td>
+            <td>混合信号</td>
+        </tr>
+        <tr>
+            <td>STM32-F4</td>
+            <td>高性能，主频 180MHz</td>
+        </tr>
+        <tr>
+            <td>STM32-L4</td>
+            <td>低功耗</td>
+        </tr>
+        <tr>
+            <td>Cortex-M7</td>
+            <td>STM32-F7</td>
+            <td>高性能</td>
+        </tr>
+        <tr>
+            <td rowspan="5">8</td>
+            <td rowspan="5">6502</td>
+        </tr>
+        <tr>
+            <td>STM8s</td>
+            <td>标准系列</td>
+        </tr>
+        <tr>
+            <td>STM8AF</td>
+            <td>标准车载</td>
+        </tr>
+        <tr>
+            <td>STM8AL</td>
+            <td>低功耗车载</td>
+        </tr>
+        <tr>
+            <td>STM8L</td>
+            <td>低功耗</td>
+        </tr>
+    </tbody>
 </table>
 
 ### 2.2 STM32 命名方法
