@@ -10,7 +10,7 @@
 
 1. 代码第 1 行
 
-   ```c
+   ```c:line-numbers=1
    #define AHCI_BASE 0x400000 // 4M
    ```
 
@@ -20,7 +20,7 @@
 
 2. 代码第 34 行
 
-   ```c
+   ```c:line-numbers=34
    cmdheader[i].ctba = AHCI_BASE + (40<<10) + (portno<<13) + (i<<8);
    cmdheader[i].ctbau = 0;
    ```
@@ -36,14 +36,18 @@
    [Example\_-_Read_hard_disk_sectors](https://wiki.osdev.org/AHCI#Example_-_Read_hard_disk_sectors)
 
 3. 代码第 24, 31 行
+   ::: code-group
 
-   ```c
+   ```c:line-numbers=24
    cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
-    //...
+   ```
+
+   ```c:line-numbers=31
     // Last entry
     cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
    ```
 
+   :::
    同上并不适用于 64 位，不同的是需要将 buf 转换成物理地址
 
    ```c
