@@ -105,3 +105,7 @@ int main() {
 - [空终止字节字符串](https://zh.cppreference.com/w/c/string/byte)
 - [字符分类](https://zh.cppreference.com/w/c/string/byte#.E5.AD.97.E7.AC.A6.E5.88.86.E7.B1.BB)
 - [宽字符分类](https://zh.cppreference.com/w/c/string/wide#.E5.AD.97.E7.AC.A6.E5.88.86.E7.B1.BB)
+
+## 习题
+
+1. _[0.1]_ 基本大小写转换：输入一个字符：如果是小写字母，输出其对应的大写字母；如果是大写字母，输出其对应的小写字母；如果是其他字符，原样输出。

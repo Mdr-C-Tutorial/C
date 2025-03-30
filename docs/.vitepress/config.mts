@@ -819,6 +819,18 @@ export default withPwa(
           "/杂项": [
             {
               text: "杂项目录",
+              items: [
+                {
+                  text: "梦猫外传",
+                  collapsed: true,
+                  items: [
+                    {
+                      text: "-2. 梦开始的前兆",
+                      link: "/杂项/梦猫外传/-2_梦开始的前兆",
+                    },
+                  ]
+                },
+              ],
             },
           ],
           "/教程/题解": [
