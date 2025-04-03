@@ -13,7 +13,6 @@ void pyramid(char c) {
         }
         for (int j = 0; j < i + 1; ++j) {
             putchar('A' + j);
-            
         }
         for (int j = i - 1; j >= 0; --j) {
             putchar('A' + j);
