@@ -264,7 +264,7 @@ int main() {
         int carbon, hydrogen;
         count_atoms(test_cases[i], &carbon, &hydrogen);
         printf("%s: %d %d\n", test_cases[i], carbon, hydrogen);
-    } 
+    }
     return 0;
 }
 ```
