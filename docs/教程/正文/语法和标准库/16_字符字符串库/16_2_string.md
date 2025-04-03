@@ -561,7 +561,7 @@
      - `src`：源内存的起始地址。
      - `n`：要移动的字节数。
 
-     返回值: `dest`
+     返回值：`dest`
 
 3. **注意事项**
 
@@ -621,7 +621,7 @@
      - `c`：要设置的值（以 `int` 类型传入，但实际按字节处理）。
      - `n`：要设置的字节数。
 
-     返回值: `s`
+     返回值：`s`
 
 3. **注意事项**
 
@@ -780,7 +780,7 @@
 1. _[3.5](/教程/题解/语法和标准库/unk_chemistry.md)_ 有机物的命名有一套完整的规则。以下是烃的部分命名规则：
 
    1. 甲烷到癸烷的名称分别为：`methane` `ethane` `propane` `butane` `pentane` `hexane` `heptane` `octane` `nonane` `decane`。
-   2. 烷基的名称是将对应烷烃词尾的 `ane` 替换为 `yl`。同理，烯烃替换成 `ene`，炔烃替换成 `yne`，烯基替换成 `enyl`，炔基替换成 `ynyl`。例如： 乙基 `ethyl`，乙烯 `ethene`，乙炔 `ethyne`，乙烯基 `ethenyl`，乙炔 基 `ethynyl`。
+   2. 烷基的名称是将对应烷烃词尾的 `ane` 替换为 `yl`。同理，烯烃替换成 `ene`，炔烃替换成 `yne`，烯基替换成 `enyl`，炔基替换成 `ynyl`。例如：乙基 `ethyl`，乙烯 `ethene`，乙炔 `ethyne`，乙烯基 `ethenyl`，乙炔 基 `ethynyl`。
    3. 苯，萘，蒽，菲的名称分别为：`benzene`, `naphthalene`, `anthracene`, `phenanthrene`。例如，甲基乙苯 `methylethylbenzene`，9-甲基菲 `9-methylphenanthrene`。
    4. “环”用 `cyclo` 开头，例如：环丙烷 `cyclopropane`, 环丁烷 `cyclobutane`。
    5. 标识取代基个数的“二 三 四 五 六”分别用 `di`，`tri`，`tetra`， `penta`，`hexa` 开头。例如：1-2-3-三甲苯 `1,2,   3-trimethylbenzene`。
