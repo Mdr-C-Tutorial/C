@@ -2959,16 +2959,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vite-pwa/vitepress@npm:^0.5.3":
-  version: 0.5.3
-  resolution: "@vite-pwa/vitepress@npm:0.5.3"
+"@vite-pwa/vitepress@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@vite-pwa/vitepress@npm:1.0.0"
   peerDependencies:
-    "@vite-pwa/assets-generator": ^0.2.6
-    vite-plugin-pwa: ">=0.20.5 <1"
+    "@vite-pwa/assets-generator": ^1.0.0
+    vite-plugin-pwa: ^1.0.0
   peerDependenciesMeta:
     "@vite-pwa/assets-generator":
       optional: true
-  checksum: 10c0/90ce469a46ba5d0bb1619128732c9e587a127b7896124a290d2afe568aa924381178392105f8e7602e0fdbf5a733fe649209b9d37af317b9a07d9714a96e8f0a
+  checksum: 10c0/db29ddc661245da6ba8b247536c03538efe05921cfa12ae493e48ec4c812ef8f1edb59705b3eca6c8ff21c8fe1f6e23cb172bb4891a7019a7acc57ff351e60f6
   languageName: node
   linkType: hard
 
@@ -9059,7 +9059,7 @@ __metadata:
   dependencies:
     "@eslint/js": "npm:^9.23.0"
     "@vite-pwa/assets-generator": "npm:^1.0.0"
-    "@vite-pwa/vitepress": "npm:^0.5.3"
+    "@vite-pwa/vitepress": "npm:^1.0.0"
     autocorrect-node: "npm:^2.13.3"
     eslint: "npm:^9.23.0"
     eslint-config-prettier: "npm:^10.1.1"
