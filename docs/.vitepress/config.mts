@@ -874,9 +874,20 @@ export default withPwa(
                       ],
                     },
                     {
+                      text: "[116] 字符字符串库",
+                      collapsed: true,
+                      items: [
+                        {
+                          text: "11651 烃的化学式",
+                          link: "/教程/题解/语法和标准库/字符字符串库/11651",
+                        },
+                      ],
+                    },
+                    {
                       text: "[117] 数学库",
                       collapsed: true,
-                      items: [{
+                      items: [
+                        {
                           text: "11701 割圆术",
                           link: "/教程/题解/语法和标准库/数学库/11701",
                         },
