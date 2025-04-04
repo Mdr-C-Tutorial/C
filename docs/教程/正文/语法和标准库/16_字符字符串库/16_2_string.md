@@ -777,7 +777,7 @@
 
 ## 习题
 
-1. _[3.5](/教程/题解/语法和标准库/unk_chemistry.md)_ 有机物的命名有一套完整的规则。以下是烃的部分命名规则：
+1. [**11651**](/教程/题解/语法和标准库/字符字符串库/11651.md) _[3.5](/教程/题解/语法和标准库/unk_chemistry.md)_ 有机物的命名有一套完整的规则。以下是烃的部分命名规则：
 
    1. 甲烷到癸烷的名称分别为：`methane` `ethane` `propane` `butane` `pentane` `hexane` `heptane` `octane` `nonane` `decane`。
    2. 烷基的名称是将对应烷烃词尾的 `ane` 替换为 `yl`。同理，烯烃替换成 `ene`，炔烃替换成 `yne`，烯基替换成 `enyl`，炔基替换成 `ynyl`。例如：乙基 `ethyl`，乙烯 `ethene`，乙炔 `ethyne`，乙烯基 `ethenyl`，乙炔 基 `ethynyl`。
