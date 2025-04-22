@@ -70,11 +70,11 @@ jobs:
         continue-on-error: true
 
       - name: ESLint (+vue +prettier +ts)
-        run: yarn run eslint --fix --ignore-pattern .gitignore
+        run: yarn dlx -p eslint -p @eslint/js -p eslint-plugin-vue -p vue-eslint-parser -p eslint-plugin-prettier -p eslint-config-prettier -p prettier -p typescript-eslint -p globals eslint --fix --ignore-pattern .gitignore
         continue-on-error: true
 
       - name: Prettier
-        run: yarn run prettier --write .
+        run: yarn dlx -p prettier prettier --write .
         continue-on-error: true
 
       - name: Markdown Lint
