@@ -975,11 +975,10 @@ export default withPwa(
         hostname: "https://mdr.aymao.com/C/",
       },
       pwa: {
-        strategies: 'generateSW',
+        strategies: "generateSW",
         registerType: "autoUpdate",
         injectRegister: "script-defer",
-        pwaAssets: {
-        },
+        pwaAssets: {},
         workbox: {
           globPatterns: ["**/*.{css,js,html,woff2}"],
           maximumFileSizeToCacheInBytes: 10485760,
