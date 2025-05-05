@@ -975,10 +975,10 @@ export default withPwa(
         hostname: "https://mdr.aymao.com/C/",
       },
       pwa: {
+        strategies: 'generateSW',
         registerType: "autoUpdate",
         injectRegister: "script-defer",
         pwaAssets: {
-          config: true,
         },
         workbox: {
           globPatterns: ["**/*.{css,js,html,woff2}"],
