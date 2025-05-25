@@ -78,7 +78,7 @@ jobs:
         continue-on-error: true
 
       - name: Markdown Lint
-        uses: DavidAnson/markdownlint-cli2-action@v19
+        uses: DavidAnson/markdownlint-cli2-action@v20
         with:
           globs: "**/*.{md,markdown};!node_modules"
           fix: true
