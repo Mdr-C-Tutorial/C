@@ -27,7 +27,7 @@
 
 虚数单位是 $i$，但考虑到 `i` 是个经常使用的标识符（如在循环当中），所以用 `I` 代替。
 
-如果 `_Imaginary` 类型已定义，它会展开成 `const float _Imaginary` 类型的值，值为虚数单位；否则，它会展开成 `const float _Complex` 类型的值，（值也为虚数单位）。
+如果 `_Imaginary` 类型已定义，它会展开成 `const float _Imaginary` 类型的值；否则，它会展开成 `const float _Complex` 类型的值。它的值是虚数单位。
 
 ```c
 #include <complex.h>
@@ -67,8 +67,8 @@ long double complex c = CMPLXL(3.2, 4.5);
 
 ## 3. 主要操作
 
-对于复数的三个类型，每种操作都提供三个不同的函数：对于 `double _Complex` 的函数名最短，对于 `float _Complex` 的函数名是前者尾部加 **f**；对于 `long double _Complex` 的函数名是前者尾部加 **l**。
-函数的形参和返回值类型也进行相应的替换。
+对于复数的三个类型，每种操作都提供三个不同的函数：对于 `double _Complex` 的函数名最短，对于 `float _Complex` 的函数名是前者尾部加 **f**；对于 `long double _Complex` 的函数名是前者尾部加 **l**，函数的形参和返回值类型也进行相应的替换。
+
 为了节省篇幅，只列出对于 `double _Complex` 的函数。
 
 ### 3.1 求实部和虚部
