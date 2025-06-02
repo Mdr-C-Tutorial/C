@@ -758,6 +758,10 @@ export default withPwa(
                               text: "OSDEV 代码矫正",
                               link: "/教程/正文/项目/MdrOS/osdev",
                             },
+                            {
+                              text: "疑难性解答",
+                              link: "/教程/正文/项目/MdrOS/faq",
+                            },
                           ],
                         },
                       ],
