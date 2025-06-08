@@ -94,7 +94,7 @@ export default withPwa(
         strategies: "generateSW",
         registerType: "autoUpdate",
         injectRegister: "script-defer",
-        includeAssets: ['favicon.svg'],
+        includeAssets: ['favicon.svg', 'favicon.ico'],
         pwaAssets: {
         },
         workbox: {
