@@ -2,11 +2,11 @@
 
 浮点环境是与**浮点异常**和**浮点舍入方向**相关的操作的集合。
 
-## `#define STDC FENV_ACCESS 实参`
+## `#pragma STDC FENV_ACCESS 实参`
 
-`实参` 为 `ON` `OFF` 和 `DEFAULT` 其中之一。注意大写。
+`实参` 为 `ON` 和 `OFF` 和 `DEFAULT` 三者之一。注意大写。
 
-当 `#define STDC FENV_ACCESS ON` 的时候，告诉编译器，程序会访问或修改浮点环境，因此某些由编译器进行的可能修改浮点环境的优化会被禁用。
+当 `#pragma STDC FENV_ACCESS ON` 的时候，告诉编译器，程序会访问或修改浮点环境，因此某些由编译器进行的可能修改浮点环境的优化会被禁用。
 
 ## 浮点异常
 
