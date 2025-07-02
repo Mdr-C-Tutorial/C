@@ -15,11 +15,11 @@ ADT = 数据 + 操作
 
 ### 常见 ADT 示例
 
-1. 栈(Stack):
+1. 栈 (Stack):
    - 操作：push(压入)、pop(弹出)
    - 比喻：像叠盘子，后进先出
 
-2. 队列(Queue):
+2. 队列 (Queue):
    - 操作：enqueue(入队)、dequeue(出队)
    - 比喻：像排队买票，先进先出
 
@@ -32,7 +32,7 @@ ADT = 数据 + 操作
 ## C 语言实现示例
 
 ```c
-// 栈的ADT定义
+// 栈的 ADT 定义
 typedef struct {
     int data[100];
     int top;

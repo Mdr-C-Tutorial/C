@@ -14,7 +14,7 @@
 #if __STDC__ != 1
 #  error "Not a standard compiler"
 #endif
- 
+
 #if __STDC_VERSION__ >= 202311L
 #  warning "Using C23"
 #endif

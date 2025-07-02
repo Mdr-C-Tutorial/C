@@ -46,7 +46,7 @@ int main() {
     result = INFINITY / INFINITY;
     result = INFINITY * 0.0;
 
- 
+
     if (fetestexcept(FE_INVALID)) {
         printf("FE_INVALID (Invalid operation) flag is set.\n");
     } else {
