@@ -1,9 +1,7 @@
 import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
 import { withPwa } from "@vite-pwa/vitepress";
-import {
-  minimal2023Preset,
-} from '@vite-pwa/assets-generator/config'
+import { minimal2023Preset } from "@vite-pwa/assets-generator/config";
 import { Sidebar, Nav } from "./nscfg.mts";
 
 const customElements: string[] = [""];
@@ -94,9 +92,8 @@ export default withPwa(
         strategies: "generateSW",
         registerType: "autoUpdate",
         injectRegister: "script-defer",
-        includeAssets: ['favicon.svg', 'favicon.ico'],
-        pwaAssets: {
-        },
+        includeAssets: ["favicon.svg", "favicon.ico"],
+        pwaAssets: {},
         workbox: {
           globPatterns: ["**/*.{css,js,html,woff2}"],
           maximumFileSizeToCacheInBytes: 10485760,

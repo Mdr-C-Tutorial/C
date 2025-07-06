@@ -86,7 +86,7 @@ switch (a) {
 
 ```c
 void duffs_device(char *to, char *from, int count) {
-    int n = (count + 7) / 8; // 计算需要执行多少轮，每轮处理8个字节
+    int n = (count + 7) / 8; // 计算需要执行多少轮，每轮处理 8 个字节
     switch (count % 8) { // 计算第一次迭代需要处理的“零头”
         case 0: do { *to++ = *from++;
         case 7:      *to++ = *from++;
@@ -275,16 +275,16 @@ void parse_json(const char* json_str) {
     char current_key[100] = {0};
     char current_value[100] = {0};
     int key_pos = 0, value_pos = 0;
-    
+
     printf("解析 JSON: %s\n", json_str);
     printf("状态转换过程：\n");
-    
+
     while (pos <= len && state != STATE_COMPLETE && state != STATE_ERROR) {
         char ch = (pos < len) ? json_str[pos] : '\0';
-        
+
         switch (state) {
             case STATE_START:
-                printf("  [START] 字符: '%c'\n", ch);
+                printf("  [START] 字符：'%c'\n", ch);
                 if (ch == '{') {
                     state = STATE_OBJECT_START;
                     printf("    -> 转换到 OBJECT_START\n");
@@ -292,9 +292,9 @@ void parse_json(const char* json_str) {
                     state = STATE_ERROR;
                 }
                 break;
-                
+
             case STATE_OBJECT_START:
-                printf("  [OBJECT_START] 字符: '%c'\n", ch);
+                printf("  [OBJECT_START] 字符：'%c'\n", ch);
                 if (ch == '"') {
                     state = STATE_KEY;
                     key_pos = 0;
@@ -306,21 +306,21 @@ void parse_json(const char* json_str) {
                     state = STATE_ERROR;
                 }
                 break;
-                
+
             case STATE_KEY:
                 if (ch == '"') {
                     current_key[key_pos] = '\0';
                     state = STATE_COLON;
-                    printf("  [KEY] 解析到键: \"%s\" -> 转换到 COLON\n", current_key);
+                    printf("  [KEY] 解析到键：\"%s\" -> 转换到 COLON\n", current_key);
                 } else if (ch != '\0') {
                     if (key_pos < 99) current_key[key_pos++] = ch;
                 } else {
                     state = STATE_ERROR;
                 }
                 break;
-                
+
             case STATE_COLON:
-                printf("  [COLON] 字符: '%c'\n", ch);
+                printf("  [COLON] 字符：'%c'\n", ch);
                 if (ch == ':') {
                     state = STATE_VALUE;
                     printf("    -> 转换到 VALUE\n");
@@ -328,9 +328,9 @@ void parse_json(const char* json_str) {
                     state = STATE_ERROR;
                 }
                 break;
-                
+
             case STATE_VALUE:
-                printf("  [VALUE] 字符: '%c'\n", ch);
+                printf("  [VALUE] 字符：'%c'\n", ch);
                 if (ch == '"') {
                     state = STATE_STRING;
                     value_pos = 0;
@@ -344,12 +344,12 @@ void parse_json(const char* json_str) {
                     state = STATE_ERROR;
                 }
                 break;
-                
+
             case STATE_STRING:
                 if (ch == '"') {
                     current_value[value_pos] = '\0';
-                    printf("  [STRING] 解析到字符串值: \"%s\"\n", current_value);
-                    printf("    -> 键值对: \"%s\": \"%s\"\n", current_key, current_value);
+                    printf("  [STRING] 解析到字符串值：\"%s\"\n", current_value);
+                    printf("    -> 键值对：\"%s\": \"%s\"\n", current_key, current_value);
                     state = STATE_COMMA;
                 } else if (ch != '\0') {
                     if (value_pos < 99) current_value[value_pos++] = ch;
@@ -357,21 +357,21 @@ void parse_json(const char* json_str) {
                     state = STATE_ERROR;
                 }
                 break;
-                
+
             case STATE_NUMBER:
                 if (isdigit(ch)) {
                     if (value_pos < 99) current_value[value_pos++] = ch;
                 } else {
                     current_value[value_pos] = '\0';
-                    printf("  [NUMBER] 解析到数字值: %s\n", current_value);
-                    printf("    -> 键值对: \"%s\": %s\n", current_key, current_value);
+                    printf("  [NUMBER] 解析到数字值：%s\n", current_value);
+                    printf("    -> 键值对：\"%s\": %s\n", current_key, current_value);
                     state = STATE_COMMA;
                     pos--;  // 回退一个字符，重新处理
                 }
                 break;
-                
+
             case STATE_COMMA:
-                printf("  [COMMA] 字符: '%c'\n", ch);
+                printf("  [COMMA] 字符：'%c'\n", ch);
                 if (ch == ',') {
                     state = STATE_OBJECT_START;  // 继续解析下一个键值对
                     printf("    -> 继续解析，转换到 OBJECT_START\n");
@@ -382,7 +382,7 @@ void parse_json(const char* json_str) {
                     state = STATE_ERROR;
                 }
                 break;
-                
+
             case STATE_OBJECT_END:
                 printf("  [OBJECT_END] 解析完成\n");
                 if (ch == '\0' || isspace(ch)) {
@@ -391,51 +391,51 @@ void parse_json(const char* json_str) {
                     state = STATE_ERROR;
                 }
                 break;
-                
+
             case STATE_ERROR:
-                printf("  [ERROR] 解析错误，位置: %d, 字符: '%c'\n", pos, ch);
+                printf("  [ERROR] 解析错误，位置：%d, 字符：'%c'\n", pos, ch);
                 return;
-                
+
             case STATE_COMPLETE:
                 printf("  [COMPLETE] JSON 解析成功完成！\n");
                 return;
         }
-        
+
         pos++;
     }
-    
+
     if (state == STATE_COMPLETE) {
         printf("JSON 解析成功！\n");
     } else {
-        printf("JSON 解析失败，最终状态: %d\n", state);
+        printf("JSON 解析失败，最终状态：%d\n", state);
     }
 }
 
 int main() {
     printf("=== JSON 解析器状态机演示 ===\n\n");
-    
-    // 测试用例1：简单的键值对
-    printf("测试1: 简单对象\n");
+
+    // 测试用例 1：简单的键值对
+    printf("测试 1: 简单对象\n");
     parse_json("{\"name\": \"Alice\"}");
-    
+
     printf("\n" "=" * 50 "\n");
-    
-    // 测试用例2：多个键值对
-    printf("测试2: 多个键值对\n");
+
+    // 测试用例 2：多个键值对
+    printf("测试 2: 多个键值对\n");
     parse_json("{\"name\": \"Bob\", \"age\": 25}");
-    
+
     printf("\n" "=" * 50 "\n");
-    
-    // 测试用例3：空对象
-    printf("测试3: 空对象\n");
+
+    // 测试用例 3：空对象
+    printf("测试 3: 空对象\n");
     parse_json("{}");
-    
+
     printf("\n" "=" * 50 "\n");
-    
-    // 测试用例4：错误的JSON
-    printf("测试4: 错误的JSON\n");
+
+    // 测试用例 4：错误的 JSON
+    printf("测试 4: 错误的 JSON\n");
     parse_json("{\"name\" \"Alice\"}");  // 缺少冒号
-    
+
     return 0;
 }
 ```

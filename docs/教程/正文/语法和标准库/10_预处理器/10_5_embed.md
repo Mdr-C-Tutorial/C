@@ -16,7 +16,7 @@
 - `limit(`：限制读取的最大字节数
 - `if_empty`：文件为空时的替代内容
 
-示例1：嵌入文件内容到数组
+示例 1：嵌入文件内容到数组
 
 ```c
 const unsigned char image_data[] = {
@@ -24,7 +24,7 @@ const unsigned char image_data[] = {
 };
 ```
 
-示例2：带限制和空文件处理
+示例 2：带限制和空文件处理
 
 ```c
 const char config_data[] = {
