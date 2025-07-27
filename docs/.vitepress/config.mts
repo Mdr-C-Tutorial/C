@@ -12,7 +12,7 @@ export default withPwa(
     defineConfig({
       title: "Mdr-C-Tutorial",
       titleTemplate: "Mdr-C-Tutorial",
-      description: "Mdr C Tutorial Repository",
+      description: "Mdr C Tutorial 讲义仓库",
       lang: "zh-CN",
       base: "/C/",
       cleanUrls: true,

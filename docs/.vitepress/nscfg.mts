@@ -827,6 +827,10 @@ export const Sidebar: DefaultTheme.Sidebar = {
             },
           ],
         },
+        {
+          text: "给“纸质书”写的引言",
+          link: "/杂项/分享/20241027"
+        },
       ],
     },
   ],
