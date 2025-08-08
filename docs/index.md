@@ -24,7 +24,7 @@ hero:
       link: /教程/标准文档翻译/目录
     - theme: alt
       text: 返回官网
-      link: http://mdr.aymao.com
+      link: http://mdr.juvw.xyz:2333
 
 features:
   - title: 内容全面
