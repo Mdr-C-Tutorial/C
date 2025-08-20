@@ -27,7 +27,7 @@
     "@vite-pwa/assets-generator": "^1.0.0",
     "@vite-pwa/vitepress": "^1.0.0",
     "markdown-it-mathjax3": "^4.3.2",
-    "mermaid": "^11.9.0",
+    "mermaid": "^11.10.0",
     "typescript": "^5.9.2",
     "vite": "^7.1.1",
     "vite-plugin-pwa": "^1.0.2",
