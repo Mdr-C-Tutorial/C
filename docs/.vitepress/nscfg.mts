@@ -831,6 +831,14 @@ export const Sidebar: DefaultTheme.Sidebar = {
           text: "给“纸质书”写的引言",
           link: "/杂项/分享/20241027",
         },
+        {
+          text: "VSCode 扩展",
+          link: "/杂项/插件",
+        },
+        {
+          text: "前端开发指南",
+          link: "/杂项/前端",
+        },
       ],
     },
   ],
