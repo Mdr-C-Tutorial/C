@@ -4,7 +4,7 @@ layout: home
 
 hero:
   name: "Mdr-C-Tutorial"
-  text: "讲义仓库"
+  text: "梦猫大典"
   tagline: Free and Standard, Original and Dedicated
   actions:
     - theme: brand
@@ -17,10 +17,10 @@ hero:
       text: 杂项
       link: /杂项/总纲
     - theme: alt
-      text: 习题答案
+      text: 题解
       link: /教程/题解/快速导航
     - theme: alt
-      text: 标准文档
+      text: 标准
       link: /教程/标准文档翻译/目录
     - theme: alt
       text: 返回官网
