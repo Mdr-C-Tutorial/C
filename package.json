@@ -35,5 +35,5 @@
     "vitepress-plugin-mermaid": "^2.0.17",
     "vue": "^3.5.20"
   },
-  "packageManager": "yarn@4.9.3"
+  "packageManager": "yarn@4.9.4"
 }
