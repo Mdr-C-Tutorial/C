@@ -961,4 +961,10 @@ export const Sidebar: DefaultTheme.Sidebar = {
       ],
     },
   ],
+  "/教程/标准文档翻译": [
+    {
+      text: "目录",
+      link: "/教程/标准文档翻译/目录.md",
+    },
+  ],
 };
