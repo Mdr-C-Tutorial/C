@@ -143,6 +143,9 @@ int main(int argc, char* argv[]){
 - [**_ISO C standard_**](https://open-std.org/JTC1/SC22/WG14/)
 - [**_C++ 参考手册_**](https://zh.cppreference.com/w/c/language)
 - **_C Primer Plus_** （ISBN 978-0-321-92842-9）
+- **_Modern C_** （ISBN 978-1-638-35065-1）
+- **_C Programming: A Modern Approach_** （ISBN 978-0-393-87184-5）
+- **_C 程序设计语言_** （ISBN 978-0-133-08621-8）
 - **_算法导论_** （ISBN 978-7-111-40701-0）
 - **_计算机程序设计艺术_**
 - [**_Let's Build a Simple Database_**](https://cstack.github.io/db_tutorial/)
@@ -151,3 +154,4 @@ int main(int argc, char* argv[]){
 - [**_OSDEV_**](https://wiki.osdev.org/)
 - [**_Hello 算法_**](https://hello-algo.com/)
 - [**_Linux man-pages_**](https://www.kernel.org/doc/man-pages/)
+- [**_360 安全规则集合_**](https://github.com/Qihoo360/safe-rules/blob/main/c-ub-list.md)
