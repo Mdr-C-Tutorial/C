@@ -29,7 +29,7 @@
     "markdown-it-mathjax3": "^4.3.2",
     "mermaid": "^11.11.0",
     "typescript": "^5.9.2",
-    "vite": "^7.1.4",
+    "vite": "^7.1.5",
     "vite-plugin-pwa": "^1.0.3",
     "vitepress": "^1.6.3",
     "vitepress-plugin-mermaid": "^2.0.17",
