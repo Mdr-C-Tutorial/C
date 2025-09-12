@@ -32,6 +32,7 @@ jobs:
           node-version-file: package.json
           check-latest: true
           #cache: yarn
+          package-manager-cache: false
 
       - name: Setup yarn
         run: |
