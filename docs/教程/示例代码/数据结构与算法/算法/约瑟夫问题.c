@@ -1,0 +1,328 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+/* ========== 约瑟夫问题 ========== */
+
+// 问题1: n 个人围成圈顺时针报数，报偶数的人出列，求最后剩下的人的编号
+
+/**
+ * 使用循环链表模拟约瑟夫问题 - 报偶数出列
+ * @param n 总人数
+ * @return 最后剩下的人的编号（从1开始）
+ */
+int josephus_even(int n) {
+    if (n <= 0)
+        return -1;
+    if (n == 1)
+        return 1;
+
+    // 创建循环链表节点
+    typedef struct Node {
+        int id;
+        struct Node *next;
+    } Node;
+
+    // 创建循环链表
+    Node *head = (Node *)malloc(sizeof(Node));
+    head->id = 1;
+    Node *current = head;
+
+    for (int i = 2; i <= n; i++) {
+        Node *new_node = (Node *)malloc(sizeof(Node));
+        new_node->id = i;
+        current->next = new_node;
+        current = new_node;
+    }
+    current->next = head; // 形成环
+
+    // 开始报数
+    Node *prev = current; // 指向当前节点的前一个节点
+    current = head;
+    int count = 1;
+
+    while (current->next != current) { // 当只剩一个节点时停止
+        if (count % 2 == 0) {          // 报偶数
+            // 删除当前节点
+            prev->next = current->next;
+            Node *temp = current;
+            current = current->next;
+            free(temp);
+        } else {
+            // 继续下一个人
+            prev = current;
+            current = current->next;
+        }
+        count++;
+    }
+
+    int result = current->id;
+    free(current);
+    return result;
+}
+
+/**
+ * 使用数组模拟约瑟夫问题 - 报偶数出列
+ * @param n 总人数
+ * @return 最后剩下的人的编号（从1开始）
+ */
+int josephus_even_array(int n) {
+    if (n <= 0)
+        return -1;
+    if (n == 1)
+        return 1;
+
+    // 创建数组，0表示已出列，1表示在圈中
+    int *circle = (int *)malloc((unsigned)n * sizeof(int));
+    for (int i = 0; i < n; i++) {
+        circle[i] = 1;
+    }
+
+    int remaining = n; // 剩余人数
+    int pos = 0;       // 当前位置
+    int count = 1;     // 报数计数
+
+    while (remaining > 1) {
+        // 找到下一个在圈中的人
+        if (circle[pos] == 1) {
+            if (count % 2 == 0) { // 报偶数
+                circle[pos] = 0;  // 出列
+                remaining--;
+            }
+            count++;
+        }
+
+        // 移动到下一个位置
+        pos = (pos + 1) % n;
+    }
+
+    // 找到最后剩下的人
+    int result = -1;
+    for (int i = 0; i < n; i++) {
+        if (circle[i] == 1) {
+            result = i + 1; // 返回编号（从1开始）
+            break;
+        }
+    }
+
+    free(circle);
+    return result;
+}
+
+// 问题2: n 个人围成圈顺时针报数，报 k 的倍数的人出列，求最后剩下的人的编号
+
+/**
+ * 使用循环链表模拟约瑟夫问题 - 报k的倍数出列
+ * @param n 总人数
+ * @param k 倍数
+ * @return 最后剩下的人的编号（从1开始）
+ */
+int josephus_k(int n, int k) {
+    if (n <= 0 || k <= 0)
+        return -1;
+    if (n == 1)
+        return 1;
+
+    // 创建循环链表节点
+    typedef struct Node {
+        int id;
+        struct Node *next;
+    } Node;
+
+    // 创建循环链表
+    Node *head = (Node *)malloc(sizeof(Node));
+    head->id = 1;
+    Node *current = head;
+
+    for (int i = 2; i <= n; i++) {
+        Node *new_node = (Node *)malloc(sizeof(Node));
+        new_node->id = i;
+        current->next = new_node;
+        current = new_node;
+    }
+    current->next = head; // 形成环
+
+    // 开始报数
+    Node *prev = current; // 指向当前节点的前一个节点
+    current = head;
+    int count = 1;
+
+    while (current->next != current) { // 当只剩一个节点时停止
+        if (count % k == 0) {          // 报k的倍数
+            // 删除当前节点
+            prev->next = current->next;
+            Node *temp = current;
+            current = current->next;
+            free(temp);
+        } else {
+            // 继续下一个人
+            prev = current;
+            current = current->next;
+        }
+        count++;
+    }
+
+    int result = current->id;
+    free(current);
+    return result;
+}
+
+/**
+ * 使用数组模拟约瑟夫问题 - 报k的倍数出列
+ * @param n 总人数
+ * @param k 倍数
+ * @return 最后剩下的人的编号（从1开始）
+ */
+int josephus_k_array(int n, int k) {
+    if (n <= 0 || k <= 0)
+        return -1;
+    if (n == 1)
+        return 1;
+
+    // 创建数组，0表示已出列，1表示在圈中
+    int *circle = (int *)malloc((unsigned)n * sizeof(int));
+    for (int i = 0; i < n; i++) {
+        circle[i] = 1;
+    }
+
+    int remaining = n; // 剩余人数
+    int pos = 0;       // 当前位置
+    int count = 1;     // 报数计数
+
+    while (remaining > 1) {
+        // 找到下一个在圈中的人
+        if (circle[pos] == 1) {
+            if (count % k == 0) { // 报k的倍数
+                circle[pos] = 0;  // 出列
+                remaining--;
+            }
+            count++;
+        }
+
+        // 移动到下一个位置
+        pos = (pos + 1) % n;
+    }
+
+    // 找到最后剩下的人
+    int result = -1;
+    for (int i = 0; i < n; i++) {
+        if (circle[i] == 1) {
+            result = i + 1; // 返回编号（从1开始）
+            break;
+        }
+    }
+
+    free(circle);
+    return result;
+}
+
+/**
+ * 使用数学方法求解约瑟夫问题 - 经典版本（每k个人淘汰一个）
+ *
+ * 经典约瑟夫问题：n个人围成一圈，从第1个人开始报数，报到k的人出列，
+ * 然后从下一个人开始继续报数，求最后剩下的人的编号。
+ *
+ * 递推公式：f(n,k) = (f(n-1,k) + k) % n
+ * 边界条件：f(1,k) = 0（只有一个人时，编号为0）
+ *
+ * @param n 总人数
+ * @param k 报数到k的人出列
+ * @return 最后剩下的人的编号（从0开始）
+ */
+int josephus_classic(int n, int k) {
+    if (n <= 0 || k <= 0)
+        return -1;
+
+    int result = 0; // f(1,k) = 0
+    for (int i = 2; i <= n; i++) {
+        result = (result + k) % i;
+    }
+
+    return result;
+}
+
+/**
+ * 使用递归求解约瑟夫问题 - 经典版本
+ */
+int josephus_classic_recursive(int n, int k) {
+    if (n == 1) {
+        return 0;
+    }
+    return (josephus_classic_recursive(n - 1, k) + k) % n;
+}
+
+/* ========== 测试函数 ========== */
+
+void test_josephus() {
+    printf("=== 约瑟夫问题测试 ===\n\n");
+
+    // 测试问题1: 报偶数出列
+    printf("问题1: n个人围成圈，报偶数的人出列\n");
+    printf("-------------------------------------\n");
+    for (int n = 1; n <= 10; n++) {
+        int result1 = josephus_even(n);
+        int result2 = josephus_even_array(n);
+        printf("n=%2d: 链表方法=%2d, 数组方法=%2d", n, result1, result2);
+        if (result1 == result2) {
+            printf(" ✓\n");
+        } else {
+            printf(" ✗ (不一致!)\n");
+        }
+    }
+
+    printf("\n");
+
+    // 测试问题2: 报k的倍数出列
+    printf("问题2: n个人围成圈，报k的倍数的人出列\n");
+    printf("-------------------------------------\n");
+    int test_cases[][2] = {{5, 2},  {5, 3},  {7, 3},  {10, 3},
+                           {10, 5}, {15, 2}, {15, 4}, {20, 7}};
+    int num_tests = sizeof(test_cases) / sizeof(test_cases[0]);
+
+    for (int i = 0; i < num_tests; i++) {
+        int n = test_cases[i][0];
+        int k = test_cases[i][1];
+        int result1 = josephus_k(n, k);
+        int result2 = josephus_k_array(n, k);
+        printf("n=%2d, k=%d: 链表方法=%2d, 数组方法=%2d", n, k, result1,
+               result2);
+        if (result1 == result2) {
+            printf(" ✓\n");
+        } else {
+            printf(" ✗ (不一致!)\n");
+        }
+    }
+
+    printf("\n");
+
+    // 测试经典约瑟夫问题
+    printf("经典约瑟夫问题: 每k个人淘汰一个（编号从0开始）\n");
+    printf("-------------------------------------\n");
+    for (int i = 0; i < num_tests; i++) {
+        int n = test_cases[i][0];
+        int k = test_cases[i][1];
+        int result1 = josephus_classic(n, k);
+        int result2 = josephus_classic_recursive(n, k);
+        printf("n=%2d, k=%d: 迭代方法=%2d, 递归方法=%2d", n, k, result1,
+               result2);
+        if (result1 == result2) {
+            printf(" ✓\n");
+        } else {
+            printf(" ✗ (不一致!)\n");
+        }
+    }
+
+    printf("\n");
+
+    // 详细示例
+    printf("详细示例: n=7, k=3\n");
+    printf("-------------------------------------\n");
+    printf("7个人围成一圈，编号1-7，报数到3的人出列\n");
+    printf("出列顺序: 3 -> 6 -> 2 -> 7 -> 5 -> 1 -> 4\n");
+    printf("最后剩下的人（从1开始计数）: %d\n", josephus_k(7, 3));
+    printf("最后剩下的人（从0开始计数）: %d\n", josephus_classic(7, 3));
+}
+
+int main() {
+    test_josephus();
+    return 0;
+}
