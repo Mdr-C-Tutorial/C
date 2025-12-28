@@ -16,7 +16,8 @@
     "globals": "^16.5.0",
     "prettier": "^3.7.4",
     "typescript-eslint": "^8.49.0",
-    "vue-eslint-parser": "^10.2.0"
+    "vue-eslint-parser": "^10.2.0",
+    "workbox-window": "^7.4.0"
   },
   "scripts": {
     "docs:dev": "vitepress dev docs",
