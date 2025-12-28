@@ -43,7 +43,7 @@ jobs:
         id: yarn-cachedir
         run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
       - name: Cache yarn
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ steps.yarn-cachedir.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
@@ -79,7 +79,7 @@ jobs:
         continue-on-error: true
 
       - name: Markdown Lint
-        uses: DavidAnson/markdownlint-cli2-action@v21
+        uses: DavidAnson/markdownlint-cli2-action@v22
         with:
           globs: "**/*.{md,markdown};!node_modules"
           fix: true
