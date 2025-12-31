@@ -1,7 +1,6 @@
 import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
 import { withPwa } from "@vite-pwa/vitepress";
-import { minimal2023Preset } from "@vite-pwa/assets-generator/config";
 import { Sidebar, Nav } from "./nscfg.mts";
 
 const customElements: string[] = [""];

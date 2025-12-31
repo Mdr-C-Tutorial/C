@@ -839,6 +839,10 @@ export const Sidebar: DefaultTheme.Sidebar = {
           text: "前端开发指南",
           link: "/杂项/前端",
         },
+        {
+          text: "组件展示",
+          link: "/杂项/组件展示",
+        },
       ],
     },
   ],
