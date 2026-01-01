@@ -69,6 +69,8 @@ defineProps({
   border: 1px solid var(--vp-c-divider);
   background-color: var(--vp-c-bg-soft);
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .pane-header {
@@ -92,9 +94,15 @@ defineProps({
   color: #349d6e;
 }
 
+.pane-content{
+  flex: 100%;
+  display: flex;
+}
 /* 调整插槽内代码块的 margin，使其贴合容器 */
 .pane-content :deep(div[class*='language-']) {
   margin: 0 !important;
   border-radius: 0 !important;
+  display: flex;
+  flex: 100%;
 }
 </style>
