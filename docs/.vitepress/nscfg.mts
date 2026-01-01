@@ -12,6 +12,10 @@ export const Nav: DefaultTheme.NavItem[] = [
     text: "关于",
     link: "/About",
   },
+  {
+    text: "组件展示",
+    link: "/杂项/组件展示",
+  }
 ];
 export const Sidebar: DefaultTheme.Sidebar = {
   "/教程/正文/": [
@@ -316,7 +320,7 @@ export const Sidebar: DefaultTheme.Sidebar = {
                 },
                 {
                   text: "9.2 对象表示",
-                  link: "/教程/正文/语法和标准库/3_基本概念/3_1_注释",
+                  link: "/教程/正文/语法和标准库/9_对象/9_2_对象表示",
                   collapsed: false,
                   items: [
                     {
@@ -448,7 +452,7 @@ export const Sidebar: DefaultTheme.Sidebar = {
                 },
                 {
                   text: "12.6 功能特性测试宏",
-                  link: "/教程/正文/语法和标准库/12_标准库中的宏/12_6_预定义宏",
+                  link: "/教程/正文/语法和标准库/12_标准库中的宏/12_6_功能特性测试宏",
                 },
               ],
             },

@@ -6,6 +6,8 @@ hero:
   name: "Mdr-C-Tutorial"
   text: "梦猫大典"
   tagline: Free and Standard, Original and Dedicated
+  image:
+    src: /transparent.svg
   actions:
     - theme: brand
       text: 正文
