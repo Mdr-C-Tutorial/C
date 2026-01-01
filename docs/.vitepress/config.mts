@@ -94,7 +94,7 @@ export default withPwa(
         includeAssets: ["favicon.svg", "favicon.ico"],
         pwaAssets: {},
         workbox: {
-          globPatterns: ["**/*.{css,js,html,woff2}"],
+          globPatterns: ["**/*.{css,js,woff2}"],
           maximumFileSizeToCacheInBytes: 10485760,
         },
         experimental: {
