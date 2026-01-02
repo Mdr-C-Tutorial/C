@@ -28,7 +28,7 @@ int main(int argc, char* argv[]){
 
 ## 构建与部署
 
-1. 本文档使用 [VitePress](https://vitejs.cn/vitepress/) 构建，需最新版 yarn 以在本地 build 和 dev。
+1. 本文档使用 [VitePress](https://vitejs.cn/vitepress/) 构建，需最新版 pnpm 以在本地 build 和 dev。
 2. 本仓库采用 [GitHub Actions](https://github.com/features/actions) 在每次提交时自动构建和部署。
 
 ## 文档规范
