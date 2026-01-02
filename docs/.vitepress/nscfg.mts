@@ -629,6 +629,10 @@ export const Sidebar: DefaultTheme.Sidebar = {
           collapsed: false,
           items: [
             {
+              text: "引言",
+              link: "/教程/正文/数据结构与算法/1_在开始数据结构与算法之前",
+            },
+            {
               text: "数据结构",
               collapsed: true,
               items: [
