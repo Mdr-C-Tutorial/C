@@ -51,10 +51,9 @@ const isHovered = ref(false)
   padding: 3px 20px 3px 20px;
   color: var(--vp-c-text-2);
   max-width: 90vw;
-  font-size: 13;
+  font-size: 14px;
   z-index: var(--vp-z-index-layout-top);
   box-shadow: 0 4px 4px rgba(63, 53, 70, 0.32);
   margin-bottom: 8px;
-  width: max-content;
 }
 </style>
