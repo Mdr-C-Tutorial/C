@@ -5,6 +5,7 @@ import RegisterSW from "./components/RegisterSW.vue";
 import CodeCompare from "./components/CodeCompare.vue";
 import Quiz from "./components/Quiz.vue";
 import TerminalWindow from "./components/TerminalWindow.vue";
+import Term from './components/Term.vue'
 
 export default {
   ...Theme,
@@ -13,6 +14,7 @@ export default {
     app.component("CodeCompare", CodeCompare);
     app.component("Quiz", Quiz);
     app.component("TerminalWindow", TerminalWindow);
+    app.component("Term", Term);
   },
   Layout() {
     return h(Theme.Layout, null, {
