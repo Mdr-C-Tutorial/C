@@ -1,5 +1,11 @@
 # 梦猫大典 - Mdr-C-Tutorial 教程讲义及示例代码开源仓库
 
+[![GitHub Repo stars](https://img.shields.io/github/stars/Mdr-C-Tutorial/C)](https://github.com/Mdr-C-Tutorial/C)
+[![License](https://img.shields.io/badge/license-CC%20BY--NC--SA%204.0-lightgrey.svg)](LICENSE)
+[![Language](https://img.shields.io/badge/language-C-333.svg)](https://en.cppreference.com/w/c/language.html)
+[![VitePress](https://img.shields.io/badge/built%20with-VitePress-646cff.svg)](https://vitejs.cn/vitepress/)
+[![GitHub Actions](https://github.com/Mdr-C-Tutorial/C/actions/workflows/deploy.yml/badge.svg)](https://github.com/Mdr-C-Tutorial/C/actions)
+
 ## 快去 star
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Mdr-C-Tutorial/C&type=date&legend=top-left)](https://www.star-history.com/#Mdr-C-Tutorial/C&type=date&legend=top-left)
@@ -35,6 +41,17 @@ int main(int argc, char* argv[]){
 1. 本文档使用 [VitePress](https://vitejs.cn/vitepress/) 构建，需最新版 pnpm 以在本地 build 和 dev。
 2. 本仓库采用 [GitHub Actions](https://github.com/features/actions) 在每次提交时自动构建和部署。
 
+```bash
+# 安装依赖
+pnpm i
+
+# 启动本地开发服务器
+pnpm dev
+
+# 构建静态文件
+pnpm build
+```
+
 ## 文档规范
 
 该栏为本仓库 markdown 文档的规范。
@@ -58,16 +75,16 @@ int main(int argc, char* argv[]){
 13. 要正确使用标点符号，分清**顿号**、**逗号**、**分号**和**句号**，尤其避免一逗到底；
 14. 分清**的地得**和**他她它**
 15. 仅在必要时使用**数量词**（尤其警惕**一个**的不恰当使用）
-16. 在**术语** (Terminology) 首次出现的时候在**半角小括号**内给出**对应的外来语**，同时给出**首字母缩略语** (Acronym)。这些外来语通常对应**概念** (Concept) 的原文，希望有助于读者明确分辨词语的含义：
+16. 在**术语** (Terminology) 首次出现的时候在**半角小括号**内给出**对应的英文原词**，同时给出**首字母缩略语** (Acronym)。这些英文原词通常对应**概念** (Concept) 的原文，希望有助于读者明确分辨词语的含义：
     1. 为减少读者的记忆负担，下文分情况使用**术语的汉语表述**和**首字母缩略语**：初始章节以前者为主，进阶章节以后者为主
-    2. 外来语和缩略语可能视情况在不同章节多次出现
+    2. 英文原词和缩略语可能视情况在不同章节多次出现
     3. 括号外左侧右侧各空一个空格，括号内无空格
-    4. 外来语**不能**带斜体、加粗、下划线、删除线和代码块——用默认的字体；
-    5. 大部分外来语单词摘自 [维基百科](https://zh.wikipedia.org) 和 [C++ 参考手册](https://en.cppreference.com/)；
+    4. 英文原词**不能**带斜体、加粗、下划线、删除线和代码块——用默认的字体；
+    5. 大部分英文原词单词摘自 [维基百科](https://zh.wikipedia.org) 和 [C++ 参考手册](https://en.cppreference.com/)；
 17. 专有名词需大写；
-18. 图片统一放在 `/images/` 目录下，并采用**绝对路径**引入：
-    1. 截图统一采用 **PNG** 格式，命名为三位数字，如：`001.png`；
-    2. 拍照统一采用 **JPEG** 格式，命名为不带前导零的数字，如：`1.jpg`；
+18. 图片统一放在 `/images/` 目录下，并采用**绝对路径**引入，命名应具有描述性，使用连字符分隔：
+    1. 截图统一采用 **PNG** 格式，命名为三位数字，如：`memory-layout-stack.png`；
+    2. 拍照统一采用 **JPEG** 格式，命名为不带前导零的数字，如：`keyboard-layout.jpg`；
 19. 在每篇文档结尾写出引用内容的出处；
 20. 语言风格：
     1. 使用正式的中文白话，不用口头语；
@@ -136,11 +153,20 @@ int main(int argc, char* argv[]){
 
 1. 独立思考；
 2. 勤于搜索（尤其是出现较多关联概念时）；
-3. 理解中文白话，最好有一定的英语水平（建议达到 CEFR B2），最好有一定的数学水平（高中数学 + 数理逻辑基础 + 微积分 + 基础的概率论 + 基础的数论 + 基础的图论）。
+3. 理解中文白话，最好有一定的英语水平（建议达到 CEFR B2）；
+4. 针对数据结构与算法：最好有一定的数学水平（高中数学 + 数理逻辑基础 + 微积分 + 基础的概率论 + 基础的数论 + 基础的图论）。
 
 ## 许可证
 
-[**CC-BY-NC-SA 4.0**](/LICENSE)
+本作品采用 [**CC BY-NC-SA 4.0**](/LICENSE) 许可协议。
+
+[![CC BY-NC-SA 4.0](https://i.creativecommons.org/l/by-nc-sa/4.0/88x31.png)](http://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+转载或引用请遵守以下规则：
+
+1. **署名**：请注明作者及原文链接。
+2. **非商业**：不得用于任何商业用途。
+3. **共享**：如果您修改了本文内容，必须以相同的许可协议发布。
 
 ## 参考资料
 
