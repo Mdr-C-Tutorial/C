@@ -1,5 +1,9 @@
 # 梦猫大典 - Mdr-C-Tutorial 教程讲义及示例代码开源仓库
 
+## 快去 star！
+
+[![Star History Chart](https://api.star-history.com/svg?repos=Mdr-C-Tutorial/C&type=date&legend=top-left)](https://www.star-history.com/#Mdr-C-Tutorial/C&type=date&legend=top-left)
+
 ## 仓库内容概述
 
 ```c
