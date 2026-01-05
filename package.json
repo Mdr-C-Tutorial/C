@@ -15,7 +15,7 @@
     "eslint-plugin-vue": "^10.6.2",
     "globals": "^16.5.0",
     "prettier": "^3.7.4",
-    "typescript-eslint": "^8.50.1",
+    "typescript-eslint": "^8.51.0",
     "vue-eslint-parser": "^10.2.0",
     "workbox-window": "^7.4.0"
   },
