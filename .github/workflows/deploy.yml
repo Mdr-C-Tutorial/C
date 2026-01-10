@@ -26,16 +26,13 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version-file: package.json
           check-latest: true
-          cache: 'pnpm'
-          package-manager-cache: false
+          cache: pnpm
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
