@@ -4,19 +4,19 @@ defineProps({
   // 左侧标题，默认 "Bad"
   leftTitle: {
     type: String,
-    default: '错误写法 (Bad)'
+    default: "错误写法 (Bad)",
   },
   // 右侧标题，默认 "Good"
   rightTitle: {
     type: String,
-    default: '正确写法 (Good)'
+    default: "正确写法 (Good)",
   },
   // 是否为垂直布局（可选强制垂直）
   vertical: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 </script>
 
 <template>
@@ -94,12 +94,12 @@ defineProps({
   color: #349d6e;
 }
 
-.pane-content{
+.pane-content {
   flex: 100%;
   display: flex;
 }
 /* 调整插槽内代码块的 margin，使其贴合容器 */
-.pane-content :deep(div[class*='language-']) {
+.pane-content :deep(div[class*="language-"]) {
   margin: 0 !important;
   border-radius: 0 !important;
   display: flex;

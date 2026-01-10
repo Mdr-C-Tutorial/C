@@ -15,7 +15,7 @@ export const Nav: DefaultTheme.NavItem[] = [
   {
     text: "组件展示",
     link: "/杂项/组件展示",
-  }
+  },
 ];
 export const Sidebar: DefaultTheme.Sidebar = {
   "/教程/正文/": [
