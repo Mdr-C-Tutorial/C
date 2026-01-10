@@ -26,38 +26,18 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version-file: package.json
           check-latest: true
-          #cache: yarn
-          package-manager-cache: false
+          cache: pnpm
 
-      - name: Setup yarn
-        run: |
-          corepack enable
-          yarn set version stable
-
-      - name: Get yarn cachedir
-        id: yarn-cachedir
-        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
-      - name: Cache yarn
-        uses: actions/cache@v5
-        with:
-          path: ${{ steps.yarn-cachedir.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - name: Install dependencies (yarn)
-        run: yarn install
-
-      - name: Cache apt
-        uses: awalsh128/cache-apt-pkgs-action@latest
-        with:
-          packages: clang-format-19 clang-tidy-19
-          execute_install_scripts: true
+      - name: Install dependencies (pnpm)
+        run: pnpm install
 
       - name: Cpp Lint (clang-format & clang-tidy)
         uses: cpp-linter/cpp-linter-action@v2
@@ -66,16 +46,16 @@ jobs:
         with:
           style: file
           thread-comments: update
-          version: 19
+          # version: 19
           files-changed-only: false
         continue-on-error: true
 
       - name: ESLint (+vue +prettier +ts)
-        run: yarn run eslint --fix --ignore-pattern .gitignore
+        run: pnpm exec eslint --fix --ignore-pattern .gitignore
         continue-on-error: true
 
       - name: Prettier
-        run: yarn run prettier --write .
+        run: pnpm exec prettier --write .
         continue-on-error: true
 
       - name: Markdown Lint
@@ -89,7 +69,6 @@ jobs:
       - name: Autocorrect Fix
         uses: huacnlee/autocorrect-action@v2
         with:
-          use_npm: true
           args: --fix
         continue-on-error: true
 

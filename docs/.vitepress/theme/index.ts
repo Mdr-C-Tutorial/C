@@ -5,7 +5,7 @@ import RegisterSW from "./components/RegisterSW.vue";
 import CodeCompare from "./components/CodeCompare.vue";
 import Quiz from "./components/Quiz.vue";
 import TerminalWindow from "./components/TerminalWindow.vue";
-import Term from './components/Term.vue'
+import Term from "./components/Term.vue";
 
 export default {
   ...Theme,

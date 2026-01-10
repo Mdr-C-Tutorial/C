@@ -1,113 +1,120 @@
 <!-- .vitepress/theme/components/Quiz.vue -->
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed } from "vue";
 
 const props = defineProps({
   // 问题类型：'single' | 'multi'
   type: {
     type: String,
-    default: 'single'
+    default: "single",
   },
   // 选项列表，格式可以是简单的字符串数组，或者对象数组
   // 推荐对象格式: [{ label: '描述', value: 'A' }]
   options: {
     type: Array,
-    required: true
+    required: true,
   },
   // 正确答案
   // 单选传入值 (如 'A')
   // 多选传入数组 (如 ['A', 'C'])
   answer: {
     type: [String, Array],
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
 // 用户选中的值
 // 单选是 null 或 value
 // 多选是 []
-const selected = ref(props.type === 'multi' ? [] : null)
-const isSubmitted = ref(false)
+const selected = ref(props.type === "multi" ? [] : null);
+const isSubmitted = ref(false);
 
 // 判断是否回答正确
 const isCorrect = computed(() => {
-  if (!isSubmitted.value) return false
-  
-  if (props.type === 'single') {
-    return selected.value === props.answer
+  if (!isSubmitted.value) return false;
+
+  if (props.type === "single") {
+    return selected.value === props.answer;
   } else {
     // 多选比较：先排序再转字符串比较，确保顺序不影响结果
-    const userAns = JSON.stringify([...selected.value].sort())
-    const correctAns = JSON.stringify([...props.answer].sort())
-    return userAns === correctAns
+    const userAns = JSON.stringify([...selected.value].sort());
+    const correctAns = JSON.stringify([...props.answer].sort());
+    return userAns === correctAns;
   }
-})
+});
 
 // 处理选项点击
 const handleOptionClick = (optionValue) => {
-  if (isSubmitted.value && props.type === 'single') return // 单选提交后不能改
-  
-  if (props.type === 'single') {
-    selected.value = optionValue
+  if (isSubmitted.value && props.type === "single") return; // 单选提交后不能改
+
+  if (props.type === "single") {
+    selected.value = optionValue;
     // 单选模式：选中即提交
-    isSubmitted.value = true
+    isSubmitted.value = true;
   } else {
     // 多选模式：如果不包含则添加，包含则移除（提交后依然允许查看，但通常提交后会禁用修改，这里为了体验设为提交后不可改）
-    if (isSubmitted.value) return 
+    if (isSubmitted.value) return;
 
-    const index = selected.value.indexOf(optionValue)
+    const index = selected.value.indexOf(optionValue);
     if (index === -1) {
-      selected.value.push(optionValue)
+      selected.value.push(optionValue);
     } else {
-      selected.value.splice(index, 1)
+      selected.value.splice(index, 1);
     }
   }
-}
+};
 
 // 多选提交按钮
 const submitMulti = () => {
-  if (selected.value.length === 0) return // 没选不能交
-  isSubmitted.value = true
-}
+  if (selected.value.length === 0) return; // 没选不能交
+  isSubmitted.value = true;
+};
 
 // 辅助函数：判断某个选项现在的状态样式
 const getOptionClass = (optionValue) => {
-  const isSelected = props.type === 'single' 
-    ? selected.value === optionValue 
-    : selected.value.includes(optionValue)
+  const isSelected =
+    props.type === "single"
+      ? selected.value === optionValue
+      : selected.value.includes(optionValue);
 
   if (!isSubmitted.value) {
-    return isSelected ? 'selected' : ''
+    return isSelected ? "selected" : "";
   }
 
   // 提交后的状态判定
   // 1. 如果是单选
-  if (props.type === 'single') {
-    if (optionValue === props.answer) return 'correct' // 正确答案总是绿色
-    if (isSelected && optionValue !== props.answer) return 'wrong' // 选错的项目变红
-  }
-  
-  // 2. 如果是多选
-  if (props.type === 'multi') {
-    const isAns = props.answer.includes(optionValue)
-    if (isAns) return 'correct' // 是答案的一部分
-    if (isSelected && !isAns) return 'wrong' // 选了不该选的
+  if (props.type === "single") {
+    if (optionValue === props.answer) return "correct"; // 正确答案总是绿色
+    if (isSelected && optionValue !== props.answer) return "wrong"; // 选错的项目变红
   }
 
-  return ''
-}
+  // 2. 如果是多选
+  if (props.type === "multi") {
+    const isAns = props.answer.includes(optionValue);
+    if (isAns) return "correct"; // 是答案的一部分
+    if (isSelected && !isAns) return "wrong"; // 选了不该选的
+  }
+
+  return "";
+};
 </script>
 
 <template>
-  <div class="quiz-container" :class="{ 'quiz-passed': isSubmitted && isCorrect, 'quiz-failed': isSubmitted && !isCorrect }">
+  <div
+    class="quiz-container"
+    :class="{
+      'quiz-passed': isSubmitted && isCorrect,
+      'quiz-failed': isSubmitted && !isCorrect,
+    }"
+  >
     <div class="quiz-header">
-      <span class="quiz-badge">{{ type === 'single' ? '单选' : '多选' }}</span>
+      <span class="quiz-badge">{{ type === "single" ? "单选" : "多选" }}</span>
       <span class="quiz-question"><slot name="question">题目内容</slot></span>
     </div>
 
     <div class="quiz-options">
-      <div 
-        v-for="(opt, idx) in options" 
+      <div
+        v-for="(opt, idx) in options"
         :key="idx"
         class="quiz-option"
         :class="getOptionClass(opt.value)"
@@ -124,7 +131,11 @@ const getOptionClass = (optionValue) => {
 
     <!-- 多选的提交按钮 -->
     <div v-if="type === 'multi' && !isSubmitted" class="quiz-footer">
-      <button class="submit-btn" @click="submitMulti" :disabled="selected.length === 0">
+      <button
+        class="submit-btn"
+        @click="submitMulti"
+        :disabled="selected.length === 0"
+      >
         确认答案
       </button>
     </div>
@@ -132,7 +143,7 @@ const getOptionClass = (optionValue) => {
     <!-- 结果解析区域 (利用 Slot) -->
     <div v-if="isSubmitted" class="quiz-result">
       <div class="result-title" :class="isCorrect ? 'text-green' : 'text-red'">
-        {{ isCorrect ? '回答正确！🎉' : '回答错误 😅' }}
+        {{ isCorrect ? "回答正确！🎉" : "回答错误 😅" }}
       </div>
       <div class="result-explanation">
         <p class="explanation-title">解析：</p>
@@ -147,7 +158,7 @@ const getOptionClass = (optionValue) => {
   border: 1px solid var(--vp-c-divider);
   border-radius: 8px;
   background-color: var(--vp-c-bg-soft);
-  padding: .5rem 1.5rem 1.5rem 1.5rem;
+  padding: 0.5rem 1.5rem 1.5rem 1.5rem;
   margin: 1.5rem 0;
   transition: border-color 0.3s;
 }
@@ -265,8 +276,12 @@ const getOptionClass = (optionValue) => {
   margin-bottom: 0.5rem;
 }
 
-.text-green { color: var(--vp-c-green); }
-.text-red { color: var(--vp-c-red); }
+.text-green {
+  color: var(--vp-c-green);
+}
+.text-red {
+  color: var(--vp-c-red);
+}
 
 .explanation-title {
   font-size: 0.9rem;
@@ -276,7 +291,13 @@ const getOptionClass = (optionValue) => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
