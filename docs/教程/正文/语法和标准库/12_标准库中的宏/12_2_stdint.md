@@ -18,8 +18,8 @@
 示例：
 
 ```c
-int32_t x = -1000000;   // 精确32位有符号整数
-uint8_t y = 255;        // 精确8位无符号整数，范围0~255
+int32_t x = -1000000;   // 精确 32 位有符号整数
+uint8_t y = 255;        // 精确 8 位无符号整数，范围 0~255
 ```
 
 ## 2. 最小宽度整数类型（Least-width integer types）
@@ -59,7 +59,7 @@ uintptr_t addr = (uintptr_t)ptr;  // 将指针转换为整数
 
 - `INT8_MIN`、 `INT8_MAX`、 `UINT8_MAX`
 - `INT32_MIN`、 `INT32_MAX`、 `UINT32_MAX`
-- 同理适用于16/32/64位以及least/fast/max类型。
+- 同理适用于 16/32/64 位以及 least/fast/max 类型。
 
 这些宏在 `<limits.h>` 中也有部分重叠，但 `<stdint.h>` 提供针对固定宽度类型的完整集合。
 
