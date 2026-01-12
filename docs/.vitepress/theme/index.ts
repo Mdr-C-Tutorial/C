@@ -6,6 +6,7 @@ import CodeCompare from "./components/CodeCompare.vue";
 import Quiz from "./components/Quiz.vue";
 import TerminalWindow from "./components/TerminalWindow.vue";
 import Term from './components/Term.vue'
+import Exercise from './components/Exercise.vue'
 
 export default {
   ...Theme,
@@ -15,6 +16,7 @@ export default {
     app.component("Quiz", Quiz);
     app.component("TerminalWindow", TerminalWindow);
     app.component("Term", Term);
+    app.component("Exercise", Exercise);
   },
   Layout() {
     return h(Theme.Layout, null, {
