@@ -94,7 +94,6 @@ const isExtension = computed(() => props.scope === '**')
 }
 
 .exercise-card.is-optional {
-    opacity: 0.85;
     background-color: transparent;
     border-style: dashed;
 }
