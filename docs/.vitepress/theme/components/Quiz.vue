@@ -29,10 +29,9 @@ const props = defineProps({
 const selected = ref(props.type === 'multi' ? [] : null)
 const isSubmitted = ref(false)
 
-// 判断是否回答正确
 const isCorrect = computed(() => {
   if (!isSubmitted.value) return false
-  
+
   if (props.type === 'single') {
     return selected.value === props.answer
   } else {
@@ -43,17 +42,16 @@ const isCorrect = computed(() => {
   }
 })
 
-// 处理选项点击
 const handleOptionClick = (optionValue) => {
   if (isSubmitted.value && props.type === 'single') return // 单选提交后不能改
-  
+
   if (props.type === 'single') {
     selected.value = optionValue
     // 单选模式：选中即提交
     isSubmitted.value = true
   } else {
     // 多选模式：如果不包含则添加，包含则移除（提交后依然允许查看，但通常提交后会禁用修改，这里为了体验设为提交后不可改）
-    if (isSubmitted.value) return 
+    if (isSubmitted.value) return
 
     const index = selected.value.indexOf(optionValue)
     if (index === -1) {
@@ -64,16 +62,14 @@ const handleOptionClick = (optionValue) => {
   }
 }
 
-// 多选提交按钮
 const submitMulti = () => {
   if (selected.value.length === 0) return // 没选不能交
   isSubmitted.value = true
 }
 
-// 辅助函数：判断某个选项现在的状态样式
 const getOptionClass = (optionValue) => {
-  const isSelected = props.type === 'single' 
-    ? selected.value === optionValue 
+  const isSelected = props.type === 'single'
+    ? selected.value === optionValue
     : selected.value.includes(optionValue)
 
   if (!isSubmitted.value) {
@@ -86,7 +82,7 @@ const getOptionClass = (optionValue) => {
     if (optionValue === props.answer) return 'correct' // 正确答案总是绿色
     if (isSelected && optionValue !== props.answer) return 'wrong' // 选错的项目变红
   }
-  
+
   // 2. 如果是多选
   if (props.type === 'multi') {
     const isAns = props.answer.includes(optionValue)
@@ -99,20 +95,18 @@ const getOptionClass = (optionValue) => {
 </script>
 
 <template>
-  <div class="quiz-container" :class="{ 'quiz-passed': isSubmitted && isCorrect, 'quiz-failed': isSubmitted && !isCorrect }">
+  <div class="quiz-container"
+    :class="{ 'quiz-passed': isSubmitted && isCorrect, 'quiz-failed': isSubmitted && !isCorrect }">
     <div class="quiz-header">
       <span class="quiz-badge">{{ type === 'single' ? '单选' : '多选' }}</span>
-      <span class="quiz-question"><slot name="question">题目内容</slot></span>
+      <span class="quiz-question">
+        <slot name="question">题目内容</slot>
+      </span>
     </div>
 
     <div class="quiz-options">
-      <div 
-        v-for="(opt, idx) in options" 
-        :key="idx"
-        class="quiz-option"
-        :class="getOptionClass(opt.value)"
-        @click="handleOptionClick(opt.value)"
-      >
+      <div v-for="(opt, idx) in options" :key="idx" class="quiz-option" :class="getOptionClass(opt.value)"
+        @click="handleOptionClick(opt.value)">
         <div class="radio-box">
           <span v-if="getOptionClass(opt.value) === 'correct'">✔</span>
           <span v-else-if="getOptionClass(opt.value) === 'wrong'">✖</span>
@@ -122,14 +116,12 @@ const getOptionClass = (optionValue) => {
       </div>
     </div>
 
-    <!-- 多选的提交按钮 -->
     <div v-if="type === 'multi' && !isSubmitted" class="quiz-footer">
       <button class="submit-btn" @click="submitMulti" :disabled="selected.length === 0">
         确认答案
       </button>
     </div>
 
-    <!-- 结果解析区域 (利用 Slot) -->
     <div v-if="isSubmitted" class="quiz-result">
       <div class="result-title" :class="isCorrect ? 'text-green' : 'text-red'">
         {{ isCorrect ? '回答正确！🎉' : '回答错误 😅' }}
@@ -222,6 +214,7 @@ const getOptionClass = (optionValue) => {
   border-radius: 50%;
   border: 2px solid var(--vp-c-text-3);
 }
+
 .selected .circle {
   background-color: var(--vp-c-brand);
   border-color: var(--vp-c-brand);
@@ -244,10 +237,12 @@ const getOptionClass = (optionValue) => {
   font-weight: 600;
   transition: opacity 0.2s;
 }
+
 .submit-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
 .submit-btn:hover:not(:disabled) {
   opacity: 0.9;
 }
@@ -265,8 +260,13 @@ const getOptionClass = (optionValue) => {
   margin-bottom: 0.5rem;
 }
 
-.text-green { color: var(--vp-c-green); }
-.text-red { color: var(--vp-c-red); }
+.text-green {
+  color: var(--vp-c-green);
+}
+
+.text-red {
+  color: var(--vp-c-red);
+}
 
 .explanation-title {
   font-size: 0.9rem;
@@ -276,7 +276,14 @@ const getOptionClass = (optionValue) => {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-5px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

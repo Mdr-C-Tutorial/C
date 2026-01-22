@@ -27,7 +27,7 @@ defineProps({
 <style scoped>
 .terminal-window {
   border-radius: 8px;
-  background: #1e1e1e; /* 经典深色背景 */
+  background: #1e1e1e;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   margin: 1rem 0;
   overflow: hidden;
@@ -52,9 +52,18 @@ defineProps({
   height: 12px;
   border-radius: 50%;
 }
-.red { background: #ff5f56; }
-.yellow { background: #ffbd2e; }
-.green { background: #27c93f; }
+
+.red {
+  background: #ff5f56;
+}
+
+.yellow {
+  background: #ffbd2e;
+}
+
+.green {
+  background: #27c93f;
+}
 
 .title {
   position: absolute;
@@ -71,18 +80,17 @@ defineProps({
   color: #e0e0e0;
   font-size: 0.9rem;
   line-height: 1.5;
-  white-space: pre-wrap; /* 保留换行和空格 */
+  white-space: pre-wrap;
 }
 
-/* 如果你想模拟用户输入的高亮，可以在 markdown 里用 span 或 bold */
 .terminal-body :deep(strong) {
   color: #fff;
   font-weight: bold;
 }
+
 .terminal-body :deep(.prompt) {
-  color: #42b883; /* 提示符颜色 */
+  color: #42b883;
   margin-right: 8px;
   user-select: none;
 }
-
 </style>

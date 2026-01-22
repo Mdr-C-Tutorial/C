@@ -598,3 +598,7 @@
 .terminal-body p {
   margin: 0;
 }
+
+.ex-content p {
+  margin-bottom: 0;
+}
