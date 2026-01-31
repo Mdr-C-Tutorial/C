@@ -90,6 +90,7 @@ deps/*
 dist
 examples-temp
 *.timestamp-*.mjs
+/.vitepress/
 
 # linter&formatter
 .cpp-linter_cache
