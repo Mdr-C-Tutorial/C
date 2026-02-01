@@ -33,7 +33,7 @@
 
 #pragma STDC FENV_ACCESS ON
 
-int main() {
+int main(void) {
     double result;
 
     feclearexcept(FE_ALL_EXCEPT);
