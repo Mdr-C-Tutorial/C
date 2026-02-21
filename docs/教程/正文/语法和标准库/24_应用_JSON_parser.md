@@ -775,7 +775,7 @@ int main(void) {
 
 ## 9. 完整实现（可直接复用）
 
-这一节的完整实现已经放在示例代码目录：[`/教程/示例代码/项目/json_parser.c.md`](/教程/示例代码/项目/json_parser.c.md)。同一份实现也已同步到代码目录：[`/code/语法和标准库/24_应用_JSON_parser/json_parser.c`](/code/语法和标准库/24_应用_JSON_parser/json_parser.c)。实现包含以下能力：对象、数组、字符串、数字、`true`、`false`、`null`，并提供统一 `json_free` 深度释放。
+这一节的完整实现已经放在示例代码目录：[`/教程/示例代码/项目/json_parser.c.md`](/教程/示例代码/项目/json_parser.c.md)。同一份实现也已同步到代码目录：`/code/语法和标准库/24_应用_JSON_parser/json_parser.c`。实现包含以下能力：对象、数组、字符串、数字、`true`、`false`、`null`，并提供统一 `json_free` 深度释放。
 
 核心入口保持为三个接口：
 
