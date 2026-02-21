@@ -68,6 +68,38 @@ B 树的阶数 m 决定了：
 
 **代码示例位置**：[示例代码 1：B 树搜索]
 
+下面给出搜索操作的核心函数。它在当前节点内先做有序扫描，若未命中则沿着对应分支继续下降。由于 B 树始终保持平衡，这个过程的高度上界是对数级。
+
+```c
+enum { T = 3 };
+
+typedef struct BTreeNode {
+    int n;
+    int leaf;
+    int keys[2 * T - 1];
+    struct BTreeNode *child[2 * T];
+} BTreeNode;
+
+static BTreeNode *bt_search(BTreeNode *x, int k, int *idx) {
+    int i = 0;
+    while (i < x->n && k > x->keys[i]) {
+        ++i;
+    }
+    if (i < x->n && k == x->keys[i]) {
+        if (idx != NULL) {
+            *idx = i;
+        }
+        return x;
+    }
+    if (x->leaf) {
+        return NULL;
+    }
+    return bt_search(x->child[i], k, idx);
+}
+```
+
+运行结果：该代码块展示的是搜索核心逻辑，单独运行通常无终端输出。
+
 ### 3.2 插入操作
 
 插入操作比搜索复杂，需要处理节点分裂：
@@ -92,6 +124,66 @@ B 树的阶数 m 决定了：
 **时间复杂度**：O(log n)
 
 **代码示例位置**：[示例代码 2：B 树插入]
+
+插入的关键点是“在下降前先处理满子节点”，这样到达叶子后一定有空位可插入。下面的 `split_child` 和 `insert_nonfull` 是最常见的实现骨架。
+
+```c
+static BTreeNode *bt_new_node(int leaf);
+
+static void split_child(BTreeNode *x, int i) {
+    BTreeNode *y = x->child[i];
+    BTreeNode *z = bt_new_node(y->leaf);
+    z->n = T - 1;
+
+    for (int j = 0; j < T - 1; ++j) {
+        z->keys[j] = y->keys[j + T];
+    }
+    if (!y->leaf) {
+        for (int j = 0; j < T; ++j) {
+            z->child[j] = y->child[j + T];
+        }
+    }
+    y->n = T - 1;
+
+    for (int j = x->n; j >= i + 1; --j) {
+        x->child[j + 1] = x->child[j];
+    }
+    x->child[i + 1] = z;
+
+    for (int j = x->n - 1; j >= i; --j) {
+        x->keys[j + 1] = x->keys[j];
+    }
+    x->keys[i] = y->keys[T - 1];
+    x->n += 1;
+}
+
+static void insert_nonfull(BTreeNode *x, int k) {
+    int i = x->n - 1;
+    if (x->leaf) {
+        while (i >= 0 && k < x->keys[i]) {
+            x->keys[i + 1] = x->keys[i];
+            --i;
+        }
+        x->keys[i + 1] = k;
+        x->n += 1;
+        return;
+    }
+
+    while (i >= 0 && k < x->keys[i]) {
+        --i;
+    }
+    ++i;
+    if (x->child[i]->n == 2 * T - 1) {
+        split_child(x, i);
+        if (k > x->keys[i]) {
+            ++i;
+        }
+    }
+    insert_nonfull(x->child[i], k);
+}
+```
+
+运行结果：该代码块展示的是插入核心逻辑，单独运行通常无终端输出。
 
 ### 3.3 删除操作
 
@@ -123,6 +215,35 @@ B 树的阶数 m 决定了：
 **时间复杂度**：O(log n)
 
 **代码示例位置**：[示例代码 3：B 树删除]
+
+删除阶段的重点在“下降前保证目标子节点至少有 `T` 个关键字”，这样在下探过程中不会出现无法修复的下溢。实现上通常分为三步：先尝试向兄弟借关键字；借不到就和兄弟合并；必要时把根下沉一层。下面给出删除入口的常见框架，便于对照前面的文字流程。
+
+```c
+typedef struct {
+    BTreeNode *root;
+} BTree;
+
+static void delete_from_node(BTreeNode *x, int k);
+
+static void bt_delete(BTree *tree, int k) {
+    if (tree->root == NULL) {
+        return;
+    }
+    delete_from_node(tree->root, k);
+
+    if (tree->root->n == 0) {
+        BTreeNode *old = tree->root;
+        if (old->leaf) {
+            tree->root = NULL;
+        } else {
+            tree->root = old->child[0];
+        }
+        free(old);
+    }
+}
+```
+
+运行结果：该代码块展示的是删除入口逻辑，单独运行通常无终端输出。
 
 ## 4. B 树的详细示例
 
@@ -328,3 +449,54 @@ A：通常根据磁盘块大小和关键字大小来选择：
 ### Q4：B 树的删除为什么这么复杂？
 
 A：因为 B 树要维护平衡性质，删除可能导致节点关键字数不足，需要通过借用或合并来调整。这个调整可能级联向上传播到根节点。
+
+## 10. 可运行最小实现（搜索 + 插入 + 删除）
+
+为了让前面的流程可以直接落地，本章补充了一份可运行的最小实现，路径是：[`/code/数据结构与算法/数据结构/b_tree_minimal.c`](/code/数据结构与算法/数据结构/b_tree_minimal.c)。它覆盖了创建节点、搜索、分裂、插入、删除、遍历与释放，采用最小度数 `T=2`，便于把插入与删除的主路径一起验证。
+
+下面是该程序在 `main` 中的核心调用片段：
+
+```c
+int data[] = {10, 20, 5, 6, 12, 30, 7, 17};
+for (int i = 0; i < 8; ++i) {
+    bt_insert(&t, data[i]);
+}
+
+printf("inorder: ");
+bt_traverse(t.root);
+printf("\n");
+
+printf("search 6: %s\n", bt_search(t.root, 6, NULL) != NULL ? "found" : "not found");
+printf("search 15: %s\n", bt_search(t.root, 15, NULL) != NULL ? "found" : "not found");
+
+int removed[] = {6, 13, 7, 4, 2, 16};
+for (int i = 0; i < 6; ++i) {
+    printf("delete %d\n", removed[i]);
+    bt_delete(&t, removed[i]);
+    printf("inorder: ");
+    bt_traverse(t.root);
+    printf("\n");
+}
+```
+
+可能的输出（示例）：
+
+<TerminalWindow>
+
+inorder: 5 6 7 10 12 17 20 30
+search 6: found
+search 15: not found
+delete 6
+inorder: 5 7 10 12 17 20 30
+delete 13
+inorder: 5 7 10 12 17 20 30
+delete 7
+inorder: 5 10 12 17 20 30
+delete 4
+inorder: 5 10 12 17 20 30
+delete 2
+inorder: 5 10 12 17 20 30
+delete 16
+inorder: 5 10 12 17 20 30
+
+</TerminalWindow>
