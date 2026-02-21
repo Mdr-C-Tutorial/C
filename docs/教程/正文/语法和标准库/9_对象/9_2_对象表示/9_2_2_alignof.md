@@ -1,4 +1,4 @@
-# alignof
+﻿# alignof
 
 `alignof` 用于查询一个类型的对齐要求 (Alignment requirement)。它返回一个 `size_t` 类型的整数常量表达式 (Integer constant expression)。
 
@@ -50,6 +50,15 @@ int main(void) {
     return 0;
 }
 ```
+
+可能的输出（示例）：
+
+<TerminalWindow>
+
+<输出与输入或平台相关，请以实际运行为准>
+
+</TerminalWindow>
+
 
 ## 4. 习题
 

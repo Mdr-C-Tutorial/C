@@ -1,4 +1,4 @@
-# 替换文本宏
+﻿# 替换文本宏
 
 ## 1. 仿对象宏：`#define 标识符 替换列表`
 
@@ -13,6 +13,15 @@ int main(void){
     printf("%d", NUM);
 }
 ```
+
+可能的输出（示例）：
+
+<TerminalWindow>
+
+<输出与输入或平台相关，请以实际运行为准>
+
+</TerminalWindow>
+
 
 程序将会输出 100
 
@@ -116,6 +125,15 @@ int main(void){
 }
 ```
 
+可能的输出（示例）：
+
+<TerminalWindow>
+
+<输出与输入或平台相关，请以实际运行为准>
+
+</TerminalWindow>
+
+
 展开后的结果：
 
 ```c
@@ -125,6 +143,15 @@ int main(void){
     printf("%d", fun_2());
 }
 ```
+
+可能的输出（示例）：
+
+<TerminalWindow>
+
+<输出与输入或平台相关，请以实际运行为准>
+
+</TerminalWindow>
+
 
 程序会输出`2`。
 

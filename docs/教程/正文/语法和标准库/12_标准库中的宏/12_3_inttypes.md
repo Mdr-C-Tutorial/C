@@ -1,4 +1,4 @@
-# `<inttypes.h>`
+﻿# `<inttypes.h>`
 
 `<inttypes.h>` 是C99引入的标准头文件，在C23（ISO/IEC 9899:2024）中核心内容未变。它包含`<stdint.h>`的所有定义，并额外提供用于`printf`、`scanf`家族函数的格式化宏。这些宏用于正确打印和扫描`<stdint.h>`中定义的固定宽度整数类型（如`int32_t`、`uint64_t`等），因为这些类型的实际底层类型（如`long`或`long long`）在不同平台上可能不同。
 
@@ -8,6 +8,9 @@
 #include <inttypes.h>
 #include <stdio.h>  // 或 <wchar.h> 用于宽字符版本
 ```
+
+运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
+
 
 ## 格式化宏分类
 

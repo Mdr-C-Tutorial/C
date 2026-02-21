@@ -1,4 +1,4 @@
-# 复数库 `<complex.h>`
+﻿# 复数库 `<complex.h>`
 
 ## 1. 复数和虚数类型
 
@@ -36,6 +36,9 @@ double complex a = 3.4 + 1.54*I;
 float complex b = 3.3*I;
 ```
 
+运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
+
+
 ### 2.2 宏 `CMPLXF` `CMPLX` `CMPLXL`
 
 这三个是宏，但是行为像下面这仨函数：
@@ -46,6 +49,9 @@ double complex      CMPLX( double real, double imag );
 long double complex CMPLXL( long double real, long double imag );
 ```
 
+运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
+
+
 宏可能是这么实现的（不同编译器上实现可能略有不同，但行为和下面代码相同）：
 
 ```c
@@ -54,6 +60,9 @@ long double complex CMPLXL( long double real, long double imag );
 #define CMPLXL(x, y) ((long double complex)((long double)(x) + \
                       _Imaginary_I * (long double)(y)))
 ```
+
+运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
+
 
 示例：
 
@@ -64,6 +73,9 @@ double complex a = CMPLX(3.2, 4.5);
 float complex b = CMPLXF(3.2, 4.5);
 long double complex c = CMPLXL(3.2, 4.5);
 ```
+
+运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
+
 
 ## 3. 主要操作
 
@@ -78,6 +90,9 @@ double creal( double _Complex z ); // 返回实部
 double cimag( double _Complex z ); // 返回虚部
 ```
 
+运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
+
+
 对于任何类型的复数 `z`，`creal(z) + I * cimag(z)` 都等于 `z`。
 
 ### 3.2 求模和幅角
@@ -88,11 +103,17 @@ double carg( double _Complex z ); // 求幅角
 // 注意幅角返回的是弧度
 ```
 
+运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
+
+
 ### 3.3 求共轭
 
 ```c
 double conj( double _Complex z ); // 共轭
 ```
+
+运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
+
 
 ## 4. 其他函数
 
@@ -105,3 +126,6 @@ double sin ( double arg );
 float  complex csinf( float  complex z );
 double complex csin ( double complex z );
 ```
+
+运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
+

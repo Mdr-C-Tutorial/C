@@ -1,4 +1,4 @@
-# `<signal.h>`
+﻿# `<signal.h>`
 
 `<signal.h>` 提供了“信号” (Signal) 机制，用于在程序运行期间接收异步通知。信号既可能来自外部（例如用户按下 Ctrl+C 触发 `SIGINT`），也可能由程序自身触发（例如调用 `raise`）。
 
@@ -23,6 +23,9 @@
 void (*signal(int sig, void (*handler)(int)))(int);
 ```
 
+运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
+
+
 - `sig` 是信号编号（如 `SIGINT`）。
 - `handler` 有三种常见取值：
   1. `SIG_DFL`：默认处理。
@@ -38,6 +41,9 @@ void (*signal(int sig, void (*handler)(int)))(int);
 
 int raise(int sig);
 ```
+
+运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
+
 
 `raise(sig)` 用于向当前进程发送一个信号 `sig`。
 
@@ -96,6 +102,15 @@ int main(void) {
     return 0;
 }
 ```
+
+可能的输出（示例）：
+
+<TerminalWindow>
+
+<输出与输入或平台相关，请以实际运行为准>
+
+</TerminalWindow>
+
 
 ::: warning 关于 `signal` 的语义
 

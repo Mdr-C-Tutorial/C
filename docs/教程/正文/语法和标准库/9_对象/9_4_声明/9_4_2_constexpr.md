@@ -1,4 +1,4 @@
-# constexpr（C23）
+﻿# constexpr（C23）
 
 `constexpr` 是 C23 引入的存储类说明符 (Storage-class specifier)。用 `constexpr` 声明的**标量对象** (Scalar object) 是一个“常量对象”：它在运行期存在（可以取地址），但其值在翻译期 (Translation time) 就固定下来，且运行期不可被修改。
 
@@ -38,6 +38,15 @@ int main(void) {
     return 0;
 }
 ```
+
+可能的输出（示例）：
+
+<TerminalWindow>
+
+<输出与输入或平台相关，请以实际运行为准>
+
+</TerminalWindow>
+
 
 ## 5. 习题
 
