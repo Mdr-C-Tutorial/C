@@ -1,0 +1,15 @@
+let step_open = 3..10..2;
+print(step_open);
+// [3, 5, 7, 9]
+
+let step_closed = 3...10..2;
+print(step_closed);
+// [3, 5, 7, 9]
+
+let step_hit_end = 2...10..4;
+print(step_hit_end);
+// [2, 6, 10]
+
+let step_skip = 3..8..10;
+print(step_skip);
+// [3]

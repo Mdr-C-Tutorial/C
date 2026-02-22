@@ -22,7 +22,9 @@
   "scripts": {
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "mdr:compile": "node code/项目/Mdr_Lang/compiler/cli.mjs",
+    "mdr:test": "node --test code/项目/Mdr_Lang/compiler/tests/smoke.mjs"
   },
   "dependencies": {
     "@braintree/sanitize-url": "^7.1.2",

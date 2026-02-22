@@ -1,0 +1,19 @@
+struct Counter(value: i32);
+
+function Counter.inc() -> () {
+    this.value = this.value + 1;
+}
+
+function Counter.add(n: i32) -> () {
+    this.value = this.value + n;
+}
+
+function Counter.get() -> i32 {
+    return this.value;
+}
+
+let c = Counter(0);
+c.inc();
+c.add(4);
+print(c.get());
+// 5

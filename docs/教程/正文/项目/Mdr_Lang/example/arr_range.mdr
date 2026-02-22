@@ -5,7 +5,7 @@ for (i: arr) { print(i); }
 print(arr);
 // [3, 4, 5, 8, 9]
 
-let ran = 3...8...2;
+let ran = 3...8..2;
 // ran: range[3, 8, 2]
 print(ran);
 // [3, 5, 7]

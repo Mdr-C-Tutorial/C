@@ -1,0 +1,16 @@
+let i = 0;
+let acc = 0;
+
+loop {
+    i = i + 1;
+    if (i == 3) {
+        continue;
+    }
+    if (i > 5) {
+        break;
+    }
+    acc = acc + i;
+}
+
+print(acc);
+// 12

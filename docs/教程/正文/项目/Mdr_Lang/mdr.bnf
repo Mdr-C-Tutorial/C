@@ -1,7 +1,8 @@
 program ::= [func|use|decl]* main [func|use|decl]*
 use ::= "use" id
 main ::= "function" "main" "()" "->" "()" "{" stmts "}"
-func ::= "function" gen_list type_ id "(" param_list ")" -> type_or_unit "{" stmts "}"
+func ::= "function" opt_gen_list type_ id "(" param_list ")" "->" type_or_unit "{" stmts "}"
+opt_gen_list ::= gen_list | epsilon
 gen_list ::= "<" param_list ">"
 type_ ::= type "." | epsilon
 type_or_unit ::= type | "()"
@@ -23,11 +24,11 @@ location ::= location "." bool | bool
 call ::= id "(" arg_list ")"
 arg_list ::= bool ("," bool)* | epsilon
 stmts ::= stmt*
-stmt ::= decl | location "=" bool; | "{" stmts "}" | "if" "(" bool ")" stmt ("else" stmt)? | "while" "(" bool ")" stmt | "loop" stmt | "return" bool ";" | "break" ";" | "continue" ";" | "for" "(" id ":" [array|range] ")" stmt
+stmt ::= decl | location "=" bool ";" | bool ";" | "{" stmts "}" | "if" "(" bool ")" stmt ("else" stmt)? | "while" "(" bool ")" stmt | "loop" stmt | "return" bool ";" | "break" ";" | "continue" ";" | "for" "(" id ":" [array|range] ")" stmt
 tuple ::= "(" arg_list ")"
 array ::= "[" arg_list "]"
 literal ::= number | char | string
-range ::= digits ".." digits | digits "..." digits | digits ".." digits ".." digits | digits "..." digits ".." digits
+range ::= digits ".." digits (".." digits)? | digits "..." digits (".." digits)?
 number ::= digits [("." digits)? ((["E"|"e"])? (["+"|"-"])? digits)? ("f")? | ("u")? (["H"|"h"|"L"|"l"])?]
 digits ::= digit+
 digit ::= ["0"-"9"]

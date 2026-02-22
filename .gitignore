@@ -91,6 +91,7 @@ dist
 examples-temp
 *.timestamp-*.mjs
 /.vitepress/
+code/项目/Mdr_Lang/compiler_c/build/
 
 # linter&formatter
 .cpp-linter_cache
