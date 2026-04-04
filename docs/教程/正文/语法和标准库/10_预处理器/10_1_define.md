@@ -63,7 +63,91 @@ int main(void){
    #define G(x) (3 * (x))
    ```
 
-2. `#define 标识符（形参列表, ...） 替换列表`
+   同时，由于宏是文本的替换，若是仿函数宏需要被替换成多行代码，可能会导致一些问题，如下：
+   
+   ```c
+   #include <stdio.h>
+   #define swap(x,y) typeof(x) tmp = y; y = x; x = tmp;
+   int main(void){
+      int x = 0, y = 1;
+      if(x < y) swap(x, y);
+      printf("%d %d", x, y);
+   }
+   ```
+
+   此时 `swap(x, y)` 被替换成 `typeof(x) tmp = y; y = x; x = tmp;`，因此 `if(x < y) swap(x, y);` 会被替换成 `if(x < y) typeof(x) tmp = y; y = x; x = tmp;`，造成编译错误！
+   
+   一个看似正确的解决方案是使用 `{}`，但是这并不是一个好的方法，原因如下：
+   
+   ```c
+   #include <stdio.h>
+   #define swap(x,y) {typeof(x) tmp = y; y = x; x = tmp;}
+   int main(void){
+      int x = 0, y = 1;
+      if(x < y)
+         swap(x, y);
+      else
+         printf("%d", x + y);
+      printf("%d %d", x, y);
+   }
+   ```
+   此时 `swap(x, y)` 被替换成 `{typeof(x) tmp = y; y = x; x = tmp;}`，因此：
+   
+   ```c
+   if(x < y)
+      swap(x, y);
+   else
+      printf("%d", x + y);
+   ```
+   
+   被替换成：
+
+   ```
+   if(x < y)
+      {typeof(x) tmp = y; y = x; x = tmp;};
+   else
+      printf("%d", x + y);
+   ```
+
+   在 `else` 语句前多了一个分号，造成编译错误！当然，可以选择在 `swap(x, y)` 后不加分号，但这通常不是 C/C++ 开发者的代码习惯，且不利于 IDE 对代码进行自动格式化和检查。
+
+   通常的做法是使用 `do{...} while(0)` 这一“无效循环”。现代编译器通常都能检查出此类的“无效循环”，不必担心会影响性能。例如上面的例子：
+
+   ```c
+   #include <stdio.h>
+   #define swap(x,y) do{typeof(x) tmp = y; y = x; x = t
+   mp} while(0)
+   int main(void){
+      int x = 0, y = 1;
+      if(x < y)
+         swap(x, y);
+      else
+         printf("%d", x + y);
+      printf("%d %d", x, y);
+   }
+   ```
+
+   此时，`swap(x, y)` 会被替换为 `do{typeof(x) tmp = y; y = x; x = tmp} while(0)`，因此：
+
+   ```c
+   if(x < y)
+      swap(x, y);
+   else
+      printf("%d", x + y);
+   ```
+
+   被替换为：
+
+   ```
+   if(x < y)
+      do{typeof(x) tmp = y; y = x; x = tmp;} while(0);
+   else
+      printf("%d", x + y);
+   ```
+
+   即 `if` 语句后紧跟着 `do{...} while` 语句，这是一段正确实现了所需功能的 C 代码。
+   
+3. `#define 标识符（形参列表, ...） 替换列表`
 
    在替换列表中，额外实参会替换 `__VA_ARGS__`标识符。
 
@@ -81,7 +165,7 @@ int main(void){
 
    `DEFINE_ARRAY(int, arr, 4, 1, 2, 3, 4)` 会被替换成 `int arr[4] = {1, 2, 3, 4}`
 
-3. `#` 运算符：把实参包含在引号中，变成一个字符串字面量。
+4. `#` 运算符：把实参包含在引号中，变成一个字符串字面量。
 
    示例：
 
@@ -97,7 +181,7 @@ int main(void){
 
    `STR("cute")` 会被替换成 `"\"cute\""`
 
-4. `##`` 运算符：连接两个记号。
+5. `##` 运算符：连接两个记号。
 
    示例：
 
