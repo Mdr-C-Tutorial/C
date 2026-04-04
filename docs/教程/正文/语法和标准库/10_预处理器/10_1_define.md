@@ -67,7 +67,7 @@ int main(void){
    
    ```c
    #include <stdio.h>
-   #define swap(x,y) typeof(x) tmp = y; y = x; x = temp;
+   #define swap(x,y) typeof(x) tmp = y; y = x; x = tmp;
    int main(void){
       int x = 0, y = 1;
       if(x < y) swap(x, y);
@@ -75,13 +75,13 @@ int main(void){
    }
    ```
 
-   此时 `swap(x, y)` 被替换成 `typeof(x) tmp = y; y = x; x = temp;`，因此 `if(x < y) swap(x, y);` 会被替换成 `if(x < y) typeof(x) tmp = y; y = x; x = temp;`，造成编译错误！
+   此时 `swap(x, y)` 被替换成 `typeof(x) tmp = y; y = x; x = tmp;`，因此 `if(x < y) swap(x, y);` 会被替换成 `if(x < y) typeof(x) tmp = y; y = x; x = tmp;`，造成编译错误！
    
    一个看似正确的解决方案是使用 `{}`，但是这并不是一个好的方法，原因如下：
    
    ```c
    #include <stdio.h>
-   #define swap(x,y) {typeof(x) tmp = y; y = x; x = temp;}
+   #define swap(x,y) {typeof(x) tmp = y; y = x; x = tmp;}
    int main(void){
       int x = 0, y = 1;
       if(x < y)
@@ -91,7 +91,7 @@ int main(void){
       printf("%d %d", x, y);
    }
    ```
-   此时 `swap(x, y)` 被替换成 `{typeof(x) tmp = y; y = x; x = temp;}`，因此：
+   此时 `swap(x, y)` 被替换成 `{typeof(x) tmp = y; y = x; x = tmp;}`，因此：
    
    ```c
    if(x < y)
@@ -104,7 +104,7 @@ int main(void){
 
    ```
    if(x < y)
-      {typeof(x) tmp = y; y = x; x = temp;};
+      {typeof(x) tmp = y; y = x; x = tmp;};
    else
       printf("%d", x + y);
    ```
@@ -115,7 +115,8 @@ int main(void){
 
    ```c
    #include <stdio.h>
-   #define swap(x,y) do{typeof(x) tmp = y; y = x; x = temp} while(0)
+   #define swap(x,y) do{typeof(x) tmp = y; y = x; x = t
+   mp} while(0)
    int main(void){
       int x = 0, y = 1;
       if(x < y)
@@ -126,7 +127,7 @@ int main(void){
    }
    ```
 
-   此时，`swap(x, y)` 会被替换为 `do{typeof(x) tmp = y; y = x; x = temp} while(0)`，因此：
+   此时，`swap(x, y)` 会被替换为 `do{typeof(x) tmp = y; y = x; x = tmp} while(0)`，因此：
 
    ```c
    if(x < y)
@@ -139,7 +140,7 @@ int main(void){
 
    ```
    if(x < y)
-      do{typeof(x) tmp = y; y = x; x = temp;} while(0);
+      do{typeof(x) tmp = y; y = x; x = tmp;} while(0);
    else
       printf("%d", x + y);
    ```
