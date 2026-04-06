@@ -5,9 +5,10 @@ import RegisterSW from "./components/RegisterSW.vue";
 import CodeCompare from "./components/CodeCompare.vue";
 import Quiz from "./components/Quiz.vue";
 import TerminalWindow from "./components/TerminalWindow.vue";
-import Term from './components/Term.vue'
-import Exercise from './components/Exercise.vue'
+import Term from "./components/Term.vue";
+import Exercise from "./components/Exercise.vue";
 import CodeRunner from "./components/CodeRunner.vue";
+import TermIndex from "./components/TermIndex.vue";
 
 export default {
   ...Theme,
@@ -17,6 +18,7 @@ export default {
     app.component("Quiz", Quiz);
     app.component("TerminalWindow", TerminalWindow);
     app.component("Term", Term);
+    app.component("TermIndex", TermIndex);
     app.component("Exercise", Exercise);
     app.component("CodeRunner", CodeRunner);
   },

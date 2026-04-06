@@ -23,6 +23,8 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
     "mdr:compile": "node code/项目/Mdr_Lang/compiler/cli.mjs",
     "mdr:test": "node --test code/项目/Mdr_Lang/compiler/tests/smoke.mjs"
   },
