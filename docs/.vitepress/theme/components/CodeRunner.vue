@@ -133,9 +133,12 @@ const toggleAuto = () => {
     moveTo(0);
   }
   running.value = true;
-  timer = setInterval(() => {
-    nextStep();
-  }, Math.max(120, props.autoInterval));
+  timer = setInterval(
+    () => {
+      nextStep();
+    },
+    Math.max(120, props.autoInterval),
+  );
 };
 
 watch(
@@ -144,7 +147,7 @@ watch(
     moveTo(props.startStep);
     stopAuto();
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 watch(
@@ -155,7 +158,7 @@ watch(
       syncScroll();
     });
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 watch(
@@ -166,7 +169,7 @@ watch(
     }
     stopAuto();
     toggleAuto();
-  }
+  },
 );
 
 onBeforeUnmount(() => {
@@ -262,7 +265,7 @@ const splitLine = (content, lineNo) => {
 };
 
 const segmentedLines = computed(() =>
-  lineList.value.map((line, idx) => splitLine(line, idx + 1))
+  lineList.value.map((line, idx) => splitLine(line, idx + 1)),
 );
 
 const normalizeOutput = (value) => {
@@ -314,8 +317,15 @@ const stepNote = computed(() => {
         <div class="header-lang">{{ language }}</div>
       </div>
 
-      <div class="editor-body" :style="{ height: editorHeightPx }">
-        <div ref="gutterRef" class="editor-gutter" aria-hidden="true">
+      <div
+        class="editor-body"
+        :style="{ height: editorHeightPx }"
+      >
+        <div
+          ref="gutterRef"
+          class="editor-gutter"
+          aria-hidden="true"
+        >
           <div
             v-for="(_, idx) in lineList"
             :key="`line-no-${idx}`"
@@ -327,7 +337,11 @@ const stepNote = computed(() => {
         </div>
 
         <div class="editor-main">
-          <div ref="overlayRef" class="highlight-layer" aria-hidden="true">
+          <div
+            ref="overlayRef"
+            class="highlight-layer"
+            aria-hidden="true"
+          >
             <div
               v-for="(line, idx) in lineList"
               :key="`line-highlight-${idx}`"
@@ -342,7 +356,8 @@ const stepNote = computed(() => {
                   <span
                     :class="{ 'is-active-range': part.active }"
                     class="code-part"
-                  >{{ part.text || " " }}</span>
+                    >{{ part.text || " " }}</span
+                  >
                 </template>
               </span>
             </div>
@@ -362,16 +377,45 @@ const stepNote = computed(() => {
     </div>
 
     <div class="runner-toolbar">
-      <button type="button" class="runner-btn" @click="prevStep">Prev</button>
-      <button type="button" class="runner-btn" @click="nextStep">Next</button>
-      <button type="button" class="runner-btn" @click="toggleAuto">
+      <button
+        type="button"
+        class="runner-btn"
+        @click="prevStep"
+      >
+        Prev
+      </button>
+      <button
+        type="button"
+        class="runner-btn"
+        @click="nextStep"
+      >
+        Next
+      </button>
+      <button
+        type="button"
+        class="runner-btn"
+        @click="toggleAuto"
+      >
         {{ running ? "Pause" : "Auto Run" }}
       </button>
-      <button type="button" class="runner-btn" @click="resetStep">Reset</button>
-      <span class="runner-progress">Step {{ stepIndex + 1 }} / {{ stepList.length || 1 }}</span>
+      <button
+        type="button"
+        class="runner-btn"
+        @click="resetStep"
+      >
+        Reset
+      </button>
+      <span class="runner-progress"
+        >Step {{ stepIndex + 1 }} / {{ stepList.length || 1 }}</span
+      >
     </div>
 
-    <p v-if="stepNote" class="step-note">{{ stepNote }}</p>
+    <p
+      v-if="stepNote"
+      class="step-note"
+    >
+      {{ stepNote }}
+    </p>
 
     <div class="output-shell">
       <div class="output-header">

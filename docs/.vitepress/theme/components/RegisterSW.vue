@@ -26,9 +26,24 @@ onBeforeMount(async () => {
 
 <template>
   <template v-if="offlineReady">
-    <div class="pwa-toast" role="alertdialog" aria-labelledby="pwa-message">
-      <div id="pwa-message" class="mb-3">App ready to work offline</div>
-      <button type="button" class="pwa-cancel" @click="close">Close</button>
+    <div
+      class="pwa-toast"
+      role="alertdialog"
+      aria-labelledby="pwa-message"
+    >
+      <div
+        id="pwa-message"
+        class="mb-3"
+      >
+        App ready to work offline
+      </div>
+      <button
+        type="button"
+        class="pwa-cancel"
+        @click="close"
+      >
+        Close
+      </button>
     </div>
   </template>
 </template>

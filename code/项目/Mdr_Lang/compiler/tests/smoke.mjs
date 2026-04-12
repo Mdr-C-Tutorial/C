@@ -9,7 +9,15 @@ import { compileSource } from "../src/compiler.mjs";
 const thisFilePath = fileURLToPath(import.meta.url);
 const testsDir = path.dirname(thisFilePath);
 const repoRoot = path.resolve(testsDir, "../../../../..");
-const examplesDir = path.join(repoRoot, "docs", "教程", "正文", "项目", "Mdr_Lang", "example");
+const examplesDir = path.join(
+  repoRoot,
+  "docs",
+  "教程",
+  "正文",
+  "项目",
+  "Mdr_Lang",
+  "example",
+);
 
 test("all mdr examples can be parsed", async () => {
   const entries = await fs.readdir(examplesDir, { withFileTypes: true });

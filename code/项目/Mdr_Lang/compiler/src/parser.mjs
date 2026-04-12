@@ -686,7 +686,9 @@ class Parser {
     if (this.check(TOKEN_KIND.KEYWORD) && TYPE_KEYWORDS.has(this.current().lexeme)) {
       return true;
     }
-    return this.check(TOKEN_KIND.OPERATOR) && TYPE_START_OPERATORS.has(this.current().lexeme);
+    return (
+      this.check(TOKEN_KIND.OPERATOR) && TYPE_START_OPERATORS.has(this.current().lexeme)
+    );
   }
 
   expectStatementTerminator(message) {

@@ -2,21 +2,24 @@
 defineProps({
   leftTitle: {
     type: String,
-    default: '错误写法 (Bad)'
+    default: "错误写法 (Bad)",
   },
   rightTitle: {
     type: String,
-    default: '正确写法 (Good)'
+    default: "正确写法 (Good)",
   },
   vertical: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 </script>
 
 <template>
-  <div class="code-compare" :class="{ 'is-vertical': vertical }">
+  <div
+    class="code-compare"
+    :class="{ 'is-vertical': vertical }"
+  >
     <div class="compare-pane left-pane">
       <div class="pane-header bad-header">
         <span class="icon">❌</span> {{ leftTitle }}
@@ -93,7 +96,7 @@ defineProps({
   display: flex;
 }
 
-.pane-content :deep(div[class*='language-']) {
+.pane-content :deep(div[class*="language-"]) {
   margin: 0 !important;
   border-radius: 0 !important;
   display: flex;

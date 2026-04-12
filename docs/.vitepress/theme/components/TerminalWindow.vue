@@ -3,9 +3,9 @@
 defineProps({
   title: {
     type: String,
-    default: 'bash'
-  }
-})
+    default: "bash",
+  },
+});
 </script>
 
 <template>
@@ -31,7 +31,7 @@ defineProps({
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   margin: 1rem 0;
   overflow: hidden;
-  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-family: "Menlo", "Monaco", "Courier New", monospace;
 }
 
 .terminal-header {

@@ -1,12 +1,14 @@
 <template>
   <span class="term-with-tooltip">
     <!-- 术语部分 -->
-    <span class="term-block" 
-    @mouseenter="isHovered = true"
-    @mouseleave="isHovered = false">
+    <span
+      class="term-block"
+      @mouseenter="isHovered = true"
+      @mouseleave="isHovered = false"
+    >
       <slot></slot>
     </span>
-    
+
     <!-- 提示内容部分 -->
     <div
       v-if="isHovered"
@@ -14,15 +16,15 @@
       @mouseenter="isHovered = true"
       @mouseleave="isHovered = false"
     >
-      <slot name="tip" ></slot>
+      <slot name="tip"></slot>
     </div>
   </span>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref } from "vue";
 
-const isHovered = ref(false)
+const isHovered = ref(false);
 </script>
 
 <style scoped>
@@ -40,7 +42,6 @@ const isHovered = ref(false)
 }
 
 .content-block {
-
   position: absolute !important;
   width: max-content !important;
 

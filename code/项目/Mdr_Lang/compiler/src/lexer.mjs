@@ -132,7 +132,7 @@ class Lexer {
       return;
     }
 
-    if (ch === "\"") {
+    if (ch === '"') {
       this.scanString(startOffset, startLine, startColumn);
       return;
     }
@@ -214,7 +214,7 @@ class Lexer {
     this.advance();
     while (!this.isAtEnd()) {
       const ch = this.peek();
-      if (ch === "\"") {
+      if (ch === '"') {
         this.advance();
         this.pushToken(TOKEN_KIND.STRING, startOffset, startLine, startColumn);
         return;
