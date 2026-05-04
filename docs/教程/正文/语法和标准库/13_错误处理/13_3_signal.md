@@ -58,9 +58,9 @@ int raise(int sig);
 - `SIGSEGV`：非法内存访问。
 - `SIGTERM`：终止请求。
 
-::: warning 不可捕获的信号 
+::: warning 不可捕获的信号
 
-部分信号是不可被捕获的，如 Linux 中的 SIGKILL，尝试捕获它们将会失败。
+部分信号是不可被捕获的，如 Linux/POSIX 中的 SIGKILL 和 SIGSTOP，尝试捕获它们将会失败。
 
 :::
 
