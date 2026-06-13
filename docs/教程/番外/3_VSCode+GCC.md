@@ -5,7 +5,7 @@
 ### 1.1 下载 VSCode
 
 从 [VS Code 官网](https://code.visualstudio.com) 上下载对应版本（对于 Windows 用户推荐 system 而不是 user 以防止不必要的麻烦 不过前提是有管理员权限）
-以下是部分平台安装包直下链接
+以下是部分平台安装包直接下载链接
 
 - .exe(sys)
   - [x64](https://code.visualstudio.com/sha/download?build=stable&os=win32-x64)

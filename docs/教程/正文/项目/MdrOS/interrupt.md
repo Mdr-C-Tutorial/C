@@ -34,7 +34,7 @@ IDT 有特殊的标志位规定某些中断是否可以由用户程序使用 `in
 在 Intel 规定中，前 32 个中断向量被留为异常
 
 - 在中断流程里发生异常中断叫 `Double Fault`
-- 在 `Doubel Fault` 里再次发生中断叫 `Triple Fault`
+- 在 `Double Fault` 里再次发生中断叫 `Triple Fault`
 
 > 当发生 `Triple Fault` 类型中断时候，计算机系统意识到发生了内核无法解决的严重错误，
 > 这个时候计算机系统会越过 ACPI 等电源的设置迅速进行重启。

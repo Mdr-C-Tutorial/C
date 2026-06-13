@@ -117,7 +117,7 @@
 > 又兼容 VGA 显示卡，它们被统称为 Super VGA（SVGA）。
 > 为了统一各种 SVGA 显卡，
 > 视频电子学标准协会 VESA（Video Electronics Standards Association）
-> 提出了一组附加的 BIOS 功能调用借口——VBE（VESA BIOS EXTENSION）标准，
+> 提出了一组附加的 BIOS 功能调用接口——VBE（VESA BIOS EXTENSION）标准，
 > 从而在软件接口层次上实现了各种 SVGA 显示卡之间的兼容性。
 > 时至今日，所有的显示卡 OEM 厂商都提供了符合 VESA SUPER 标准的扩展 BIOS。
 > 通过一组 INT 10H 中断调用（AH=4FH），
