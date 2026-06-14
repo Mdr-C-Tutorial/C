@@ -1,4 +1,4 @@
-﻿# alignof
+# alignof
 
 `alignof` 用于查询一个类型的对齐要求 (Alignment requirement)。它返回一个 `size_t` 类型的整数常量表达式 (Integer constant expression)。
 
@@ -62,6 +62,20 @@ int main(void) {
 
 ## 4. 习题
 
-1. 对比 `alignof(struct { char c; int n; })` 与 `alignof(struct { int n; char c; })`，它们一定相同吗？请用实验验证并解释原因。
-2. 为什么 `alignof` 只能接受类型名，而不是表达式？写出你的理解。
-3. 写出一个宏 `MDR_ALIGNOF(expr)`：把表达式的类型转换成 `alignof` 能接收的形式（提示：C23 有 `typeof`）。
+<Exercise id="90001" :d="1" :w="2">
+
+对比 `alignof(struct { char c; int n; })` 与 `alignof(struct { int n; char c; })`，它们一定相同吗？请用实验验证并解释原因。
+
+</Exercise>
+
+<Exercise id="90002" :d="1" :w="2">
+
+为什么 `alignof` 只能接受类型名，而不是表达式？写出你的理解。
+
+</Exercise>
+
+<Exercise id="90003" :d="1" :w="2">
+
+写出一个宏 `MDR_ALIGNOF(expr)`：把表达式的类型转换成 `alignof` 能接收的形式（提示：C23 有 `typeof`）。
+
+</Exercise>

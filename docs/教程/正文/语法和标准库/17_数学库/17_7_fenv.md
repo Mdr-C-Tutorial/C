@@ -1,4 +1,4 @@
-﻿# 浮点环境
+# 浮点环境
 
 浮点环境是与**浮点异常**和**浮点舍入方向**相关的操作的集合。
 
@@ -96,10 +96,6 @@ int feraiseexcept(int excepts);
 int fegetexceptflag(fexcept_t *p, int excepts);
 int fesetexceptflag(const fexcept_t *p, int excepts);
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 推荐流程通常是：先清标志、再执行计算、最后检查标志。这样能避免历史异常状态干扰当前判断。
 
 ```c
@@ -164,10 +160,6 @@ int main(void) {
 int fegetround(void);
 int fesetround(int mode);
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 `fesetround` 成功后会影响后续浮点运算。建议把“切换模式”的作用域限制在尽可能小的代码区间，并在结束时恢复原模式。
 
 ```c
@@ -179,10 +171,6 @@ if (old != -1) {
     }
 }
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 ## 保存和恢复浮点环境
 
 当函数需要临时修改异常状态或舍入模式时，应显式保存与恢复环境。`fenv_t` 表示一个完整浮点环境快照，常用接口包括：
@@ -193,8 +181,4 @@ int fesetenv(const fenv_t *envp);
 int feholdexcept(fenv_t *envp);
 int feupdateenv(const fenv_t *envp);
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 这组接口适合写可组合的数值函数：被调代码不会把调用方环境状态悄悄改坏。

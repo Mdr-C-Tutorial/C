@@ -1,4 +1,4 @@
-﻿# 数学函数
+# 数学函数
 
 `<math.h>` 提供了大量面向实数（主要是浮点类型）的数学函数与工具宏。它的核心使用方式是：用 `double`/`float`/`long double` 表示实数，再用标准库函数完成常见运算（指数、对数、三角、开方、取整等）。
 
@@ -30,10 +30,6 @@ int isinf(real-floating x);
 int isnan(real-floating x);
 int fpclassify(real-floating x);
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 （标准里的形参类型写作 `real-floating`，表示“实浮点类型”；实际函数对 `float`/`double`/`long double` 都可用。）
 
 `fpclassify` 的结果会落在若干宏之一：`FP_NAN`、`FP_INFINITE`、`FP_ZERO`、`FP_SUBNORMAL`、`FP_NORMAL`。

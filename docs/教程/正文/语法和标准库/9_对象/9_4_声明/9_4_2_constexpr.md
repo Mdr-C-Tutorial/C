@@ -1,4 +1,4 @@
-﻿# constexpr（C23）
+# constexpr（C23）
 
 `constexpr` 是 C23 引入的存储类说明符 (Storage-class specifier)。用 `constexpr` 声明的**标量对象** (Scalar object) 是一个“常量对象”：它在运行期存在（可以取地址），但其值在翻译期 (Translation time) 就固定下来，且运行期不可被修改。
 
@@ -50,9 +50,23 @@ int main(void) {
 
 ## 5. 习题
 
-1. 写出一个 `constexpr int`，并分别把它用于：
+<Exercise id="90001" :d="1" :w="2">
+
+写出一个 `constexpr int`，并分别把它用于：
    1. `static_assert`；
    2. `switch` 的 `case` 标签；
    3. 位域宽度（若你的编译器支持）。
-2. 解释：为什么 `const int x = 42;` 不能保证用于 `case` 标签，而 `constexpr int x = 42;` 可以？
-3. 写出若干个“非法的 constexpr 声明”，并解释它们分别违反了哪条限制（至少包含：指针非空、`volatile`、原子类型、VLA）。
+
+</Exercise>
+
+<Exercise id="90002" :d="1" :w="2">
+
+解释：为什么 `const int x = 42;` 不能保证用于 `case` 标签，而 `constexpr int x = 42;` 可以？
+
+</Exercise>
+
+<Exercise id="90003" :d="1" :w="2">
+
+写出若干个“非法的 constexpr 声明”，并解释它们分别违反了哪条限制（至少包含：指针非空、`volatile`、原子类型、VLA）。
+
+</Exercise>

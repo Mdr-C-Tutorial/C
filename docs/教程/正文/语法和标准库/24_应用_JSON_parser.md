@@ -1,4 +1,4 @@
-﻿# 综合案例：JSON parser
+# 综合案例：JSON parser
 
 这一章把前面章节里的字符串处理、内存管理、递归下降和错误处理放到一个完整案例中：实现一个最小可用的 JSON 解析器。目标不是一次写出完整工业实现，而是建立“语法到对象结构”的工程路径。
 
@@ -36,10 +36,6 @@ struct json_value {
     } as;
 };
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 这个结构把“标签 + 联合体”模式落地为统一 JSON 节点表示。不同种类共享外层壳体，访问时由 `kind` 决定解释方式。
 
 ## 3. 解析流程
@@ -61,10 +57,6 @@ static void skip_ws(json_parser *p) {
     }
 }
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 这类游标结构可以把错误定位到具体输入位置，也便于后续扩展增量解析。
 
 ## 4. 内存与清理策略
@@ -784,9 +776,6 @@ json_value *json_parse(const char *text, const char **err_pos, const char **err_
 void json_free(json_value *v);
 const json_value *json_object_get(const json_value *obj, const char *key);
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
 ## 10. 运行示例
 
 下面给出一个最小调用片段，展示“解析 -> 读取 -> 释放”的主路径：

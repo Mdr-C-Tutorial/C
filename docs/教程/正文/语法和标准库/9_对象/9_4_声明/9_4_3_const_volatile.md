@@ -1,4 +1,4 @@
-﻿# const 与 volatile
+# const 与 volatile
 
 `const` 与 `volatile` 是 C 的类型限定符 (Type qualifier)。它们修饰的是**类型**，并通过类型影响对对象的访问规则。
 
@@ -13,10 +13,6 @@ const int n = 1;
 int* p = (int*)&n;
 *p = 2; /* UB */
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 ### 1.2 `const` 在指针声明中的位置
 
 这是 C 初学者最容易混淆的部分之一：`const` 永远修饰它“左边最近的类型构造”（若左边没有，就修饰右边）。
@@ -29,10 +25,6 @@ int const* p2 = &x;      /* 与 p1 等价 */
 int* const p3 = &x;      /* const 指针：p3 自己不能改指向，但可以通过 *p3 改 x */
 const int* const p4 = &x;/* 指向 const int 的 const 指针 */
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 ### 1.3 限定符转换
 
 允许从“指向非 const”的指针隐式转换为“指向 const”的指针（添加限定符）；反方向需要显式强转，并且若最终修改了原本为 const 的对象，则是 UB。
@@ -58,9 +50,23 @@ const int* const p4 = &x;/* 指向 const int 的 const 指针 */
 
 ## 3. 习题
 
-1. 判断下列声明的含义（写出“指针是否可改”“指向内容是否可改”）：  
+<Exercise id="90001" :d="1" :w="2">
+
+判断下列声明的含义（写出“指针是否可改”“指向内容是否可改”）：  
    1. `const int* p;`  
    2. `int* const p;`  
    3. `const int* const p;`
-2. 写一个“强转去 const”的例子，说明：为什么对原本不是 const 的对象去 const 再写回通常可行，而对原本就是 const 的对象去 const 再写回是 UB。
-3. 解释：为什么 `volatile` 不能代替 `<stdatomic.h>`？请给出一个“需要原子性”的并发场景作为反例。
+
+</Exercise>
+
+<Exercise id="90002" :d="1" :w="2">
+
+写一个“强转去 const”的例子，说明：为什么对原本不是 const 的对象去 const 再写回通常可行，而对原本就是 const 的对象去 const 再写回是 UB。
+
+</Exercise>
+
+<Exercise id="90003" :d="1" :w="2">
+
+解释：为什么 `volatile` 不能代替 `<stdatomic.h>`？请给出一个“需要原子性”的并发场景作为反例。
+
+</Exercise>

@@ -1,4 +1,4 @@
-﻿# `#pragma`
+# `#pragma`
 
 这个预处理指令可以控制一些**实现定义的行为**。
 
@@ -19,10 +19,6 @@
 ```c
 #pragma STDC FP_CONTRACT ON
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 如果你的数值算法要求严格可复现结果，应结合编译器文档确认默认值并显式设置。
 
 ### `#pragma STDC CX_LIMITED_RANGE`_`arg`_
@@ -55,10 +51,6 @@ struct hdr {
 };
 #pragma pack(pop)
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 对齐调整会影响布局、访问性能，甚至在某些平台导致未对齐访问异常。除非必须与外部二进制格式对齐，否则不要随意使用。
 
 ## `_Pragma()`
@@ -69,8 +61,4 @@ struct hdr {
 #define DO_PRAGMA(x) _Pragma(#x)
 #define DISABLE_UNUSED_WARNING DO_PRAGMA(GCC diagnostic ignored "-Wunused-parameter")
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 当需要在宏内部携带 pragma 时，应使用 `_Pragma`，而不是直接写 `#pragma`。

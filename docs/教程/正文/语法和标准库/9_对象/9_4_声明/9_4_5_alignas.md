@@ -1,4 +1,4 @@
-﻿# alignas（C11/C23）
+# alignas（C11/C23）
 
 `alignas`（C11 中为 `_Alignas`，并可通过 `<stdalign.h>` 的宏 `alignas` 使用）是对齐说明符 (Alignment specifier)。它用于**提高**某个被声明对象的对齐要求。
 
@@ -52,6 +52,20 @@ int main(void) {
 
 ## 5. 习题
 
-1. 解释：为什么标准禁止 `alignas`“降低对齐要求”？降低会带来什么风险？
-2. 写一个结构体，让它的某个成员 `char cacheline[64]` 强制以 64 字节对齐；并解释“这是让数组对象对齐”，还是“让数组元素对齐”。
-3. 用实验验证：当同一声明出现多个 `alignas` 时，到底取哪一个（例如 `alignas(16) alignas(64) int x;`）。
+<Exercise id="90001" :d="1" :w="2">
+
+解释：为什么标准禁止 `alignas`“降低对齐要求”？降低会带来什么风险？
+
+</Exercise>
+
+<Exercise id="90002" :d="1" :w="2">
+
+写一个结构体，让它的某个成员 `char cacheline[64]` 强制以 64 字节对齐；并解释“这是让数组对象对齐”，还是“让数组元素对齐”。
+
+</Exercise>
+
+<Exercise id="90003" :d="1" :w="2">
+
+用实验验证：当同一声明出现多个 `alignas` 时，到底取哪一个（例如 `alignas(16) alignas(64) int x;`）。
+
+</Exercise>

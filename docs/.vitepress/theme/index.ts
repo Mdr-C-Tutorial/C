@@ -9,6 +9,8 @@ import Term from "./components/Term.vue";
 import Exercise from "./components/Exercise.vue";
 import CodeRunner from "./components/CodeRunner.vue";
 import TermIndex from "./components/TermIndex.vue";
+import SolutionBackLink from "./components/SolutionBackLink.vue";
+import SolutionPageHeader from "./components/SolutionPageHeader.vue";
 
 export default {
   ...Theme,
@@ -21,9 +23,11 @@ export default {
     app.component("TermIndex", TermIndex);
     app.component("Exercise", Exercise);
     app.component("CodeRunner", CodeRunner);
+    app.component("SolutionBackLink", SolutionBackLink);
   },
   Layout() {
     return h(Theme.Layout, null, {
+      "doc-before": () => h(SolutionPageHeader),
       "layout-bottom": () => h(RegisterSW),
     });
   },

@@ -1,4 +1,4 @@
-﻿# `#error` 和 `#warning`
+# `#error` 和 `#warning`
 
 ## `#error`
 
@@ -73,10 +73,6 @@ int main(void) {
 #  warning "SIMD requested but not available; fallback enabled"
 #endif
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 ## 诊断信息应保持稳定可检索
 
 同一类失败建议使用稳定前缀或统一措辞，这样日志平台和 CI 规则可以直接按关键字聚合问题。`#error` / `#warning` 的价值不只在“让本次构建停下或提醒”，更在于长期积累时能快速定位同类故障源。

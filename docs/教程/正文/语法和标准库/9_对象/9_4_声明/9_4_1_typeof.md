@@ -1,4 +1,4 @@
-﻿# typeof（C23）
+# typeof（C23）
 
 `typeof`（以及 `typeof_unqual`）是 C23 引入的 `typeof` 说明符 (typeof specifier)。它们用于“从一个类型名或表达式推导出一个类型名”，并可直接用于声明。
 
@@ -26,10 +26,6 @@ C23 提供两组形式：
 int a[3];
 typeof(a) b = {0}; /* b 的类型是 int[3]，不是 int*。 */
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 ### 2.2 `typeof_unqual` 会移除限定符
 
 `typeof_unqual` 会在 `typeof` 的基础上移除类型限定符：例如移除 `const`、`volatile`，并产生“非原子的无限定类型”（也会移除 `_Atomic` 的限定效果）。
@@ -41,10 +37,6 @@ const int x = 1;
 typeof(x) a = x;         /* a 的类型是 const int */
 typeof_unqual(x) b = x;  /* b 的类型是 int */
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 ### 2.3 不能用于位域
 
 `typeof` 运算符不能应用于位域 (Bit-field) 成员。
@@ -56,9 +48,23 @@ typeof_unqual(x) b = x;  /* b 的类型是 int */
 
 ## 4. 习题
 
-1. 写一个宏 `MDR_SWAP(a, b)`，要求：
+<Exercise id="90001" :d="1" :w="2">
+
+写一个宏 `MDR_SWAP(a, b)`，要求：
    1. 只对 `a`、`b` 求值一次；
    2. 仅接受可赋值的左值；
    3. 使用 `typeof` 推导临时变量类型。
-2. 写出并解释：`typeof("abc")` 的结果类型是什么？为什么它不是 `char*`？
-3. 写出并解释：`typeof_unqual((const int)1)` 的结果类型是什么？
+
+</Exercise>
+
+<Exercise id="90002" :d="1" :w="2">
+
+写出并解释：`typeof("abc")` 的结果类型是什么？为什么它不是 `char*`？
+
+</Exercise>
+
+<Exercise id="90003" :d="1" :w="2">
+
+写出并解释：`typeof_unqual((const int)1)` 的结果类型是什么？
+
+</Exercise>

@@ -1,4 +1,4 @@
-﻿# typedef
+# typedef
 
 `typedef` 是一种存储类说明符 (Storage-class specifier)，用于引入**类型别名**（typedef name）。它不会创建新的“不同类型”，而是为已有类型提供一个新的名字。
 
@@ -15,10 +15,6 @@ int main(void) {
     return 0;
 }
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 `typedef` 的核心价值在于：提高可读性、降低复杂声明的书写成本、以及隐藏实现细节（尤其是在头文件 API 中）。
 
 ## 2. 常见用法
@@ -33,10 +29,6 @@ typedef struct point {
     int y;
 } point;
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 ### 2.2 前向声明 + 不完全类型（用于隐藏实现）
 
 ```c
@@ -44,19 +36,11 @@ typedef struct list list;
 
 /* 此处可以只暴露 list* 相关 API，而把 struct list 的定义放到 .c 文件中。 */
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 ### 2.3 函数指针别名（用于清晰 API）
 
 ```c
 typedef int (*compare_fn)(const void* a, const void* b);
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 ### 2.4 数组别名（适合固定维度）
 
 ```c
@@ -68,10 +52,6 @@ int main(void) {
     return 0;
 }
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 ## 3. 典型陷阱：隐藏指针
 
 `typedef` 可以把指针“藏起来”，但这会让 `const` 等限定符的阅读变得更容易出错。
@@ -90,10 +70,6 @@ int main(void) {
     return 0;
 }
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 ::: warning 建议
 
 除非你的团队对这类写法有明确约定，否则不要用 `typedef` 隐藏裸指针。对于读者而言，`int*` 比 `int_ptr` 更直观。
@@ -102,9 +78,22 @@ int main(void) {
 
 ## 4. 习题
 
-1. 把下面的声明改写成 `typedef` 版本，使其更易读：
+<Exercise id="90001" :d="1" :w="2">
+
+把下面的声明改写成 `typedef` 版本，使其更易读：
    1. `int (*fp)(int, int);`
    2. `int (*a[10])(double);`
-2. 解释：为什么 `typedef int* int_ptr; const int_ptr p;` 中 `p` 不是“指向 const int 的指针”？
-3. 写一个“隐藏实现”的最小示例：在头文件里只暴露 `typedef struct foo foo;` 与 `foo* foo_create(void);`，并说明这样做的好处与代价。
 
+</Exercise>
+
+<Exercise id="90002" :d="1" :w="2">
+
+解释：为什么 `typedef int* int_ptr; const int_ptr p;` 中 `p` 不是“指向 const int 的指针”？
+
+</Exercise>
+
+<Exercise id="90003" :d="1" :w="2">
+
+写一个“隐藏实现”的最小示例：在头文件里只暴露 `typedef struct foo foo;` 与 `foo* foo_create(void);`，并说明这样做的好处与代价。
+
+</Exercise>

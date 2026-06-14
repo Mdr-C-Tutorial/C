@@ -1,9 +1,86 @@
 import { defineConfig } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
 import { withPwa } from "@vite-pwa/vitepress";
+import { readdirSync, readFileSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 import { Sidebar, Nav } from "./nscfg.mts";
 
 const customElements: string[] = [""];
+const bnfLanguage = {
+  name: "bnf",
+  displayName: "BNF",
+  scopeName: "source.bnf",
+  aliases: ["ebnf"],
+  patterns: [
+    {
+      match: "^([A-Za-z][A-Za-z0-9_-]*)(:|::=)",
+      captures: {
+        1: { name: "entity.name.type.bnf" },
+        2: { name: "keyword.operator.definition.bnf" },
+      },
+    },
+    {
+      match: "\\b[A-Za-z][A-Za-z0-9_-]*(?=\\s*(?::|::=))",
+      name: "entity.name.type.bnf",
+    },
+    {
+      match: "\\b[A-Za-z][A-Za-z0-9_-]*opt\\b",
+      name: "storage.modifier.optional.bnf",
+    },
+    {
+      match: "(::=|\\||\\.\\.\\.)",
+      name: "keyword.operator.bnf",
+    },
+    {
+      match: "[()\\[\\]{},:]",
+      name: "punctuation.definition.bnf",
+    },
+  ],
+};
+const plainTextLanguages = ["in", "out"].map((name) => ({
+  name,
+  displayName: name.toUpperCase(),
+  scopeName: `text.${name}`,
+  patterns: [],
+}));
+const docsDir = join(dirname(fileURLToPath(import.meta.url)), "..");
+const exerciseSourcesById = new Map<string, { href: string; title: string }[]>();
+
+function docsLinkFromPath(src: string) {
+  return `/${src.replace(/\\/g, "/").replace(/\.md$/, "")}`;
+}
+
+function pageTitleFromMarkdown(path: string, content: string) {
+  return /^#\s+(.+)$/m.exec(content)?.[1] ?? path.split(/[\\/]/).at(-1) ?? path;
+}
+
+function collectExerciseSources(dir: string) {
+  for (const item of readdirSync(dir, { withFileTypes: true })) {
+    const file = join(dir, item.name);
+    if (item.isDirectory()) {
+      collectExerciseSources(file);
+      continue;
+    }
+
+    if (!item.isFile() || !item.name.endsWith(".md")) continue;
+
+    const content = readFileSync(file, "utf8");
+    const href = docsLinkFromPath(relative(docsDir, file));
+    const title = pageTitleFromMarkdown(file, content);
+
+    for (const match of content.matchAll(/<Exercise\b[^>]*\bid="([^"]+)"[^>]*>/g)) {
+      const id = match[1];
+      const sources = exerciseSourcesById.get(id) ?? [];
+      if (!sources.some((source) => source.href === href)) {
+        sources.push({ href, title });
+      }
+      exerciseSourcesById.set(id, sources);
+    }
+  }
+}
+
+collectExerciseSources(join(docsDir, "教程", "正文"));
 
 // https://vitepress.dev/reference/site-config
 export default withPwa(
@@ -75,6 +152,7 @@ export default withPwa(
       },
       markdown: {
         lineNumbers: true,
+        languages: [bnfLanguage, ...plainTextLanguages],
         codeCopyButtonTitle: "复制代码",
         math: true,
         image: {
@@ -86,6 +164,14 @@ export default withPwa(
       },
       sitemap: {
         hostname: "https://mdr.aymao.com/C/",
+      },
+      transformPageData(pageData) {
+        const id = /^教程\/题解\/.*\/(\d+)\.md$/.exec(
+          pageData.relativePath,
+        )?.[1];
+        if (!id) return;
+
+        pageData.frontmatter.exerciseSources = exerciseSourcesById.get(id) ?? [];
       },
       pwa: {
         strategies: "generateSW",

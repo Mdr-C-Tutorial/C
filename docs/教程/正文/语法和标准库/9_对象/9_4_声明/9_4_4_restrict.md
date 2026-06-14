@@ -1,4 +1,4 @@
-﻿# restrict（C99）
+# restrict（C99）
 
 `restrict` 是 C99 引入的类型限定符 (Type qualifier)。它只用于**指针类型**，用于向编译器作出一个“别名保证”：在一段作用域内，通过该 `restrict` 指针（以及从它派生出的指针）访问的对象，不会再被其他互不相关的指针访问。
 
@@ -12,10 +12,6 @@
 int* restrict p = 0;
 const int* restrict q = 0;
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 注意：`int restrict *p;` 是把 `restrict` 修饰在 `int` 上，这不是 `restrict` 的用法（在 C23 中更明确属于错误写法）。
 
 ## 2. 语义要点（可操作版）
@@ -25,10 +21,6 @@ const int* restrict q = 0;
 ```c
 void f(size_t n, int* restrict dst, const int* restrict src);
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 你可以把它理解为：在 `f` 执行期间，`dst[0..n)` 与 `src[0..n)` 所指向的对象区域不重叠；否则就是 UB。
 
 ::: warning 编译器可以忽略 `restrict`
@@ -59,10 +51,6 @@ void bad(void) {
     copy_n(3, a + 1, a); /* UB：区域重叠，违反 restrict 的别名保证 */
 }
 ```
-
-运行结果：该代码块主要用于语法或结构说明，单独运行通常无终端输出。
-
-
 ## 4. 常见误区
 
 1. **把 `restrict` 当作“更快的关键字”**：它不是提示，而是语义承诺。
@@ -71,6 +59,20 @@ void bad(void) {
 
 ## 5. 习题
 
-1. 写一个 `memcpy` 风格的函数 `m_copy`，并用 `restrict` 标注形参；再写一个 `memmove` 风格的 `m_move`，说明为什么它通常不适合使用 `restrict`。
-2. 举例说明：在什么情况下 `restrict` 能让编译器做出明显更强的优化？（提示：循环向量化）
-3. 找一个你写过的函数，尝试加上 `restrict`；然后证明（通过代码审查或测试用例）你确实满足了 restrict 的不重叠前提。
+<Exercise id="90001" :d="1" :w="2">
+
+写一个 `memcpy` 风格的函数 `m_copy`，并用 `restrict` 标注形参；再写一个 `memmove` 风格的 `m_move`，说明为什么它通常不适合使用 `restrict`。
+
+</Exercise>
+
+<Exercise id="90002" :d="1" :w="2">
+
+举例说明：在什么情况下 `restrict` 能让编译器做出明显更强的优化？（提示：循环向量化）
+
+</Exercise>
+
+<Exercise id="90003" :d="1" :w="2">
+
+找一个你写过的函数，尝试加上 `restrict`；然后证明（通过代码审查或测试用例）你确实满足了 restrict 的不重叠前提。
+
+</Exercise>
