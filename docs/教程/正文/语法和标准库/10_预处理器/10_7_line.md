@@ -23,13 +23,10 @@ int main(void) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 输出会显示为 `generated_from_template.c:42`。这能让用户在阅读诊断时定位到“真正编辑的源”，而不是中间产物。
 
 ## 3. 使用边界

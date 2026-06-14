@@ -75,13 +75,10 @@ int main(void) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 ## 习题
 
 <Exercise id="11702" :d="2" :w="2">

@@ -481,8 +481,7 @@ for (int i = 0; i < 6; ++i) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 inorder: 5 6 7 10 12 17 20 30
 search 6: found
 search 15: not found
@@ -499,4 +498,4 @@ inorder: 5 10 12 17 20 30
 delete 16
 inorder: 5 10 12 17 20 30
 
-</TerminalWindow>
+:::

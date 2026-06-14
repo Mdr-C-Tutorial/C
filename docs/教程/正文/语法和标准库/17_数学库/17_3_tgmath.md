@@ -27,13 +27,10 @@ int main(void) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 ::: warning 注意
 
 1. `<tgmath.h>` 的接口是宏；宏会参与表达式求值，因此要避免把带副作用的表达式当作实参反复展开（例如 `sin(i++)` 这类写法）。

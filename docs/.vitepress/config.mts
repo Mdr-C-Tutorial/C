@@ -5,6 +5,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Sidebar, Nav } from "./nscfg.mts";
+import { setupContainers } from "./markdown/index";
 
 const customElements: string[] = [""];
 const bnfLanguage = {
@@ -157,6 +158,9 @@ export default withPwa(
         math: true,
         image: {
           lazyLoading: true,
+        },
+        config(md) {
+          setupContainers(md);
         },
       },
       vue: {

@@ -40,13 +40,10 @@ int main(void) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 ## 端序
 
 端序是构成多字节对象的字节的顺序。更多相关内容请参考 [Wikipedia](https://zh.wikipedia.org/wiki/%E5%AD%97%E8%8A%82%E5%BA%8F)。
@@ -81,13 +78,10 @@ int main(void) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 ## 习题
 
 <Exercise id="11709" :d="3" :w="2">

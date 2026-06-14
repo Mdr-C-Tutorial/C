@@ -52,13 +52,10 @@ if (num > 0){
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 判断一个整数是否为偶数（使用 `if-else` 即可）：
 
 ```c
@@ -72,13 +69,10 @@ if (num % 2 == 0){
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 判断一个整数和零的关系（需要使用 `if - else if - else`）：
 
 ```c
@@ -94,13 +88,10 @@ if (num > 0) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 根据分数划定等级（假如大于等于 85 分是 A，大于等于 70 分是 B，大于等于 60 分是 C，低于 60 分是 D）：
 
 ```c
@@ -124,13 +115,10 @@ int main(void) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 ### 减少缩进层数
 
 当代码中包含多层 `if-else` 嵌套时，会形成所谓的“箭头代码”（Arrow Code），因为缩进看起来像一个箭头 `>`：
@@ -182,13 +170,10 @@ void print_grade_comment(int score) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 在这段代码里，核心的评语逻辑被包裹在一个 `if` 语句块中，增加了缩进，使得代码逻辑不是那么一目了然。
 
 我们反过来想：先把所有“坏”情况（无效分数）处理掉，并立即退出函数。
@@ -216,13 +201,10 @@ void print_grade_comment_improved(int score) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 ### 紧接复合语句
 
 即使满足某个条件时只需执行一条表达式语句，也建议使用大括号将其包裹，使其成为复合语句：这样不仅容易阅读（方便读出由 `if` 控制的范围），而且方便后续的扩展，避免出现意料之外的错误（如悬垂 if 等）。
@@ -268,13 +250,10 @@ if ( /* 其他条件 */ )
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 但是，当运行的时候，我会发现，无论角色生命值是否等于 0，都会打印消息。这是因为，`if` 语句只能控制其后的**第一条语句**即 `state = PLAYER_DEAD;` 的执行与否，因此即使角色生命值不等于 0，`printf("角色死亡\n");` 也会被执行。
 
 为了避免这种情况，建议永远使用大括号包裹 `if` 之后的语句，使之成为复合语句，如下所示：
@@ -300,13 +279,10 @@ if ( /* 其他条件 */ )
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 这个问题曾经导致了苹果的一次严重的安全漏洞：[**The Apple ‘goto fail;’ vulnerability**](https://www.blackduck.com/blog/understanding-apple-goto-fail-vulnerability-2.html)
 
 :::

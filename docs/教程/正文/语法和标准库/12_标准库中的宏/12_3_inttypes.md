@@ -61,16 +61,14 @@ int main() {
 
 可能的输出：
 
-<TerminalWindow title="zsh - test_inttypes">
-
+::: terminal title="zsh - test_inttypes"
 有符号 32 位: -123456
 
 无符号 64 位: 18446744073709551615
 
 输入有符号 32 位整数：**-2147483648**
 
-</TerminalWindow>
-
+:::
 ## 宽字符版本（fwprintf、fwscanf）
 
 宏前缀加 `PRI`/`SCN` 后接宽度修饰（如 `le`、`la`），但主要用于宽类型：

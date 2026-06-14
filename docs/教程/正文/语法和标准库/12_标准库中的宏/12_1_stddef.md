@@ -29,12 +29,10 @@
 
   可能的输出：
 
-  <TerminalWindow title="zsh - test_sizeof">
-
+  ::: terminal title="zsh - test_sizeof"
   int 的大小是：4 字节
 
-  </TerminalWindow>
-
+  :::
 - **小贴士**：永远不要用 `int` 或 `unsigned int` 来代替`size_t`，这样能保证代码在不同平台上的可移植性。
 
 ## 2. ptrdiff_t —— 指针相减结果的带符号整数类型
@@ -60,12 +58,10 @@
 
   可能的输出：
 
-  <TerminalWindow title="zsh - test_ptrdiff">
-
+  ::: terminal title="zsh - test_ptrdiff"
   指针差：3
 
-  </TerminalWindow>
-
+  :::
 - **小贴士**：在循环遍历数组时，常用 `ptrdiff_t` 作为索引差来避免溢出问题。
 
 ## 3. wchar_t —— 宽字符类型
@@ -92,7 +88,7 @@
 
   ```c
   #include <stddef.h>
-  #include <stdlib.h>
+  #include <stdlib.h> /* aligned_alloc 和 free 的完整讲解见第15章 */
 
   int main() {
       void *p = aligned_alloc(alignof(max_align_t), sizeof(max_align_t) * 10);
@@ -149,12 +145,10 @@
 
   可能的输出：
 
-  <TerminalWindow title="zsh - test_offsetof">
-
+  ::: terminal title="zsh - test_offsetof"
   score 成员的偏移量：24 字节
 
-  </TerminalWindow>
-
+  :::
 - **小贴士**：常用于调试、序列化、内存布局分析等场景。注意：不能用于有柔性数组成员或位域的复杂情况。
 
 ## 总结

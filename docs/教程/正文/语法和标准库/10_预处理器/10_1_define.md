@@ -16,13 +16,10 @@ int main(void){
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 程序将会输出 100
 
 ## 2. 仿函数宏
@@ -211,13 +208,10 @@ int main(void){
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 展开后的结果：
 
 ```c
@@ -230,13 +224,10 @@ int main(void){
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 程序会输出`2`。
 
 ## 3. `#undef 标识符`

@@ -73,8 +73,7 @@ int main() {
 
 可能的输出：
 
-<TerminalWindow title="zsh - test_float">
-
+::: terminal title="zsh - test_float"
 float 的最大值: 3.402823e+38
 
 double 的最大值: 1.797693e+308
@@ -83,8 +82,7 @@ float 的机器精度: 1.192093e-07
 
 十进制有效位数 (double): 15
 
-</TerminalWindow>
-
+:::
 ## 注意事项
 
 - 这些宏是常量表达式，可用于预处理或静态断言。

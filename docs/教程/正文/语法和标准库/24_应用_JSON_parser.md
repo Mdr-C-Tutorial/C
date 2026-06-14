@@ -743,8 +743,7 @@ int main(void) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 {
   "name": "mdr",
   "ok": true,
@@ -759,8 +758,7 @@ int main(void) {
   }
 }
 
-</TerminalWindow>
-
+:::
 ## 8. 先实现哪些测试用例
 
 建议先准备三组回归输入：一组纯成功路径（对象、数组、数字、转义字符串都覆盖），一组语法失败路径（缺失逗号、缺失闭合符），一组边界路径（空数组、空对象、指数数字、代理对转义）。先把这三组跑稳定，再扩展更多能力。
@@ -804,8 +802,7 @@ json_free(root);
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 user=Ada
 
-</TerminalWindow>
+:::

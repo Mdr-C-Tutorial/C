@@ -32,13 +32,10 @@ int main(void) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 虽然这些内建函数很有用，但它们不是标准 C 的一部分，这意味着代码的可移植性会受到影响。
 
 ## C23 `<stdckdint.h>`
@@ -112,13 +109,10 @@ int main(void) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 **预期输出：**
 
 ```ansi

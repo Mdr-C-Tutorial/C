@@ -89,8 +89,7 @@ int main() {
 
 可能的输出：
 
-<TerminalWindow>
-
+::: terminal
 Character   isalnum   isalpha   islower   isupper   isdigit   isxdigit  isspace   iscntrl   ispunct   isblank   isgraph
 ----------  --------  --------  --------  --------  --------  --------  --------  --------  --------  --------  ---------
   A              8      1024         0       256         0      4096         0         0         0         0     32768
@@ -128,8 +127,7 @@ Character   isalnum   isalpha   islower   isupper   isdigit   isxdigit  isspace 
   |              0         0         0         0         0         0         0         0         4         0     32768
   %              0         0         0         0         0         0         0         0         4         0     32768
 
-</TerminalWindow>
-
+:::
 ## 2. 大小写转换
 
 在 `<ctype.h>` 中，定义了 **大小写转换** 的函数，如下：

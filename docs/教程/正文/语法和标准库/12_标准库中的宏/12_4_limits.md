@@ -53,8 +53,7 @@ int main() {
 
 可能的输出：
 
-<TerminalWindow title="zsh - test_limits">
-
+::: terminal title="zsh - test_limits"
 int 的最小值: -2147483648
 
 int 的最大值: 2147483647
@@ -63,4 +62,4 @@ unsigned int 的最大值: 4294967295
 
 一个字节的位数: 8
 
-</TerminalWindow>
+:::

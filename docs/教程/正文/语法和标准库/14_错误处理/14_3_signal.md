@@ -105,13 +105,10 @@ int main(void) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 ::: warning 关于 `signal` 的语义
 
 历史上不同系统对 `signal` 的语义不完全一致（例如处理函数是否会在触发后自动恢复为默认处理）。如果你需要更可靠、可控的信号语义，通常应使用 POSIX 的 `sigaction`（见项目模块的 POSIX 章节）。

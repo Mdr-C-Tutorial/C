@@ -61,20 +61,16 @@ int main(void) {
 
 在启用断言的情况下，可能输出：
 
-<TerminalWindow>
-
+::: terminal
 1
 
-</TerminalWindow>
-
+:::
 在禁用断言的情况下，可能输出：
 
-<TerminalWindow>
-
+::: terminal
 0
 
-</TerminalWindow>
-
+:::
 ## 4. 常见使用场景
 
 1. **检查内部前置条件**：例如函数要求“参数指针一定非空”。
@@ -136,12 +132,10 @@ int main(void) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
+:::
 </Exercise>
 
 <Exercise id="11305" :d="1" :w="2">

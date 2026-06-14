@@ -24,13 +24,10 @@ int main(void) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 ## 2. 条件表达式中的“真/假”
 
 在 `if`、`while` 等语境中，条件表达式会被当作“与 0 比较”的结果：
@@ -63,13 +60,10 @@ int main(void) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 ## 4. 兼容性提示
 
 如果目标同时覆盖 C11/C17/C23，包含 `<stdbool.h>` 仍然是最稳妥的统一写法；这样既能在旧标准下获得 `bool`/`true`/`false`，也能在新标准下保持源码风格一致。
@@ -86,6 +80,6 @@ int main(void) {
 
 <Exercise id="10417" :d="3" :w="2">
 
-写一个函数 `bool is_even(int x)`：当 `x` 为偶数返回 `true`，否则返回 `false`。要求在 `main` 中测试若干组输入并输出结果。
+写出能判断 `int x` 是否为偶数的布尔表达式：当 `x` 为偶数时结果为 `true`，否则为 `false`。要求对 `0`、`1`、`2`、`-3` 等若干输入分别给出该表达式的求值结果。
 
 </Exercise>

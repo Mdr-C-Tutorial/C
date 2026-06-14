@@ -690,11 +690,10 @@ int main(void) {
 
 可能的输出：
 
-<TerminalWindow>
-
+::: terminal
 user=Ada
 age=18
 active=true
 first_score=99.5
 
-</TerminalWindow>
+:::

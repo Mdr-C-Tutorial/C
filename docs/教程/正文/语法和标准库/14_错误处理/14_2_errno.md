@@ -77,13 +77,10 @@ int main(void) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 ## 4. 示例：`fopen` 失败后用 `perror` 输出原因
 
 `perror` 会根据当前 `errno` 输出一条人类可读的消息：
@@ -106,12 +103,10 @@ int main(void) {
 
 可能的输出：
 
-<TerminalWindow>
-
+::: terminal
 fopen: No such file or directory
 
-</TerminalWindow>
-
+:::
 ::: tip `errno` 与 I/O 的关系
 
 并非所有 I/O 失败都只靠 `errno` 判断。很多 I/O 接口还需要结合返回值与流状态（如 `ferror`、`feof`）一起判断。

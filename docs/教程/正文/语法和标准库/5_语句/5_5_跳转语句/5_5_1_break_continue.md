@@ -17,13 +17,10 @@ for (int i = 0; i < 10; ++i) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 输出到 `4` 后结束循环。
 
 ## 2. `continue`
@@ -41,13 +38,10 @@ for (int i = 0; i < 10; ++i) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 这段代码只打印偶数。
 
 ## 3. 嵌套循环注意点
@@ -76,13 +70,10 @@ int main(void) {
 
 可能的输出（示例）：
 
-<TerminalWindow>
-
+::: terminal
 <输出与输入或平台相关，请以实际运行为准>
 
-</TerminalWindow>
-
-
+:::
 ## 5. 清理语义不要埋在 `continue` 后面
 
 使用 `continue` 时，要特别留意本轮迭代后半段是否包含必要收尾动作。若清理动作写在 `continue` 之后，就会被跳过，导致状态不一致。
