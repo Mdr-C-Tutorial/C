@@ -120,19 +120,19 @@ int main(void) {
 
 ## 5. 习题
 
-<Exercise id="90001" :d="1" :w="2">
+<Exercise id="11310" :d="1" :w="2">
 
 修改示例程序，使其在退出前打印一个统计信息（例如循环次数）；要求：统计信息的打印必须发生在主循环退出后，而不是信号处理函数中。
 
 </Exercise>
 
-<Exercise id="90002" :d="1" :w="2">
+<Exercise id="11311" :d="1" :w="2">
 
 编写程序：注册 `SIGTERM` 的处理函数；当收到 `SIGTERM` 时设置标志位并退出。
 
 </Exercise>
 
-<Exercise id="90003" :d="1" :w="2">
+<Exercise id="11312" :d="1" :w="2">
 
 编写程序：调用 `raise(SIGABRT);`，观察程序行为；再尝试先将 `SIGABRT` 设为 `SIG_IGN`，比较差异。
 

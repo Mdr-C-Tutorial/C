@@ -68,19 +68,19 @@ static_assert(sizeof(struct header) == 4, "header layout mismatch");
 
 ## 5. 习题
 
-<Exercise id="90001" :d="1" :w="2">
+<Exercise id="10937" :d="1" :w="2">
 
 为你项目里的一个结构体写 `static_assert`：约束 `sizeof` 与 `alignof`；并解释约束的依据是什么。
 
 </Exercise>
 
-<Exercise id="90002" :d="1" :w="2">
+<Exercise id="10938" :d="1" :w="2">
 
 写一个“配置检查”示例：当两个宏同时被定义时触发 `static_assert(0, "...")`。
 
 </Exercise>
 
-<Exercise id="90003" :d="1" :w="2">
+<Exercise id="10939" :d="1" :w="2">
 
 解释：为什么 `static_assert` 的条件必须是“整数常量表达式”？它为什么不能检查运行期条件？
 

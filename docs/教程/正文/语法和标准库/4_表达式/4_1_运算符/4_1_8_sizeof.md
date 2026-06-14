@@ -49,7 +49,7 @@ int *p = malloc(count * sizeof *p);
 
 ## 7. 习题
 
-<Exercise id="10419" :d="4" :w="3">
+<Exercise id="10413" :d="4" :w="3">
 
 写一个程序，分别输出：
 

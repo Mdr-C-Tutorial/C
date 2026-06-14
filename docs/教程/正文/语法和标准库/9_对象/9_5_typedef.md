@@ -78,7 +78,7 @@ int main(void) {
 
 ## 4. 习题
 
-<Exercise id="90001" :d="1" :w="2">
+<Exercise id="10946" :d="1" :w="2">
 
 把下面的声明改写成 `typedef` 版本，使其更易读：
    1. `int (*fp)(int, int);`
@@ -86,13 +86,13 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="90002" :d="1" :w="2">
+<Exercise id="10947" :d="1" :w="2">
 
 解释：为什么 `typedef int* int_ptr; const int_ptr p;` 中 `p` 不是“指向 const int 的指针”？
 
 </Exercise>
 
-<Exercise id="90003" :d="1" :w="2">
+<Exercise id="10948" :d="1" :w="2">
 
 写一个“隐藏实现”的最小示例：在头文件里只暴露 `typedef struct foo foo;` 与 `foo* foo_create(void);`，并说明这样做的好处与代价。
 

@@ -48,7 +48,7 @@ typeof_unqual(x) b = x;  /* b 的类型是 int */
 
 ## 4. 习题
 
-<Exercise id="90001" :d="1" :w="2">
+<Exercise id="10922" :d="1" :w="2">
 
 写一个宏 `MDR_SWAP(a, b)`，要求：
    1. 只对 `a`、`b` 求值一次；
@@ -57,13 +57,13 @@ typeof_unqual(x) b = x;  /* b 的类型是 int */
 
 </Exercise>
 
-<Exercise id="90002" :d="1" :w="2">
+<Exercise id="10923" :d="1" :w="2">
 
 写出并解释：`typeof("abc")` 的结果类型是什么？为什么它不是 `char*`？
 
 </Exercise>
 
-<Exercise id="90003" :d="1" :w="2">
+<Exercise id="10924" :d="1" :w="2">
 
 写出并解释：`typeof_unqual((const int)1)` 的结果类型是什么？
 

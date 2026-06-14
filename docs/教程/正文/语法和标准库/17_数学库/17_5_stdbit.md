@@ -90,7 +90,7 @@ int main(void) {
 
 ## 习题
 
-<Exercise id="11751" :d="3" :w="2">
+<Exercise id="11709" :d="3" :w="2">
 
 写一个程序：从标准输入读入一个 `unsigned int`，输出它的二进制 1 的个数。
 
@@ -101,7 +101,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="11752" :d="4" :w="2">
+<Exercise id="11710" :d="4" :w="2">
 
 写一个程序：从标准输入读入一个 `unsigned int` `x` 和一个非负整数 `k`，输出把 `x` 循环左移 `k` 位的结果。
 

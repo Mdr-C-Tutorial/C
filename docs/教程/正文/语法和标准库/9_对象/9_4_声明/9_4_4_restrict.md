@@ -59,19 +59,19 @@ void bad(void) {
 
 ## 5. 习题
 
-<Exercise id="90001" :d="1" :w="2">
+<Exercise id="10931" :d="1" :w="2">
 
 写一个 `memcpy` 风格的函数 `m_copy`，并用 `restrict` 标注形参；再写一个 `memmove` 风格的 `m_move`，说明为什么它通常不适合使用 `restrict`。
 
 </Exercise>
 
-<Exercise id="90002" :d="1" :w="2">
+<Exercise id="10932" :d="1" :w="2">
 
 举例说明：在什么情况下 `restrict` 能让编译器做出明显更强的优化？（提示：循环向量化）
 
 </Exercise>
 
-<Exercise id="90003" :d="1" :w="2">
+<Exercise id="10933" :d="1" :w="2">
 
 找一个你写过的函数，尝试加上 `restrict`；然后证明（通过代码审查或测试用例）你确实满足了 restrict 的不重叠前提。
 

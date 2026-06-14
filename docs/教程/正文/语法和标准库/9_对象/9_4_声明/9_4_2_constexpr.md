@@ -50,7 +50,7 @@ int main(void) {
 
 ## 5. 习题
 
-<Exercise id="90001" :d="1" :w="2">
+<Exercise id="10925" :d="1" :w="2">
 
 写出一个 `constexpr int`，并分别把它用于：
    1. `static_assert`；
@@ -59,13 +59,13 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="90002" :d="1" :w="2">
+<Exercise id="10926" :d="1" :w="2">
 
 解释：为什么 `const int x = 42;` 不能保证用于 `case` 标签，而 `constexpr int x = 42;` 可以？
 
 </Exercise>
 
-<Exercise id="90003" :d="1" :w="2">
+<Exercise id="10927" :d="1" :w="2">
 
 写出若干个“非法的 constexpr 声明”，并解释它们分别违反了哪条限制（至少包含：指针非空、`volatile`、原子类型、VLA）。
 

@@ -727,7 +727,7 @@
 
 ## 习题
 
-<Exercise id="11651" :d="3" :w="5">
+<Exercise id="11602" :d="3" :w="5">
 
 有机物的命名有一套完整的规则。以下是烃的部分命名规则：
    1. 甲烷到癸烷的名称分别为：`methane` `ethane` `propane` `butane` `pentane` `hexane` `heptane` `octane` `nonane` `decane`。

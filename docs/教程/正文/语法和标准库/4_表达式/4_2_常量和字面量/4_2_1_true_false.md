@@ -84,7 +84,7 @@ int main(void) {
 
 ## 7. 习题
 
-<Exercise id="10423" :d="3" :w="2">
+<Exercise id="10417" :d="3" :w="2">
 
 写一个函数 `bool is_even(int x)`：当 `x` 为偶数返回 `true`，否则返回 `false`。要求在 `main` 中测试若干组输入并输出结果。
 

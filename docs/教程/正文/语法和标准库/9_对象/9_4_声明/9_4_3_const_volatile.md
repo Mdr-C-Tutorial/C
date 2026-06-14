@@ -50,7 +50,7 @@ const int* const p4 = &x;/* 指向 const int 的 const 指针 */
 
 ## 3. 习题
 
-<Exercise id="90001" :d="1" :w="2">
+<Exercise id="10928" :d="1" :w="2">
 
 判断下列声明的含义（写出“指针是否可改”“指向内容是否可改”）：  
    1. `const int* p;`  
@@ -59,13 +59,13 @@ const int* const p4 = &x;/* 指向 const int 的 const 指针 */
 
 </Exercise>
 
-<Exercise id="90002" :d="1" :w="2">
+<Exercise id="10929" :d="1" :w="2">
 
 写一个“强转去 const”的例子，说明：为什么对原本不是 const 的对象去 const 再写回通常可行，而对原本就是 const 的对象去 const 再写回是 UB。
 
 </Exercise>
 
-<Exercise id="90003" :d="1" :w="2">
+<Exercise id="10930" :d="1" :w="2">
 
 解释：为什么 `volatile` 不能代替 `<stdatomic.h>`？请给出一个“需要原子性”的并发场景作为反例。
 
