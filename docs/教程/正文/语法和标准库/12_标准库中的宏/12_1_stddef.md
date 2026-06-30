@@ -88,7 +88,7 @@
 
   ```c
   #include <stddef.h>
-  #include <stdlib.h> /* aligned_alloc 和 free 的完整讲解见第15章 */
+  #include <stdlib.h> /* aligned_alloc 和 free 的完整讲解见第16章 */
 
   int main() {
       void *p = aligned_alloc(alignof(max_align_t), sizeof(max_align_t) * 10);
