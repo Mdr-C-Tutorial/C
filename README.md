@@ -17,8 +17,6 @@
 
 如果您觉得本项目对您有帮助，请不吝点亮 Star ⭐
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Mdr-C-Tutorial/C&type=date&legend=top-left)](https://www.star-history.com/#Mdr-C-Tutorial/C&type=date&legend=top-left)
-
 ## 仓库概览
 
 ```c
