@@ -22,7 +22,7 @@ typeof_unqual(typeof-specifier-argument)
 
 ## 约束
 
-1. `typeof` 运算符不能作用到“指代位字段成员”的表达式上。
+1. `typeof` 运算符不能作用到“指代位域成员”的表达式上。
 
 ## 语义
 
