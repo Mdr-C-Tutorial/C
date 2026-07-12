@@ -1795,4 +1795,158 @@ export const Sidebar: DefaultTheme.Sidebar = {
       link: "/教程/标准文档翻译/c_ub_list.md",
     },
   ],
+  "/教程/ModernC": [
+    {
+      text: "目录",
+      link: "/教程/ModernC/目录",
+    },
+    {
+      text: "前置内容",
+      collapsed: true,
+      items: [
+        {
+          text: "前言",
+          link: "/教程/ModernC/前言",
+        },
+      ],
+    },
+    {
+      text: "第 0 级：邂逅",
+      collapsed: false,
+      items: [
+        {
+          text: "邂逅",
+          link: "/教程/ModernC/00_邂逅",
+        },
+        {
+          text: "第 1 章：入门",
+          link: "/教程/ModernC/01_入门",
+        },
+        {
+          text: "第 2 章：程序的基本结构",
+          link: "/教程/ModernC/02_程序的基本结构",
+        },
+      ],
+    },
+    {
+      text: "第 1 级：相识",
+      collapsed: false,
+      items: [
+        {
+          text: "相识",
+          link: "/教程/ModernC/Level1_相识",
+        },
+        {
+          text: "第 3 章：一切都与控制有关",
+          link: "/教程/ModernC/03_一切都与控制有关",
+        },
+        {
+          text: "第 4 章：表达计算",
+          link: "/教程/ModernC/04_表达计算",
+        },
+        {
+          text: "第 5 章：基本值与数据",
+          link: "/教程/ModernC/05_基本值与数据",
+        },
+        {
+          text: "第 6 章：派生数据类型",
+          link: "/教程/ModernC/06_派生数据类型",
+        },
+        {
+          text: "第 7 章：函数",
+          link: "/教程/ModernC/07_函数",
+        },
+        {
+          text: "第 8 章：C 库函数",
+          link: "/教程/ModernC/08_C库函数",
+        },
+      ],
+    },
+    {
+      text: "第 2 级：相知",
+      collapsed: true,
+      items: [
+        {
+          text: "第 9 章：风格",
+          link: "/教程/ModernC/09_风格",
+        },
+        {
+          text: "第 10 章：组织与文档",
+          link: "/教程/ModernC/10_组织与文档",
+        },
+        {
+          text: "第 11 章：指针",
+          link: "/教程/ModernC/11_指针",
+        },
+        {
+          text: "第 12 章：C 内存模型",
+          link: "/教程/ModernC/12_C内存模型",
+        },
+        {
+          text: "第 13 章：存储",
+          link: "/教程/ModernC/13_存储",
+        },
+        {
+          text: "第 14 章：进阶处理与输入输出",
+          link: "/教程/ModernC/14_进阶处理与输入输出",
+        },
+        {
+          text: "第 15 章：程序故障",
+          link: "/教程/ModernC/15_程序故障",
+        },
+      ],
+    },
+    {
+      text: "第 3 级：深入",
+      collapsed: true,
+      items: [
+        {
+          text: "第 16 章：性能",
+          link: "/教程/ModernC/16_性能",
+        },
+        {
+          text: "第 17 章：类函数宏",
+          link: "/教程/ModernC/17_类函数宏",
+        },
+        {
+          text: "第 18 章：类型泛型编程",
+          link: "/教程/ModernC/18_类型泛型编程",
+        },
+        {
+          text: "第 19 章：控制流的变化",
+          link: "/教程/ModernC/19_控制流的变化",
+        },
+        {
+          text: "第 20 章：线程",
+          link: "/教程/ModernC/20_线程",
+        },
+        {
+          text: "第 21 章：原子访问与内存一致性",
+          link: "/教程/ModernC/21_原子访问与内存一致性",
+        },
+      ],
+    },
+    {
+      text: "附录",
+      collapsed: true,
+      items: [
+        {
+          text: "技术附录",
+          link: "/教程/ModernC/技术附录",
+        },
+        {
+          text: "要点汇总",
+          link: "/教程/ModernC/要点汇总",
+        },
+        {
+          text: "参考文献",
+          link: "/教程/ModernC/参考文献",
+        },
+        {
+          text: "索引",
+          link: "/教程/ModernC/索引",
+        },
+      ],
+    },
+  ],
 };
