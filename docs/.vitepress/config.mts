@@ -5,7 +5,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Sidebar, Nav } from "./nscfg.mts";
-import { setupContainers } from "./markdown/index";
+import { setupContainers, setupFootnotes } from "./markdown/index";
 
 const customElements: string[] = [""];
 const bnfLanguage = {
@@ -160,6 +160,7 @@ export default withPwa(
           lazyLoading: true,
         },
         config(md) {
+          setupFootnotes(md);
           setupContainers(md);
         },
       },
@@ -170,9 +171,7 @@ export default withPwa(
         hostname: "https://mdr.aymao.com/C/",
       },
       transformPageData(pageData) {
-        const id = /^教程\/题解\/.*\/(\d+)\.md$/.exec(
-          pageData.relativePath,
-        )?.[1];
+        const id = /^教程\/题解\/.*\/(\d+)\.md$/.exec(pageData.relativePath)?.[1];
         if (!id) return;
 
         pageData.frontmatter.exerciseSources = exerciseSourcesById.get(id) ?? [];

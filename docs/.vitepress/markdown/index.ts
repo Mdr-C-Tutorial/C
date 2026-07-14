@@ -1,4 +1,5 @@
 import type { MarkdownIt } from "./types";
+import footnote from "markdown-it-footnote";
 import { terminalContainer } from "./terminalContainer";
 import { compareContainer } from "./compareContainer";
 
@@ -9,4 +10,9 @@ import { compareContainer } from "./compareContainer";
 export function setupContainers(md: MarkdownIt): void {
   terminalContainer(md);
   compareContainer(md);
+}
+
+/** Register standard Markdown footnote syntax used by the documentation. */
+export function setupFootnotes(md: MarkdownIt): void {
+  md.use(footnote);
 }

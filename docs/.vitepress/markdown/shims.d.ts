@@ -13,3 +13,8 @@ declare module "markdown-it-container" {
   ) => unknown;
   export default container;
 }
+
+declare module "markdown-it-footnote" {
+  const footnote: unknown;
+  export default footnote;
+}
