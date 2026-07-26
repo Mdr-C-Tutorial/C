@@ -214,3 +214,52 @@ size_t string_set_size(const StringSet *set);
 7. 在散列分布合理的前提下，查询和插入的期望时间复杂度为 $O(1)$。
 
 </Exercise>
+
+<Exercise id="20005" :d="6" :w="5" scope="**">
+
+为同一个整数序列 ADT 编写动态数组和双向链表两种可替换实现。公开头文件固定为：
+
+```c
+#include <stddef.h>
+
+typedef struct IntSequence IntSequence;
+
+typedef enum {
+    INT_SEQUENCE_OK,
+    INT_SEQUENCE_INVALID,
+    INT_SEQUENCE_RANGE,
+    INT_SEQUENCE_OUT_OF_MEMORY
+} IntSequenceResult;
+
+IntSequence *int_sequence_create(void);
+void int_sequence_destroy(IntSequence *sequence);
+IntSequenceResult int_sequence_insert(
+    IntSequence *sequence,
+    size_t index,
+    int value
+);
+IntSequenceResult int_sequence_erase(
+    IntSequence *sequence,
+    size_t index,
+    int *out_value
+);
+IntSequenceResult int_sequence_get(
+    const IntSequence *sequence,
+    size_t index,
+    int *out_value
+);
+size_t int_sequence_size(const IntSequence *sequence);
+```
+
+要求：
+
+1. 分别创建 `int_sequence_array.c` 和 `int_sequence_linked.c`；每次构建只链接其中一个实现文件，同一份调用方代码无需修改。
+2. 两个实现文件都不得在公开头文件中暴露表示，也不得增加调用方必须使用的公开函数。
+3. `insert` 允许 `index == size`；`erase` 和 `get` 只允许 `index < size`。
+4. 参数无效时返回 `INT_SEQUENCE_INVALID`，下标越界时返回 `INT_SEQUENCE_RANGE`；失败时不得修改序列和 `*out_value`。
+5. 动态数组实现在扩容失败或容量计算溢出时返回 `INT_SEQUENCE_OUT_OF_MEMORY`，并保持原序列不变；尾部插入的摊还时间复杂度为 $O(1)$。
+6. 双向链表实现同时保存首尾指针，从距离目标下标较近的一端开始查找；首尾插入和删除的时间复杂度为 $O(1)$。
+7. `int_sequence_destroy(NULL)` 应当安全，`int_sequence_size(NULL)` 返回 0。
+8. 两种实现都必须释放自身取得的全部资源。
+
+</Exercise>

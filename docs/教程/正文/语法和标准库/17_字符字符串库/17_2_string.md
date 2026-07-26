@@ -768,3 +768,41 @@ AABCCCDEEEE -> 2AB3CD4E
 6. 对每个合法文本 `s`，应满足 `rle_decode(rle_encode(s))` 与 `s` 内容相同。
 
 </Exercise>
+
+<Exercise id="11605" :d="4" :w="3">
+
+实现字符串列表的多视图排序：
+
+```c
+#include <stdbool.h>
+#include <stddef.h>
+
+typedef enum {
+    LINE_ORDER_LEXICOGRAPHIC,
+    LINE_ORDER_LENGTH,
+    LINE_ORDER_FIRST_WORD_LENGTH
+} LineOrder;
+
+bool order_lines(
+    const char *lines[],
+    size_t count,
+    LineOrder order
+);
+```
+
+三种次序定义如下：
+
+1. `LINE_ORDER_LEXICOGRAPHIC`：按照 `strcmp` 的次序排列。
+2. `LINE_ORDER_LENGTH`：先按整个字符串的字节长度递增排列，再按 `strcmp` 的次序排列。
+3. `LINE_ORDER_FIRST_WORD_LENGTH`：跳过开头由 `isspace` 识别的空白，把随后连续的非空白字符视为第一个单词；先按第一个单词的字节长度递增排列，再按整个字符串长度和 `strcmp` 的次序排列。只有空白的字符串，其第一个单词长度为 0。
+
+要求：
+
+1. 函数只重排指针，不得修改字符串内容。
+2. 比较结果完全相等的两个指针必须保持原有相对次序。
+3. 调用字符分类函数时，应先把 `char` 值转换为 `unsigned char`。
+4. `count == 0` 时允许 `lines == NULL`，并成功返回。
+5. 次序枚举值非法、`count > 0` 时 `lines == NULL`，或者任一字符串指针为空时返回 `false`。
+6. 参数无效时不得改变指针数组。
+
+</Exercise>
