@@ -806,3 +806,36 @@ json_free(root);
 user=Ada
 
 :::
+
+## 11. 习题
+
+<Exercise id="12401" :d="5" :w="4">
+
+为本章完整 JSON parser 增加嵌套深度限制，新增入口：
+
+```c
+json_value *json_parse_n_with_limit(
+    const char *text,
+    size_t len,
+    size_t max_depth,
+    const char **err_pos,
+    const char **err_msg
+);
+```
+
+深度按以下规则计算：
+
+- 字符串、数字、布尔值和 `null` 的深度为 0。
+- 每进入一个数组或对象，深度增加 1。
+- `max_depth == 0` 时只允许标量值。
+
+要求：
+
+1. 即将进入数组或对象且当前深度已经等于 `max_depth` 时，解析失败。
+2. 深度超限时返回 `NULL`，错误信息为 `maximum nesting depth exceeded`，错误位置指向导致超限的 `[` 或 `{`。
+3. 无论容器解析成功、语法失败还是分配失败，当前深度都必须恢复到进入该容器之前的值。
+4. 不得复制输入，也不得为了深度检查单独扫描整段输入。
+5. 失败路径必须释放已经构造的 JSON 值；除新增的深度检查外，原有语义和渐近复杂度保持不变。
+6. 至少测试标量、空容器、恰好达到限制、超过限制以及深层结构内部语法错误五种情况。
+
+</Exercise>

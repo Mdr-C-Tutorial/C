@@ -154,3 +154,19 @@ Character   isalnum   isalpha   islower   isupper   isdigit   isxdigit  isspace 
 基本大小写转换：输入一个字符：如果是小写字母，输出其对应的大写字母；如果是大写字母，输出其对应的小写字母；如果是其他字符，原样输出。
 
 </Exercise>
+
+<Exercise id="11603" :d="2" :w="2">
+
+实现下列函数，判断空终止字节字符串是否为英语全字母句：
+
+```c
+#include <stdbool.h>
+
+bool is_english_pangram(const char *text);
+```
+
+英语全字母句至少包含 `a` 到 `z` 的每个字母一次，忽略大小写、数字、空白和标点。`text` 为 `NULL` 时返回 `false`。
+
+实现必须正确处理传给 `<ctype.h>` 接口的实参，不得假设英文字母在执行字符集中具有连续编码。
+
+</Exercise>

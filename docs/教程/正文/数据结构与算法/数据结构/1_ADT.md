@@ -141,3 +141,76 @@ int main(void) {
 ## 小结
 
 ADT 的价值不在于“把结构体包起来”这一件事，而在于建立一层稳定契约：调用方看到的是行为，维护者管理的是表示。只要契约不变，你就可以把底层从静态数组换成动态数组、从链表换成块链，外部代码通常不需要修改。这种边界清晰的设计方式，会让后续章节里的线性表、栈、队列、树都更容易扩展和验证。
+
+## 习题
+
+<Exercise id="20001" :d="4" :w="4">
+
+使用不透明类型实现整数栈 ADT。公开头文件只能包含以下接口，不得暴露栈的表示：
+
+```c
+#include <stddef.h>
+
+typedef struct IntStack IntStack;
+
+typedef enum {
+    INT_STACK_OK,
+    INT_STACK_EMPTY,
+    INT_STACK_INVALID,
+    INT_STACK_OUT_OF_MEMORY
+} IntStackStatus;
+
+IntStack *int_stack_create(void);
+void int_stack_destroy(IntStack *stack);
+IntStackStatus int_stack_push(IntStack *stack, int value);
+IntStackStatus int_stack_pop(IntStack *stack, int *out);
+IntStackStatus int_stack_peek(const IntStack *stack, int *out);
+size_t int_stack_size(const IntStack *stack);
+```
+
+要求：
+
+1. 栈采用动态数组表示，但结构体定义只能出现在实现文件中。
+2. `int_stack_destroy(NULL)` 应当安全，`int_stack_size(NULL)` 返回 0。
+3. `push` 成功后新元素位于栈顶；分配失败或容量计算溢出时返回 `INT_STACK_OUT_OF_MEMORY`，并保持原栈不变。
+4. `pop` 和 `peek` 的参数无效时返回 `INT_STACK_INVALID`，栈为空时返回 `INT_STACK_EMPTY`；两种失败都不得修改 `*out`。
+5. `peek` 不删除元素，`pop` 删除并返回栈顶元素。
+6. `push` 的摊还时间复杂度为 $O(1)$，`pop`、`peek` 和 `size` 的时间复杂度为 $O(1)$。
+
+</Exercise>
+
+<Exercise id="20004" :d="6" :w="5" scope="**">
+
+实现采用开放寻址和线性探测的字符串集合。公开接口不得暴露槽数组：
+
+```c
+#include <stdbool.h>
+#include <stddef.h>
+
+typedef struct StringSet StringSet;
+
+StringSet *string_set_create(void);
+void string_set_destroy(StringSet *set);
+bool string_set_insert(
+    StringSet *set,
+    const char *key,
+    bool *inserted
+);
+bool string_set_contains(
+    const StringSet *set,
+    const char *key
+);
+size_t string_set_size(const StringSet *set);
+```
+
+要求：
+
+1. 集合复制并拥有成功插入的字符串；调用方仍拥有传入的字符串。
+2. 重复插入应成功返回并设置 `*inserted = false`，集合大小不变。
+3. 槽数组容量始终为 2 的幂；下一次插入会使装载因子超过 $3/4$ 时，先扩容到两倍并重新散列已有字符串。
+4. 不得用散列值相等代替字符串相等。
+5. 参数无效、容量计算溢出或分配失败时返回 `false`，保持集合中的键不变，并且不得修改 `*inserted`。
+6. `string_set_destroy(NULL)` 应当安全；销毁集合时释放它拥有的全部字符串。
+7. 在散列分布合理的前提下，查询和插入的期望时间复杂度为 $O(1)$。
+
+</Exercise>
