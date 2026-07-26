@@ -698,6 +698,28 @@ export const Sidebar: DefaultTheme.Sidebar = {
               link: "/教程/正文/项目/1_项目结构",
             },
             {
+              text: "源码阅读：kilo",
+              link: "/教程/正文/项目/kilo",
+            },
+            {
+              text: "源码阅读：Redis",
+              collapsed: true,
+              items: [
+                {
+                  text: "SDS 与 dict",
+                  link: "/教程/正文/项目/Redis/sds_dict",
+                },
+                {
+                  text: "ae 事件循环",
+                  link: "/教程/正文/项目/Redis/ae",
+                },
+                {
+                  text: "跳表",
+                  link: "/教程/正文/项目/Redis/skiplist",
+                },
+              ],
+            },
+            {
               text: "Mdr Server",
               link: "/教程/正文/项目/Mdr_Server/项目概述",
               collapsed: true,
@@ -720,6 +742,24 @@ export const Sidebar: DefaultTheme.Sidebar = {
               link: "/教程/正文/项目/MdrDB/项目概述",
               collapsed: true,
               items: [],
+            },
+            {
+              text: "源码阅读：SQLite",
+              collapsed: true,
+              items: [
+                {
+                  text: "架构概述",
+                  link: "/教程/正文/项目/SQLite/架构概述",
+                },
+                {
+                  text: "虚拟机 (VDBE)",
+                  link: "/教程/正文/项目/SQLite/虚拟机",
+                },
+                {
+                  text: "B 树与存储引擎",
+                  link: "/教程/正文/项目/SQLite/B树与存储",
+                },
+              ],
             },
             {
               text: "MdrOS",
