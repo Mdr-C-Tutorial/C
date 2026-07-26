@@ -103,10 +103,12 @@ int main(void) {
 }
 ```
 
-可能的输出（示例）：
+成功注册处理函数后，按一次 Ctrl+C，程序会依次打印：
 
 ::: terminal
-<输出与输入或平台相关，请以实际运行为准>
+
+press Ctrl+C to stop...
+stopped
 
 :::
 ::: warning 关于 `signal` 的语义

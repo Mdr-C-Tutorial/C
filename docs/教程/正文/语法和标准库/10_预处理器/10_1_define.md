@@ -14,10 +14,11 @@ int main(void){
 }
 ```
 
-可能的输出（示例）：
+输出：
 
 ::: terminal
-<输出与输入或平台相关，请以实际运行为准>
+
+100
 
 :::
 程序将会输出 100
@@ -194,9 +195,11 @@ int main(void){
 
    `FUN(2)` 会被展开成 `int fun_2(){return 2;}`。
 
-示例：
+示例及其展开结果：
 
-```c
+::: code-group
+
+```c [宏代码]
 #define FUN(x) int fun_##x(){ return x; }
 #define OUTPUT(str, ...) printf(#str __VA_OPT__(,) __VA_ARGS__)
 #include <stdio.h>
@@ -206,15 +209,7 @@ int main(void){
 }
 ```
 
-可能的输出（示例）：
-
-::: terminal
-<输出与输入或平台相关，请以实际运行为准>
-
-:::
-展开后的结果：
-
-```c
+```c [展开结果]
 #include <stdio.h>
 int fun_2(){ return 2; }
 int main(void){
@@ -222,13 +217,15 @@ int main(void){
 }
 ```
 
-可能的输出（示例）：
+:::
+
+输出：
 
 ::: terminal
-<输出与输入或平台相关，请以实际运行为准>
+
+2
 
 :::
-程序会输出`2`。
 
 ## 3. `#undef 标识符`
 

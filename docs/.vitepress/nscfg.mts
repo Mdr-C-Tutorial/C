@@ -16,6 +16,10 @@ export const Nav: DefaultTheme.NavItem[] = [
     text: "组件展示",
     link: "/杂项/组件展示",
   },
+  {
+    text: "Gentorial",
+    link: "/gentorial-integration",
+  },
 ];
 export const Sidebar: DefaultTheme.Sidebar = {
   "/教程/正文/": [

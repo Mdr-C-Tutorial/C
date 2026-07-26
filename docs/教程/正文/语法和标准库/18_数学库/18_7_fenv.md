@@ -59,12 +59,15 @@ int main(void) {
 }
 ```
 
-可能的输出（示例）：
+在支持 IEC 60559 浮点异常并遵守 `FENV_ACCESS` 的常见实现中，输出示例为：
 
 ::: terminal
-<输出与输入或平台相关，请以实际运行为准>
+
+FE_INVALID (Invalid operation) flag is set.
+Result: nan
 
 :::
+NaN 的具体拼写和符号由实现决定，例如也可能显示为 `-nan`。
 只保留一条对 `result` 的赋值操作并运行代码，如果打印出 `FE_INVALID (Invalid operation) flag is set.`，则产生了 `FE_INVALID` 异常。
 
 ### 2. 向上溢出 `FE_OVERFLOW`
@@ -116,12 +119,14 @@ int main(void) {
 }
 ```
 
-可能的输出（示例）：
+在支持该浮点异常的常见实现中，输出为：
 
 ::: terminal
-<输出与输入或平台相关，请以实际运行为准>
+
+FE_OVERFLOW detected
 
 :::
+若实现未定义或未报告 `FE_OVERFLOW`，这段程序不会打印该行。
 ## 浮点舍入方向
 
 浮点数在计算机中是用有限的位数来表示的，不能精确地表示所有实数。当一个真实的数值或计算结果落在两个可表示的浮点数之间时，就必须选择其中一个来近似它，这个过程称为**舍入**。

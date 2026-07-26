@@ -47,6 +47,12 @@ int main(int argc, char* argv[]){
 4. **寄语**
     * 得天独厚者，替天行善！
 
+## Gentorial 生成式阅读
+
+本站已接入 [Gentorial](https://github.com/gentorial/gentorial)。作者正文负责定义 C 标准版本、事实、代码与准确性边界；标记为 `generate` 的区域根据学习者选择的详略、语气和示例偏好生成主讲内容，并支持继续追问与分支学习路径。
+
+生成能力使用学习者主动配置的浏览器 BYOK。未配置时，作者原文仍可直接阅读，不会显示伪造的 mock 内容；API Key 默认只保存在当前页面内存中。实现与内容约定见 [GENTORIAL.md](./GENTORIAL.md)。
+
 ## 构建与部署
 
 本项目使用 [VitePress](https://vitejs.cn/vitepress/) 构建，并采用 [GitHub Actions](https://github.com/features/actions) 实现自动化部署。
@@ -60,10 +66,10 @@ int main(int argc, char* argv[]){
 pnpm i
 
 # 2. 启动本地开发服务器
-pnpm dev
+pnpm docs:dev
 
 # 3. 构建静态文件（用于生产环境）
-pnpm build
+pnpm docs:build
 ```
 
 ## 文档规范

@@ -51,12 +51,18 @@ int main(void) {
 }
 ```
 
-可能的输出（示例）：
+某个常见 64 位实现可能输出：
 
 ::: terminal
-<输出与输入或平台相关，请以实际运行为准>
+
+alignof(char) = 1
+alignof(int) = 4
+alignof(struct s) = 4
+alignof(float[10]) = 4
+alignof(max_align_t) = 16
 
 :::
+除 `char` 的对齐要求为 `1` 外，其余数值应以目标实现的实际结果为准。
 ## 4. 习题
 
 <Exercise id="10913" :d="1" :w="2">

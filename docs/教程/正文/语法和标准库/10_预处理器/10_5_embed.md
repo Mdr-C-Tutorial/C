@@ -7,13 +7,13 @@
 基本语法：
 
 ```c
-#embed [可选参数] "文件路径"
+#embed "文件路径" [可选参数]
 ```
 可选参数：
 
-- `prefix(`和`suffix(`：指定生成数组前后的代码
-- `limit(`：限制读取的最大字节数
-- `if_empty`：文件为空时的替代内容
+- `prefix(...)` 和 `suffix(...)`：在资源展开结果前后插入记号；
+- `limit(...)`：限制读取的最大字节数；
+- `if_empty(...)`：资源为空时使用替代记号。
 
 示例 1：嵌入文件内容到数组
 
@@ -26,7 +26,7 @@ const unsigned char image_data[] = {
 
 ```c
 const char config_data[] = {
-    #embed limit(1024) if_empty("default") "config.bin"
+    #embed "config.bin" limit(1024) if_empty("default")
 };
 ```
 ## `__has_embed`
@@ -40,10 +40,11 @@ const char config_data[] = {
     // 不支持#embed
 #endif
 ```
-返回：
+结果是下列三个预定义宏之一：
 
-- 1：支持该文件类型的嵌入
-- 0：不支持该文件类型或完全不支持#embed
+- `__STDC_EMBED_FOUND__`：找到非空资源；
+- `__STDC_EMBED_EMPTY__`：找到空资源；
+- `__STDC_EMBED_NOT_FOUND__`：未找到资源。
 
 这里需要提一嘴：`#embed` 与 `__has_embed` 属于 C23 新增能力，旧标准或旧工具链上可能不可用。写可移植代码时，建议始终保留回退路径。
 
@@ -52,24 +53,36 @@ const char config_data[] = {
 ```c
 #include <stdio.h>
 
-int main() {
-    #if __has_embed("data.bin")
-        const unsigned char data[] = {
-            #embed prefix(0x) suffix(,) "data.bin"
-        };
-        size_t data_size = sizeof(data);
-        printf("Loaded %zu bytes\n", data_size);
-    #else
-        printf("Embed not supported\n");
-    #endif
+int main(void) {
+#if __has_embed("data.bin") == __STDC_EMBED_FOUND__
+    static const unsigned char data[] = {
+#embed "data.bin"
+    };
+    printf("Loaded %zu bytes\n", sizeof data);
+#elif __has_embed("data.bin") == __STDC_EMBED_EMPTY__
+    puts("Loaded 0 bytes");
+#else
+    puts("data.bin was not found");
+#endif
     return 0;
 }
 ```
 
-可能的输出（示例）：
+结果由构建时的 `data.bin` 决定：
 
-::: terminal
-<输出与输入或平台相关，请以实际运行为准>
+::: code-group
+
+```text [3 字节资源]
+Loaded 3 bytes
+```
+
+```text [空资源]
+Loaded 0 bytes
+```
+
+```text [资源不存在]
+data.bin was not found
+```
 
 :::
 ## 使用建议

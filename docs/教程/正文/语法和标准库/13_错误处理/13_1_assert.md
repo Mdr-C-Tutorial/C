@@ -130,10 +130,17 @@ int main(void) {
 }
 ```
 
-可能的输出（示例）：
+是否定义 `NDEBUG` 会改变结果：
 
-::: terminal
-<输出与输入或平台相关，请以实际运行为准>
+::: code-group
+
+```text [未定义 NDEBUG]
+1
+```
+
+```text [定义 NDEBUG]
+0
+```
 
 :::
 </Exercise>

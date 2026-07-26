@@ -30,12 +30,14 @@ int main(void) {
 }
 ```
 
-可能的输出（示例）：
+在 `int` 为常见 32 位的 GCC 或 Clang 实现中，输出为：
 
 ::: terminal
-<输出与输入或平台相关，请以实际运行为准>
+
+发生溢出！
 
 :::
+这里的 `__builtin_add_overflow` 是编译器扩展，不属于 ISO C；如果 `int` 足以表示 `3000000000`，该例不会报告溢出。
 虽然这些内建函数很有用，但它们不是标准 C 的一部分，这意味着代码的可移植性会受到影响。
 
 ## C23 `<stdckdint.h>`
@@ -80,7 +82,7 @@ int main(void) {
 
     // 检查加法
     if (ckd_add(&result, a, b)) {
-        printf("ckd_add: %d + %d -> 溢出\n", a, b);
+        puts("ckd_add: 溢出");
     } else {
         printf("ckd_add: %d + %d = %d\n", a, b, result);
     }
@@ -89,7 +91,7 @@ int main(void) {
     int c = INT_MIN + 10;
     int d = 20;
     if (ckd_sub(&result, c, d)) {
-        printf("ckd_sub: %d - %d -> 溢出\n", c, d);
+        puts("ckd_sub: 溢出");
     } else {
         printf("ckd_sub: %d - %d = %d\n", c, d, result);
     }
@@ -98,7 +100,7 @@ int main(void) {
     int e = INT_MAX / 10;
     int f = 20;
     if (ckd_mul(&result, e, f)) {
-        printf("ckd_mul: %d * %d -> 溢出\n", e, f);
+        puts("ckd_mul: 溢出");
     } else {
         printf("ckd_mul: %d * %d = %d\n", e, f, result);
     }
@@ -107,10 +109,13 @@ int main(void) {
 }
 ```
 
-可能的输出（示例）：
+三个运算在所有符合这些最小整数范围要求的实现中都会超出 `int` 的表示范围，因此输出为：
 
 ::: terminal
-<输出与输入或平台相关，请以实际运行为准>
+
+ckd_add: 溢出
+ckd_sub: 溢出
+ckd_mul: 溢出
 
 :::
 **预期输出：**
