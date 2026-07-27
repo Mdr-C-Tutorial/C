@@ -280,12 +280,6 @@ ae 没有用函数指针表做运行时分发，而是直接 `#include` 整个 `
 
 :::
 
-::: generate ae-multiplexing-apis kind=comparison concepts=ae-platform-abstraction
-
-面向有一定系统编程基础的读者，对比 epoll (Linux)、kqueue (macOS/BSD)、select (POSIX) 三种 I/O 多路复用机制的核心区别：接口形态（epoll 分 create/ctl/wait 三步，kqueue 用 changelist 批量操作，select 用 fd_set 位图）、性能特征（epoll/kqueue 是 O(就绪数) 而非 O(总监听数)，select 有 FD_SETSIZE 限制）、适用场景。说明为什么 ae 选择按这个优先级排列它们。
-
-:::
-
 以 epoll 为例，`aeApiPoll` 的实现：
 
 ```c
@@ -314,6 +308,12 @@ static int aeApiPoll(aeEventLoop *eventLoop, struct timeval *tvp) {
 ```
 
 它把 `epoll_wait` 返回的 `EPOLLIN`/`EPOLLOUT` 翻译成 ae 自己的 `AE_READABLE`/`AE_WRITABLE`，写入 `fired` 数组供上层分发。注意错误事件（`EPOLLERR`、`EPOLLHUP`）被同时映射为可读和可写——这样无论上层注册的是哪种回调，都能收到通知并做清理。
+
+::: generate ae-multiplexing-apis kind=comparison concepts=ae-platform-abstraction
+
+面向有一定系统编程基础的读者，对比 epoll (Linux)、kqueue (macOS/BSD)、select (POSIX) 三种 I/O 多路复用机制的核心区别：接口形态（epoll 分 create/ctl/wait 三步，kqueue 用 changelist 批量操作，select 用 fd_set 位图）、性能特征（epoll/kqueue 是 O(就绪数) 而非 O(总监听数)，select 有 FD_SETSIZE 限制）、适用场景。说明为什么 ae 选择按这个优先级排列它们。
+
+:::
 
 ## 6. beforesleep / aftersleep 钩子
 

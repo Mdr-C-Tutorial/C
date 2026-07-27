@@ -180,8 +180,7 @@ export default withPwa(
       strategies: "generateSW",
       registerType: "autoUpdate",
       injectRegister: "script-defer",
-      includeAssets: ["favicon.svg", "favicon.ico"],
-      pwaAssets: {},
+      includeAssets: ["favicon.svg"],
       workbox: {
         globPatterns: ["**/*.{css,js,woff2}"],
         maximumFileSizeToCacheInBytes: 10485760,

@@ -432,12 +432,6 @@ WAL（Write-Ahead Log）模式的核心思路：不修改数据库文件本身�
 
 ### 8.2 读写不阻塞
 
-::: generate wal-readers-writers kind=explanation concepts=wal-protocol
-
-面向有数据结构基础的 C 程序员，解释 WAL 模式如何实现"读者不阻塞写者、写者不阻塞读者"：每个读者在开始读事务时记录当前 WAL 的 mxFrame（最大帧号），之后只看到该帧号及之前的数据，后续写者追加的帧对其不可见。写者只需获取排他的"写锁"来防止多个并发写入，但不需要等待读者完成。解释 wal-index（共享内存中的哈希表）如何让读者快速查找某页在 WAL 中的最新帧。
-
-:::
-
 读事务的开启（`walTryBeginRead`）会记录当前 WAL 的进度——`mxFrame`，此后读者只看到这个快照：
 
 ```c
@@ -478,6 +472,12 @@ static int walFrames(Wal *pWal, int szPage,
   // 更新共享的 WAL 索引头 (原子地更新 mxFrame)
 }
 ```
+
+::: generate wal-readers-writers kind=explanation concepts=wal-protocol
+
+面向有数据结构基础的 C 程序员，解释 WAL 模式如何实现"读者不阻塞写者、写者不阻塞读者"：每个读者在开始读事务时记录当前 WAL 的 mxFrame（最大帧号），之后只看到该帧号及之前的数据，后续写者追加的帧对其不可见。写者只需获取排他的"写锁"来防止多个并发写入，但不需要等待读者完成。解释 wal-index（共享内存中的哈希表）如何让读者快速查找某页在 WAL 中的最新帧。
+
+:::
 
 ### 8.3 检查点
 

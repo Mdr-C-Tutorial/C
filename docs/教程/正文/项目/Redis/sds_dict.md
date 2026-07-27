@@ -47,12 +47,6 @@ struct __attribute__ ((__packed__)) sdshdr8 {
 
 :::
 
-::: generate sds-layout-explanation kind=explanation concepts=sds-type-alias,sds-header-family
-
-面向有一定 C 基础的读者，用图示化的方式解释 SDS 的内存布局：一次 malloc 分配的块中，最前面是 header（len, alloc, flags），紧接着是 buf 柔性数组（就是字符串内容），末尾有一个 `\0`。sds 指针指向 buf[0]，所以可以直接当 `char *` 用，而 `s[-1]` 就是 flags 字节。解释为什么这种"指针不指向分配起始"的设计是安全的（只要记住用 `sdsfree` 而不是 `free`）。解释 `__packed__` 在这里的作用——如果有填充字节，`s - sizeof(struct sdshdr8)` 算出的地址就会错。
-
-:::
-
 SDS 通过两个宏在 `sds` 指针和 header 指针之间转换：
 
 ```c
@@ -74,6 +68,12 @@ static inline size_t sdslen(const sds s) {
     return 0;
 }
 ```
+
+::: generate sds-layout-explanation kind=explanation concepts=sds-type-alias,sds-header-family
+
+面向有一定 C 基础的读者，用图示化的方式解释 SDS 的内存布局：一次 malloc 分配的块中，最前面是 header（len, alloc, flags），紧接着是 buf 柔性数组（就是字符串内容），末尾有一个 `\0`。sds 指针指向 buf[0]，所以可以直接当 `char *` 用，而 `s[-1]` 就是 flags 字节。解释为什么这种"指针不指向分配起始"的设计是安全的（只要记住用 `sdsfree` 而不是 `free`）。解释 `__packed__` 在这里的作用——如果有填充字节，`s - sizeof(struct sdshdr8)` 算出的地址就会错。
+
+:::
 
 ### 3. 创建：sdsnewlen
 

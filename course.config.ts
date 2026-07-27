@@ -4,7 +4,8 @@ export default defineCourse({
   schemaVersion: "1",
   id: "mdr-c-tutorial",
   title: "Mdr C Tutorial",
-  description: "以作者知识边界驱动的生成式 C 语言教程。",
+  description:
+    "涵盖语法和标准库、开发与工程基础、数据结构与算法、系统编程、项目案例和嵌入式的生成式 C 语言教程。",
   lang: "zh-CN",
   contentDir: "docs",
   generation: {

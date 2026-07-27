@@ -38,7 +38,6 @@
     "@gentorial/engine-vitepress": "^0.2.0",
     "@gentorial/runtime-vue": "^0.4.0",
     "@gentorial/theme-default": "^0.2.2",
-    "@vite-pwa/assets-generator": "^1.0.2",
     "@vite-pwa/vitepress": "^1.1.0",
     "cytoscape": "^3.34.0",
     "cytoscape-cose-bilkent": "^4.1.0",
