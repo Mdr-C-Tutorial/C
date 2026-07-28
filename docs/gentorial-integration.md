@@ -1,6 +1,6 @@
-# Gentorial 接入验证
+# GenTorial 接入
 
-本页验证 Gentorial 能否与 Mdr C Tutorial 现有的 VitePress 能力共存。作者内容提供知识边界与无生成服务时的回退，生成区域提供面向学习者的主要个性化讲解。
+本教程接入 [GenTorial](https://gentorial.github.io/gentorial/) 框架。（这个框架也是笔者写的）
 
 ## C 标准版本不是编译器版本
 
