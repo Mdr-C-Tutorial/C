@@ -17,13 +17,13 @@ cmake --build code/项目/Mdr_Lang/compiler_c/build
 ## 使用
 
 ```bash
-code/项目/Mdr_Lang/compiler_c/build/mdrcc docs/教程/正文/项目/Mdr_Lang/example/vec2.mdr
+code/项目/Mdr_Lang/compiler_c/build/mdrcc docs/教程/正文/项目案例/Mdr_Lang/example/vec2.mdr
 ```
 
 打印 Token：
 
 ```bash
-code/项目/Mdr_Lang/compiler_c/build/mdrcc docs/教程/正文/项目/Mdr_Lang/example/range_step.mdr --tokens
+code/项目/Mdr_Lang/compiler_c/build/mdrcc docs/教程/正文/项目案例/Mdr_Lang/example/range_step.mdr --tokens
 ```
 
 运行示例烟雾测试：

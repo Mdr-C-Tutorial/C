@@ -24,19 +24,19 @@ compiler/
 ## 用法
 
 ```bash
-node code/项目/Mdr_Lang/compiler/cli.mjs docs/教程/正文/项目/Mdr_Lang/example/vec2.mdr
+node code/项目/Mdr_Lang/compiler/cli.mjs docs/教程/正文/项目案例/Mdr_Lang/example/vec2.mdr
 ```
 
 输出 AST 到文件：
 
 ```bash
-node code/项目/Mdr_Lang/compiler/cli.mjs docs/教程/正文/项目/Mdr_Lang/example/range_step.mdr --out temp/range_step.ast.json
+node code/项目/Mdr_Lang/compiler/cli.mjs docs/教程/正文/项目案例/Mdr_Lang/example/range_step.mdr --out temp/range_step.ast.json
 ```
 
 同时打印 Token：
 
 ```bash
-node code/项目/Mdr_Lang/compiler/cli.mjs docs/教程/正文/项目/Mdr_Lang/example/range_step.mdr --tokens
+node code/项目/Mdr_Lang/compiler/cli.mjs docs/教程/正文/项目案例/Mdr_Lang/example/range_step.mdr --tokens
 ```
 
 ## 已覆盖的核心语法

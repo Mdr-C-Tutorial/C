@@ -1,4 +1,4 @@
-# 抽象数据类型 (Abstract Data Type, ADT)
+# 1. 抽象数据类型 (Abstract Data Type, ADT)
 
 ## 什么是 ADT？
 
