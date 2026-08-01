@@ -19,16 +19,16 @@ importers:
         version: 0.2.0
       '@gentorial/engine-vitepress':
         specifier: ^0.2.0
-        version: 0.2.0(vitepress@1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.23)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3))
+        version: 0.2.0(vitepress@1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.25)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3))
       '@gentorial/runtime-vue':
         specifier: ^0.4.0
         version: 0.4.0(vue@3.5.39(typescript@6.0.3))
       '@gentorial/theme-default':
         specifier: ^0.2.2
-        version: 0.2.2(mermaid@11.16.0)(vitepress@1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.23)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3))(vue@3.5.39(typescript@6.0.3))
+        version: 0.2.2(mermaid@11.16.0)(vitepress@1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.25)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3))(vue@3.5.39(typescript@6.0.3))
       '@vite-pwa/vitepress':
         specifier: ^1.1.0
-        version: 1.1.0(vite-plugin-pwa@1.3.0(vite@8.1.3(@types/node@25.9.3)(terser@5.48.0))(workbox-build@7.4.1)(workbox-window@7.4.1))
+        version: 1.1.0(vite-plugin-pwa@1.3.0(vite@8.1.4(@types/node@25.9.3)(terser@5.48.0))(workbox-build@7.4.1)(workbox-window@7.4.1))
       cytoscape:
         specifier: ^3.34.0
         version: 3.34.0
@@ -54,14 +54,14 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
       vite:
-        specifier: ^8.1.3
-        version: 8.1.3(@types/node@25.9.3)(terser@5.48.0)
+        specifier: ^8.1.4
+        version: 8.1.4(@types/node@25.9.3)(terser@5.48.0)
       vite-plugin-pwa:
         specifier: ^1.3.0
-        version: 1.3.0(vite@8.1.3(@types/node@25.9.3)(terser@5.48.0))(workbox-build@7.4.1)(workbox-window@7.4.1)
+        version: 1.3.0(vite@8.1.4(@types/node@25.9.3)(terser@5.48.0))(workbox-build@7.4.1)(workbox-window@7.4.1)
       vitepress:
         specifier: ^1.6.4
-        version: 1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.23)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3)
+        version: 1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.25)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3)
       vue:
         specifier: ^3.5.39
         version: 3.5.39(typescript@6.0.3)
@@ -1004,11 +1004,12 @@ packages:
   '@mermaid-js/parser@1.2.0':
     resolution: {integrity: sha512-oYPyv8A4As1yH5Bx+04iQEQxXuIQDe0GKCNSRgao6z8AM9jixXIfP0vsppRLvGf+nKIOb9/LdpWA4YuJiVvESA==}
 
-  '@napi-rs/wasm-runtime@1.1.6':
-    resolution: {integrity: sha512-ZLv/JdUfkvOy9eCnnBaGfiO+XimbjebAeO+MRQqD/B+FR1tnRN0tpKSJHRbE8sFfS6aqsXZ67TQjfwfsxULVbg==}
+  '@napi-rs/wasm-runtime@1.2.2':
+    resolution: {integrity: sha512-JfB4kuJQjaoHuCTseIINHtHWeJnvgEcxjwA5t/Y00ZgaOO1Crz3fjT/p8kT28zA/Caz7oiUMn3d6H2yOVCVwuw==}
+    engines: {node: ^20.19.0 || ^22.13.0 || >=23.5.0}
     peerDependencies:
-      '@emnapi/core': ^1.7.1
-      '@emnapi/runtime': ^1.7.1
+      '@emnapi/core': ^1.7.1 || ^2.0.0-alpha.3
+      '@emnapi/runtime': ^1.7.1 || ^2.0.0-alpha.3
 
   '@oxc-project/types@0.139.0':
     resolution: {integrity: sha512-r9gHphtCs+1M7J0pw6Sn/hh/Wpa/iQrOOkrNAlVLF/gHq+/CJmHIWKKUUhdWjcD6CIa8idarspCsASiXCXvFUw==}
@@ -2924,8 +2925,8 @@ packages:
     resolution: {integrity: sha512-HeP7D2wyhkR+XaK6v4W8oRF62Dsz4flyuczALJp61GckGm42u1saSSJ/0auvcBqxs3jMRFEcPK34At/0JBKdOg==}
     engines: {node: '>=4'}
 
-  postcss@8.5.23:
-    resolution: {integrity: sha512-g50586zr4bZmwFiTlflMu8E0bDTb5I5gertgwAKmsdUlTQIhZtunzUlD1WSzwcVWPoAVpsrA6vlfCD7oXvRwgg==}
+  postcss@8.5.25:
+    resolution: {integrity: sha512-DTPx3RWSSnWyzLxQnlH0rJP+EW5ekl16ZU4/psbIhA0e53kJfdgaN5vKM+xP7yJtXVu+nfdVFmlgFDEKAe4Pyw==}
     engines: {node: ^10 || ^12 || >=14}
 
   preact@10.29.2:
@@ -3392,8 +3393,8 @@ packages:
       terser:
         optional: true
 
-  vite@8.1.3:
-    resolution: {integrity: sha512-Ds+gBRbj0lwRO2Y5hwnUBdxSwlAve9LeRyU4sNnAr0ewW0gWF0n5bgXgUzbgZ49MV9BVUAQUFYVcDUcilUExMA==}
+  vite@8.1.4:
+    resolution: {integrity: sha512-bTT9PsdWO+MQMNG9ZXIP/qM9wGh37DFxTV/sPq9cFpHr3w4jkgef032PkAL9jAqhk3Nz8NQw3O8n6/xFkqO4QQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
     hasBin: true
     peerDependencies:
@@ -4520,12 +4521,12 @@ snapshots:
     dependencies:
       zod: 4.4.3
 
-  '@gentorial/engine-vitepress@0.2.0(vitepress@1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.23)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3))':
+  '@gentorial/engine-vitepress@0.2.0(vitepress@1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.25)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3))':
     dependencies:
       '@gentorial/content': 0.2.0
       '@gentorial/core': 0.2.0
       markdown-it-container: 4.0.0
-      vitepress: 1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.23)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3)
+      vitepress: 1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.25)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3)
 
   '@gentorial/runtime-vue@0.4.0(vue@3.5.39(typescript@6.0.3))':
     dependencies:
@@ -4534,12 +4535,12 @@ snapshots:
       markdown-it: 14.3.0
       vue: 3.5.39(typescript@6.0.3)
 
-  '@gentorial/theme-default@0.2.2(mermaid@11.16.0)(vitepress@1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.23)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3))(vue@3.5.39(typescript@6.0.3))':
+  '@gentorial/theme-default@0.2.2(mermaid@11.16.0)(vitepress@1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.25)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3))(vue@3.5.39(typescript@6.0.3))':
     dependencies:
       '@fontsource-variable/geist': 5.3.0
       '@gentorial/runtime-vue': 0.4.0(vue@3.5.39(typescript@6.0.3))
       shiki: 2.5.0
-      vitepress: 1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.23)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3)
+      vitepress: 1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.25)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3)
       vue: 3.5.39(typescript@6.0.3)
     optionalDependencies:
       mermaid: 11.16.0
@@ -4606,7 +4607,7 @@ snapshots:
     dependencies:
       '@chevrotain/types': 11.1.2
 
-  '@napi-rs/wasm-runtime@1.1.6(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)':
+  '@napi-rs/wasm-runtime@1.2.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)':
     dependencies:
       '@emnapi/core': 1.11.1
       '@emnapi/runtime': 1.11.1
@@ -4657,7 +4658,7 @@ snapshots:
     dependencies:
       '@emnapi/core': 1.11.1
       '@emnapi/runtime': 1.11.1
-      '@napi-rs/wasm-runtime': 1.1.6(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)
+      '@napi-rs/wasm-runtime': 1.2.2(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)
     optional: true
 
   '@rolldown/binding-win32-arm64-msvc@1.1.5':
@@ -5090,9 +5091,9 @@ snapshots:
       d3-selection: 3.0.0
       d3-transition: 3.0.1(d3-selection@3.0.0)
 
-  '@vite-pwa/vitepress@1.1.0(vite-plugin-pwa@1.3.0(vite@8.1.3(@types/node@25.9.3)(terser@5.48.0))(workbox-build@7.4.1)(workbox-window@7.4.1))':
+  '@vite-pwa/vitepress@1.1.0(vite-plugin-pwa@1.3.0(vite@8.1.4(@types/node@25.9.3)(terser@5.48.0))(workbox-build@7.4.1)(workbox-window@7.4.1))':
     dependencies:
-      vite-plugin-pwa: 1.3.0(vite@8.1.3(@types/node@25.9.3)(terser@5.48.0))(workbox-build@7.4.1)(workbox-window@7.4.1)
+      vite-plugin-pwa: 1.3.0(vite@8.1.4(@types/node@25.9.3)(terser@5.48.0))(workbox-build@7.4.1)(workbox-window@7.4.1)
 
   '@vitejs/plugin-vue@5.2.4(vite@5.4.21(@types/node@25.9.3)(lightningcss@1.33.0)(terser@5.48.0))(vue@3.5.39(typescript@6.0.3))':
     dependencies:
@@ -5121,7 +5122,7 @@ snapshots:
       '@vue/shared': 3.5.39
       estree-walker: 2.0.2
       magic-string: 0.30.21
-      postcss: 8.5.23
+      postcss: 8.5.25
       source-map-js: 1.2.1
 
   '@vue/compiler-ssr@3.5.39':
@@ -6609,7 +6610,7 @@ snapshots:
       cssesc: 3.0.0
       util-deprecate: 1.0.2
 
-  postcss@8.5.23:
+  postcss@8.5.25:
     dependencies:
       nanoid: 3.3.16
       picocolors: 1.1.1
@@ -7129,12 +7130,12 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite-plugin-pwa@1.3.0(vite@8.1.3(@types/node@25.9.3)(terser@5.48.0))(workbox-build@7.4.1)(workbox-window@7.4.1):
+  vite-plugin-pwa@1.3.0(vite@8.1.4(@types/node@25.9.3)(terser@5.48.0))(workbox-build@7.4.1)(workbox-window@7.4.1):
     dependencies:
       debug: 4.4.3
       pretty-bytes: 6.1.1
       tinyglobby: 0.2.17
-      vite: 8.1.3(@types/node@25.9.3)(terser@5.48.0)
+      vite: 8.1.4(@types/node@25.9.3)(terser@5.48.0)
       workbox-build: 7.4.1
       workbox-window: 7.4.1
     transitivePeerDependencies:
@@ -7143,7 +7144,7 @@ snapshots:
   vite@5.4.21(@types/node@25.9.3)(lightningcss@1.33.0)(terser@5.48.0):
     dependencies:
       esbuild: 0.21.5
-      postcss: 8.5.23
+      postcss: 8.5.25
       rollup: 4.62.0
     optionalDependencies:
       '@types/node': 25.9.3
@@ -7151,11 +7152,11 @@ snapshots:
       lightningcss: 1.33.0
       terser: 5.48.0
 
-  vite@8.1.3(@types/node@25.9.3)(terser@5.48.0):
+  vite@8.1.4(@types/node@25.9.3)(terser@5.48.0):
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.5
-      postcss: 8.5.23
+      postcss: 8.5.25
       rolldown: 1.1.5
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -7163,7 +7164,7 @@ snapshots:
       fsevents: 2.3.3
       terser: 5.48.0
 
-  vitepress@1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.23)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3):
+  vitepress@1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.3)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.25)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3):
     dependencies:
       '@docsearch/css': 3.8.2
       '@docsearch/js': 3.8.2(@algolia/client-search@5.55.0)(search-insights@2.17.3)
@@ -7185,7 +7186,7 @@ snapshots:
       vue: 3.5.39(typescript@6.0.3)
     optionalDependencies:
       markdown-it-mathjax3: 4.3.2
-      postcss: 8.5.23
+      postcss: 8.5.25
     transitivePeerDependencies:
       - '@algolia/client-search'
       - '@types/node'
