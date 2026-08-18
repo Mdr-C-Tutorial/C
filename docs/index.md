@@ -22,6 +22,9 @@ hero:
       text: 题解
       link: /教程/题解/快速导航
     - theme: alt
+      text: Modern C
+      link: /教程/modernC/目录
+    - theme: alt
       text: 标准
       link: /教程/标准文档翻译/目录
     - theme: alt
