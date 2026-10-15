@@ -29,7 +29,8 @@
     "format": "prettier . --write",
     "format:check": "prettier . --check",
     "mdr:compile": "node code/项目/Mdr_Lang/compiler/cli.mjs",
-    "mdr:test": "node --test code/项目/Mdr_Lang/compiler/tests/smoke.mjs"
+    "mdr:test": "node --test code/项目/Mdr_Lang/compiler/tests/smoke.mjs",
+    "modernc:takeaways": "node scripts/modernc-takeaways.mjs"
   },
   "dependencies": {
     "@braintree/sanitize-url": "^7.1.2",
