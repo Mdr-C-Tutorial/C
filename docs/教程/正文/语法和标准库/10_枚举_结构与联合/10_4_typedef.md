@@ -1,6 +1,6 @@
 # 10.4 typedef
 
-`typedef` 是一种存储类说明符 (Storage-class specifier)，用于引入**类型别名**（typedef name）。它不会创建新的“不同类型”，而是为已有类型提供一个新的名字。
+`typedef` 是一种存储类说明符 (Storage-class specifier)，用于引入**类型别名** (typedef name)。它不会创建新的“不同类型”，而是为已有类型提供一个新的名字。
 
 ## 1. `typedef` 做了什么
 
@@ -15,7 +15,8 @@ int main(void) {
     return 0;
 }
 ```
-`typedef` 的核心价值在于：提高可读性、降低复杂声明的书写成本、以及隐藏实现细节（尤其是在头文件 API 中）。
+
+`typedef` 常用于三种场合：为较长的类型起一个易读的名字，简化复杂声明的书写，以及在头文件提供的接口中隐藏类型的实现细节。
 
 ## 2. 常见用法
 
@@ -29,12 +30,14 @@ typedef struct point {
     int y;
 } point;
 ```
-### 2.3 函数指针别名（用于清晰 API）
+
+### 2.2 函数指针别名（用于清晰 API）
 
 ```c
 typedef int (*compare_fn)(const void* a, const void* b);
 ```
-### 2.4 数组别名（适合固定维度）
+
+### 2.3 数组别名（适合固定维度）
 
 ```c
 typedef int vec3[3];
@@ -45,6 +48,7 @@ int main(void) {
     return 0;
 }
 ```
+
 ## 3. 典型陷阱：隐藏指针
 
 `typedef` 可以把指针“藏起来”，但这会让 `const` 等限定符的阅读变得更容易出错。
@@ -63,6 +67,7 @@ int main(void) {
     return 0;
 }
 ```
+
 ::: warning 建议
 
 除非你的团队对这类写法有明确约定，否则不要用 `typedef` 隐藏裸指针。对于读者而言，`int*` 比 `int_ptr` 更直观。

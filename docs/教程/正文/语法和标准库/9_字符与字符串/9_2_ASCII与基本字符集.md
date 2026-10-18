@@ -39,27 +39,28 @@ int main(void) {
 
 ## 2. 字符集结构
 
-ASCII 字符集主要分为两大部分：
+ASCII 的 128 个字符分为控制字符 (Control Character) 和可打印字符 (Printable Character) 两类。
 
-- **控制字符 (Control Characters)：** 编码值从 0 (0x00) 到 31 (0x1F)，以及字符 127 (0x7F)。这些字符并非用于直接显示，而是用于控制数据传输、设备操作（如打印机、终端）、格式化文本或提供元信息。
-  - **常见示例：**
-    - `NUL` (0x00): 空字符
-    - `SOH` (0x01): 标题开始
-    - `ETX` (0x03): 文本结束
-    - `BEL` (0x07): 响铃
-    - `BS` (0x08): 退格
-    - `HT` (0x09): 水平制表符 (Tab)
-    - `LF` (0x0A): 换行 (Line Feed)
-    - `CR` (0x0D): 回车 (Carriage Return)
-    - `ESC` (0x1B): 转义
-    - `DEL` (0x7F): 删除
-- **可打印字符 (Printable Characters)：** 编码值从 32 (0x20) 到 126 (0x7E)。这些字符是可以在屏幕或纸张上显示的图形符号。
-  - `Space` (0x20): 空格
-  - `Punctuation marks and symbols`: 例如 `! " # $ % & ' ( ) * + , - . /` 等
-  - `Digits`: `0` (0x30) 到 `9` (0x39)
-  - `Uppercase Latin letters`: `A` (0x41) 到 `Z` (0x5A)
-  - `Lowercase Latin letters`: `a` (0x61) 到 `z` (0x7A)
-  - `Additional symbols`: 例如 `{ | } ~`
+控制字符的编码值为 0（0x00）至 31（0x1F），以及 127（0x7F）。它们不用于显示，而是用于控制数据传输和设备操作（如打印机、终端），或用于格式化文本。常见的控制字符有：
+
+- `NUL`（0x00）：空字符
+- `SOH`（0x01）：标题开始
+- `ETX`（0x03）：正文结束
+- `BEL`（0x07）：响铃
+- `BS`（0x08）：退格
+- `HT`（0x09）：水平制表符 (Tab)
+- `LF`（0x0A）：换行 (Line Feed)
+- `CR`（0x0D）：回车 (Carriage Return)
+- `ESC`（0x1B）：转义
+- `DEL`（0x7F）：删除
+
+可打印字符的编码值为 32（0x20）至 126（0x7E），可以显示在屏幕或纸张上，包括：
+
+- 空格（0x20）
+- 数字 `0`（0x30）至 `9`（0x39）
+- 大写拉丁字母 `A`（0x41）至 `Z`（0x5A）
+- 小写拉丁字母 `a`（0x61）至 `z`（0x7A）
+- 其余标点和符号，例如 `! " # $ % & ' ( ) * + , - . /` 和 `{ | } ~`
 
 ## 3. 与转义字符的关系
 
@@ -85,7 +86,7 @@ char newline = '\n';
 | Bin (二进制) | Oct (八进制) | Dec (十进制) | Hex (十六进制) | 缩写/字符                   | 解释         |
 | ------------ | ------------ | ------------ | -------------- | --------------------------- | ------------ |
 | 0000 0000    | 00           | 0            | 0x00           | NUL (null)                  | 空字符       |
-| 0000 0001    | 01           | 1            | 0x01           | SOH (start of headline)     | 标题开始     |
+| 0000 0001    | 01           | 1            | 0x01           | SOH (start of heading)      | 标题开始     |
 | 0000 0010    | 02           | 2            | 0x02           | STX (start of text)         | 正文开始     |
 | 0000 0011    | 03           | 3            | 0x03           | ETX (end of text)           | 正文结束     |
 | 0000 0100    | 04           | 4            | 0x04           | EOT (end of transmission)   | 传输结束     |
@@ -98,8 +99,8 @@ char newline = '\n';
 | 0000 1011    | 013          | 11           | 0x0B           | VT (vertical tab)           | 垂直制表符   |
 | 0000 1100    | 014          | 12           | 0x0C           | FF (NP form feed, new page) | 换页键       |
 | 0000 1101    | 015          | 13           | 0x0D           | CR (carriage return)        | 回车键       |
-| 0000 1110    | 016          | 14           | 0x0E           | SO (shift out)              | 不用切换     |
-| 0000 1111    | 017          | 15           | 0x0F           | SI (shift in)               | 启用切换     |
+| 0000 1110    | 016          | 14           | 0x0E           | SO (shift out)              | 移出         |
+| 0000 1111    | 017          | 15           | 0x0F           | SI (shift in)               | 移入         |
 | 0001 0000    | 020          | 16           | 0x10           | DLE (data link escape)      | 数据链路转义 |
 | 0001 0001    | 021          | 17           | 0x11           | DC1 (device control 1)      | 设备控制 1   |
 | 0001 0010    | 022          | 18           | 0x12           | DC2 (device control 2)      | 设备控制 2   |

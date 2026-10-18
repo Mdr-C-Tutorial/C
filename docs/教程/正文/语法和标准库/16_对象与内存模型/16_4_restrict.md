@@ -12,15 +12,17 @@
 int* restrict p = 0;
 const int* restrict q = 0;
 ```
-注意：`int restrict *p;` 是把 `restrict` 修饰在 `int` 上，这不是 `restrict` 的用法（在 C23 中更明确属于错误写法）。
 
-## 2. 语义要点（可操作版）
+注意：`int restrict *p;` 是把 `restrict` 修饰在 `int` 上，这不是 `restrict` 的用法，编译器会报错。
+
+## 2. 语义要点
 
 在一个函数形参的典型用法中：
 
 ```c
 void f(size_t n, int* restrict dst, const int* restrict src);
 ```
+
 你可以把它理解为：在 `f` 执行期间，`dst[0..n)` 与 `src[0..n)` 所指向的对象区域不重叠；否则就是 UB。
 
 ::: warning 编译器可以忽略 `restrict`
@@ -51,6 +53,7 @@ void bad(void) {
     copy_n(3, a + 1, a); /* UB：区域重叠，违反 restrict 的别名保证 */
 }
 ```
+
 ## 4. 常见误区
 
 1. **把 `restrict` 当作“更快的关键字”**：它不是提示，而是语义承诺。

@@ -5,8 +5,8 @@
 ### 1.1 `strlen()` ：字符串长度计算
 
 1. **说文解字**
-   - `str` 是”string“的缩写
-   - `len` 是”length”的缩写
+   - `str` 是“string”的缩写
+   - `len` 是“length”的缩写
    - `strlen` 即 length of string，它的作用是计算字符串长度
 
 2. **函数原型**
@@ -19,7 +19,7 @@
 
    这个函数的使用要区别于`sizeof()`运算符计算数组长度的方法 \
    有一种计算数组长度的方法是使用`sizeof()`计算数组占用的总内存，除以单个数据元素占用的内存空间得到数组长度，即`sizeof(array) / sizeof(type)` \
-   在字符串这里你会发现使用`strlen()`函数和使用以上方法的结果不同，原因在于 C 语言中，字符串以空字符 (Nul Character, ASCII: 0) 为结束标志。 \
+   在字符串这里你会发现使用`strlen()`函数和使用以上方法的结果不同，原因在于 C 语言中，字符串以空字符 (Null Character, ASCII: 0) 为结束标志。 \
    `strlen()`函数只统计字符串中非空字符的数量，而`sizeof`运算符会把空字符也算上，请注意这个特殊的地方。
 
 4. **衍生函数**
@@ -113,7 +113,7 @@
    }
    ```
 
-   输出：
+   可能的输出（第一个结果是某个负数，不一定是 -1）：
 
    ```ansi
    Comparing 'Hello' and 'World': -1
@@ -139,7 +139,7 @@
    使用这个函数时，程序员要自己对程序的安全负责，检查字符串的长度
 
 4. **衍生函数**
-   - `char *stpncpy(char *dest, const char *src, size_t n)`
+   - `char *strncpy(char *dest, const char *src, size_t n)`
 
      将 `src` 的前 `n` 个字符复制到 `dest`，返回指向 `dest` 的指针
 
@@ -150,7 +150,7 @@
    ::: tip
    当`src`长度>=size 时，`strncpy`不添加空字符，而`strlcpy`会添加
    - `strlcpy()`：返回源字符串的长度，方便检查截断
-   - `strncpy()`：返回目标字符串长度
+   - `strncpy()`：返回指向 `dest` 的指针
 
    :::
 
@@ -199,11 +199,11 @@
 4. **衍生函数**
    - `char *strncat(char *dest, const char *src, size_t n)`
 
-     将 `src` 的前 `n` 个字符连接到 `dest` 的末尾，返回指向`dest`末尾的指针。
+     将 `src` 的前 `n` 个字符连接到 `dest` 的末尾，返回指向`dest`的指针。
 
    - `size_t strlcat(char *dest, const char *src, size_t size)`
 
-     安全地将 `src` 连接到 `dest`，最多写入 `size - 1` 个字符。
+     安全地将 `src` 连接到 `dest`，其中 `size` 是 `dest` 数组的总大小，连接后的字符串最多含 `size - 1` 个字符。
 
 5. **示例程序**
 
@@ -260,7 +260,7 @@
        char *result = strchr(str, ch);
 
        if (result != NULL) {
-           printf("Character '%c' found at position: %ld\n", ch, result - str);
+           printf("Character '%c' found at position: %td\n", ch, result - str);
        } else {
            printf("Character '%c' not found.\n", ch);
        }
@@ -301,7 +301,7 @@
        result = strstr(haystack, needle);
 
        if (result) {
-           printf("Substring found at position: %ld\n", result - haystack);
+           printf("Substring found at position: %td\n", result - haystack);
        } else {
            printf("Substring not found.\n");
        }
@@ -401,7 +401,7 @@
        result = strpbrk(haystack, needle);
 
        if (result) {
-           printf("First matching character found at position: %ld\n", result - haystack);
+           printf("First matching character found at position: %td\n", result - haystack);
        } else {
            printf("No matching characters found.\n");
        }
@@ -424,14 +424,14 @@
    可以理解为“计算字符串中某个范围的长度”
 
 2. **函数原型**
-   - `char *strspn(const char *s1, const char *s2)`
+   - `size_t strspn(const char *s1, const char *s2)`
      - `s1`：目标字符串，也就是需要检查的字符串
      - `s2`：字符集字符串，包含需要匹配的字符集合。
 
      返回字符串 `s1` 中仅包含 `s2` 中字符的连续子串的长度，具体地说，是从 `s1` 的开头开始，计算最长的连续子串的长度，该子串中的所有字符都必须属于 `s2`，一旦遇到 `s1` 中不属于 `s2` 的字符，计数停止。
 
 3. **衍生函数**
-   - `char *strcspn(const char *s1, const char *s2)`
+   - `size_t strcspn(const char *s1, const char *s2)`
 
      多出来的那个`c`可以理解为“complement”，意为“补集”，表示的是查找字符串`s1`中，**不包含**字符串`s2`中字符的最大长度
 
@@ -621,7 +621,7 @@
      - `s2`：指向第二个内存区域的指针
      - `n`：要比较的字节数
 
-     返回值类似`strcmp()`，是字节的差值。
+     返回值类似`strcmp()`，其正负由第一对不同字节的大小关系决定。
 
 3. **注意事项**
    1. `memcmp()` 是按字节进行比较的，因此比较的是内存中的原始字节值。它不会考虑数据的类型（如整数、浮点数等），因此比较的结果可能与预期不同，尤其是当内存中存储的是非字节对齐的数据时。
@@ -699,7 +699,7 @@
        result = memchr(str, ch, strlen(str));
 
        if (result != NULL) {
-           printf("Character '%c' found at position: %ld\n", ch, result - str);
+           printf("Character '%c' found at position: %td\n", ch, result - str);
        } else {
            printf("Character '%c' not found.\n", ch);
        }
@@ -714,9 +714,9 @@
    Character 'w' found at position: 7
    ```
 
-## 写在最后
+## 4. 写在最后
 
-这个文档里面只列举了我用过的函数，有些我实在是没用过的，我也没有什么自己的理解，就没有写进来，我把他们在下面列出来：
+这个文档里面只列举了我用过的函数，有些我实在是没用过的，我也没有什么自己的理解，就没有写进来，我把它们在下面列出来：
 
 - `strcoll()`
 - `strxfrm()`
@@ -725,22 +725,23 @@
 
 感兴趣的话请各位读者自行查阅[资料](https://zh.cppreference.com/w/c/header/string)。
 
-## 习题
+## 5. 习题
 
 <Exercise id="10904" :d="3" :w="5">
 
 有机物的命名有一套完整的规则。以下是烃的部分命名规则：
    1. 甲烷到癸烷的名称分别为：`methane` `ethane` `propane` `butane` `pentane` `hexane` `heptane` `octane` `nonane` `decane`。
-   2. 烷基的名称是将对应烷烃词尾的 `ane` 替换为 `yl`。同理，烯烃替换成 `ene`，炔烃替换成 `yne`，烯基替换成 `enyl`，炔基替换成 `ynyl`。例如：乙基 `ethyl`，乙烯 `ethene`，乙炔 `ethyne`，乙烯基 `ethenyl`，乙炔 基 `ethynyl`。
+   2. 烷基的名称是将对应烷烃词尾的 `ane` 替换为 `yl`。同理，烯烃替换成 `ene`，炔烃替换成 `yne`，烯基替换成 `enyl`，炔基替换成 `ynyl`。例如：乙基 `ethyl`，乙烯 `ethene`，乙炔 `ethyne`，乙烯基 `ethenyl`，乙炔基 `ethynyl`。
    3. 苯，萘，蒽，菲的名称分别为：`benzene`, `naphthalene`, `anthracene`, `phenanthrene`。例如，甲基乙苯 `methylethylbenzene`，9-甲基菲 `9-methylphenanthrene`。
    4. “环”用 `cyclo` 开头，例如：环丙烷 `cyclopropane`, 环丁烷 `cyclobutane`。
-   5. 标识取代基个数的“二 三 四 五 六”分别用 `di`，`tri`，`tetra`， `penta`，`hexa` 开头。例如：1-2-3-三甲苯 `1,2,   3-trimethylbenzene`。
+   5. 标识取代基个数的“二 三 四 五 六”分别用 `di`，`tri`，`tetra`，`penta`，`hexa` 开头。例如：1,2,3-三甲苯 `1,2,3-trimethylbenzene`。
 
    设计程序，输入有机物名称，输出其碳原子和氢原子个数。
 
-   例：输入 `benzene`，输出 `6 6`；输入 `2-methylpropane`，输出 `4    10`；输入 `4,5-dipropynylnaphthalene`，输出 `16 10`；输入 `2,3,   5-trimethyl-4-propyloctane`，输出 `14 30`。
+   例：输入 `benzene`，输出 `6 6`；输入 `2-methylpropane`，输出 `4 10`；输入 `4,5-dipropynylnaphthalene`，输出 `16 12`；输入 `2,3,5-trimethyl-4-propyloctane`，输出 `14 30`。
 
    保证有机物名称满足上述规则。
+
 </Exercise>
 
 <Exercise id="10905" :d="5" :w="4">

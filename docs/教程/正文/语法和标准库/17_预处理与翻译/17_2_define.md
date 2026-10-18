@@ -1,4 +1,4 @@
-﻿# 17.2 替换文本宏
+# 17.2 替换文本宏
 
 ## 1. 仿对象宏：`#define 标识符 替换列表`
 
@@ -21,11 +21,12 @@ int main(void){
 100
 
 :::
-程序将会输出 100
+
+程序将会输出 100。
 
 ## 2. 仿函数宏
 
-1. `#define 标识符（形参列表） 替换列表`
+1. `#define 标识符(形参列表) 替换列表`
 
    当下文出现标识符紧跟一个“实参列表”的文本，将会被替换成 `替换列表`，同时 `替换列表` 中与形参列表中的形参相同的文本将会被替换成“实参列表”中对应的实参。
 
@@ -89,6 +90,7 @@ int main(void){
       printf("%d %d", x, y);
    }
    ```
+
    此时 `swap(x, y)` 被替换成 `{typeof(x) tmp = y; y = x; x = tmp;}`，因此：
    
    ```c
@@ -113,8 +115,7 @@ int main(void){
 
    ```c
    #include <stdio.h>
-   #define swap(x,y) do{typeof(x) tmp = y; y = x; x = t
-   mp} while(0)
+   #define swap(x,y) do{typeof(x) tmp = y; y = x; x = tmp;} while(0)
    int main(void){
       int x = 0, y = 1;
       if(x < y)
@@ -125,7 +126,7 @@ int main(void){
    }
    ```
 
-   此时，`swap(x, y)` 会被替换为 `do{typeof(x) tmp = y; y = x; x = tmp} while(0)`，因此：
+   此时，`swap(x, y)` 会被替换为 `do{typeof(x) tmp = y; y = x; x = tmp;} while(0)`，因此：
 
    ```c
    if(x < y)
@@ -145,7 +146,7 @@ int main(void){
 
    即 `if` 语句后紧跟着 `do{...} while` 语句，这是一段正确实现了所需功能的 C 代码。
    
-3. `#define 标识符（形参列表, ...） 替换列表`
+3. `#define 标识符(形参列表, ...) 替换列表`
 
    在替换列表中，额外实参会替换 `__VA_ARGS__`标识符。
 

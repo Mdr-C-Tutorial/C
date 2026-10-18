@@ -27,7 +27,7 @@ ACPI 可以实现的功能包括：
 
 > ioapic 的开启以及 SMP 多处理器的开启也需要 ACPI
 
-## ACPI Table
+## 1. ACPI Table
 
 ACPI 提供了一组用于描述控制设备和描述设备信息方式的结构，它们按照一种层级结构组织。
 
@@ -54,8 +54,8 @@ ACPI 提供了一组用于描述控制设备和描述设备信息方式的结构
 - Generic Timer Description Table (GTDT)
 - NVDIMM Firmware Interface Table (NFIT)
 
-## APIC
+## 2. APIC
 
 高级可编程中断控制器（Advanced Programmable Interrupt Controller）
 
-一种中断控制器架构，通常多见于 Intel 32 位架构（Intel Architecture-based 32-bit）的 PC 系统。APIC 架构支持多处理器中断管理（中断均匀地分布在所有处理器），多 I/O 子系统支持，与 8259A 兼容，并且支持处理器内部中断（Inter-Processor Interrupt，IPI）。这个架构由直属于处理器的本地 APICs（Local APICs）和在（南桥）芯片中的 I/O APIC 组成。
+一种中断控制器架构，通常多见于 Intel 32 位架构（Intel Architecture-based 32-bit）的 PC 系统。APIC 架构支持多处理器中断管理（中断均匀地分布在所有处理器），多 I/O 子系统支持，与 8259A 兼容，并且支持处理器间中断（Inter-Processor Interrupt，IPI）。这个架构由直属于处理器的本地 APICs（Local APICs）和在（南桥）芯片中的 I/O APIC 组成。

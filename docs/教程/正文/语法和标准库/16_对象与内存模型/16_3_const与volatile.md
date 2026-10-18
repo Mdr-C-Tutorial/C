@@ -13,9 +13,10 @@ const int n = 1;
 int* p = (int*)&n;
 *p = 2; /* UB */
 ```
+
 ### 1.2 `const` 在指针声明中的位置
 
-这是 C 初学者最容易混淆的部分之一：`const` 永远修饰它“左边最近的类型构造”（若左边没有，就修饰右边）。
+`const` 永远修饰它“左边最近的类型构造”（若左边没有，就修饰右边）。
 
 ```c
 int x = 0;
@@ -23,8 +24,9 @@ int x = 0;
 const int* p1 = &x;      /* 指向 const int 的指针：不能通过 *p1 修改 x */
 int const* p2 = &x;      /* 与 p1 等价 */
 int* const p3 = &x;      /* const 指针：p3 自己不能改指向，但可以通过 *p3 改 x */
-const int* const p4 = &x;/* 指向 const int 的 const 指针 */
+const int* const p4 = &x; /* 指向 const int 的 const 指针 */
 ```
+
 ### 1.3 限定符转换
 
 允许从“指向非 const”的指针隐式转换为“指向 const”的指针（添加限定符）；反方向需要显式强转，并且若最终修改了原本为 const 的对象，则是 UB。

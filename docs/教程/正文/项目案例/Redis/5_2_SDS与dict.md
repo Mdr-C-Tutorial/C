@@ -1,22 +1,22 @@
 # 5.2 源码阅读：Redis SDS 与 dict
 
-SDS（Simple Dynamic String）和 dict 是 Redis 最基础的两个数据结构。SDS 解决 C 字符串的三个硬伤：不能存 `\0`、取长度要 O(n)、拼接容易溢出。dict 解决哈希表的一个工程难题：扩容时不能阻塞服务。两者的设计都围绕同一个主题——**用巧妙的内存布局换取运行时性能**。
+SDS（Simple Dynamic String，简单动态字符串）和 dict（字典）是 Redis 最基础的两个数据结构。SDS 弥补了 C 字符串的三个不足：不能包含 `\0`、取长度要 O(n)、拼接时容易溢出。dict 是一个哈希表，它要解决的工程问题是扩容时不能阻塞服务。
 
-> 源码来自 Redis / Valkey 最新版本（RSALv2 / SSPLv1 / AGPLv3 三选一许可）。本文基于 `sds.h`、`sds.c`、`dict.h`、`dict.c` 四个文件。
+> 源码来自 Redis 最新版本（RSALv2 / SSPLv1 / AGPLv3 三选一许可）。本文基于 `sds.h`、`sds.c`、`dict.h`、`dict.c` 四个文件。
 
-## 第一部分：SDS
+## 1. SDS
 
-### 1. 为什么需要自己的字符串
+### 1.1 为什么需要自己的字符串
 
-C 标准库的字符串是一个以 `\0` 结尾的 `char` 数组。这在 Redis 的使用场景下有三个致命问题：
+C 标准库的字符串是以 `\0` 结尾的 `char` 数组。在 Redis 的使用场景下，它有三个问题：
 
 1. **不是二进制安全的**。Redis 的值可以是任意字节序列，中间完全可能出现 `\0`。`strlen`、`strcat` 等函数遇到 `\0` 就停，会截断数据。
 2. **取长度是 O(n)**。`strlen` 要从头扫到 `\0`，而 Redis 频繁需要知道字符串长度。
 3. **拼接操作不安全**。`strcat` 假设目标缓冲区够大，调用者必须自己管理内存，容易溢出。
 
-SDS 的解决方案：在字符串前面放一个 header，记录长度和已分配空间，同时保持末尾的 `\0`——这样 SDS 指针可以直接传给 `printf` 等 C 函数。
+SDS 的做法是在字符串内容前面放一个 header，记录长度和已分配空间，同时保留末尾的 `\0`，因此 SDS 指针可以直接传给 `printf` 等接受 C 字符串的函数。
 
-### 2. 内存布局：指针指向 header 之后
+### 1.2 内存布局：指针指向 header 之后
 
 ::: concept sds-type-alias title="sds 的类型定义"
 
@@ -75,9 +75,9 @@ static inline size_t sdslen(const sds s) {
 
 :::
 
-### 3. 创建：sdsnewlen
+### 1.3 创建：sdsnewlen
 
-`sdsnewlen` 是 SDS 的核心构造函数。它的流程：
+`sdsnewlen` 是 SDS 的核心构造函数，实际工作由 `_sdsnewlen` 完成。它的流程：
 
 ```c
 sds _sdsnewlen(const void *init, size_t initlen, int trymalloc) {
@@ -92,19 +92,19 @@ sds _sdsnewlen(const void *init, size_t initlen, int trymalloc) {
 }
 ```
 
-几个值得注意的设计：
+这段代码有三处细节：
 
 - **空字符串升级为 TYPE_8**。空字符串通常是为了后续追加而创建的，TYPE_5 不记录 `alloc`，每次追加都必须重新分配，所以直接跳过它。
-- **`s_malloc_usable` 获取实际分配大小**。jemalloc 等分配器返回的块可能大于请求的大小。`bufsize` 拿到实际大小后，`adjustTypeIfNeeded` 会检查是否需要升级类型——比如请求 252 字节（TYPE_8），但 jemalloc 返回了 256 字节的块，就升级到 TYPE_16 以充分利用空间。
+- **`s_malloc_usable` 获取实际分配大小**。jemalloc 等分配器返回的块可能大于请求的大小。`bufsize` 拿到实际大小后，`adjustTypeIfNeeded` 会检查多出的空间是否超过了当前类型能记录的上限，超过就升级到更大的类型，以充分利用空间。
 - **返回值是 `buf` 的地址**，不是分配块的起始地址。
 
-### 4. 扩容：sdsMakeRoomFor 的预分配策略
+### 1.4 扩容：sdsMakeRoomFor 的预分配策略
 
 ::: concept sds-prealloc title="SDS 预分配策略"
 
 当 SDS 需要更多空间时，`sdsMakeRoomFor` 不会只分配刚好够用的大小，而是贪心地多分配：
 
-- 新长度 < 1MB：容量翻倍（`newlen *= 2`）
+- 新长度 < 1MB：按新长度的两倍分配（`newlen *= 2`）
 - 新长度 >= 1MB：多分配 1MB（`newlen += SDS_MAX_PREALLOC`）
 
 这个策略使连续追加操作的均摊时间复杂度降到 O(1)。
@@ -149,9 +149,9 @@ sds _sdsMakeRoomFor(sds s, size_t addlen, int greedy) {
 
 `sdsMakeRoomFor`（greedy=1）供内部追加操作使用；`sdsMakeRoomForNonGreedy`（greedy=0）供用户精确控制分配。
 
-### 5. 追加：sdscatlen
+### 1.5 追加：sdscatlen
 
-理解了 `sdsMakeRoomFor` 之后，`sdscatlen` 的实现就很直白了：
+`sdscatlen` 先调用 `sdsMakeRoomFor` 保证空间，再复制数据：
 
 ```c
 sds sdscatlen(sds s, const void *t, size_t len) {
@@ -167,7 +167,7 @@ sds sdscatlen(sds s, const void *t, size_t len) {
 
 注意返回值：SDS 的所有修改操作都可能触发 `realloc`，导致指针改变。调用者**必须**用返回值替换旧指针：`s = sdscatlen(s, "hello", 5)`。如果写成 `sdscatlen(s, "hello", 5)` 而不接返回值，旧的 `s` 可能变成悬空指针。
 
-### 6. 收缩：sdsRemoveFreeSpace
+### 1.6 收缩：sdsRemoveFreeSpace
 
 SDS 在追加时会贪心预分配，但有些场景（比如长期存储的键）需要释放多余空间。`sdsRemoveFreeSpace` 把 SDS 收缩到刚好容纳当前内容：
 
@@ -181,15 +181,15 @@ sds sdsRemoveFreeSpace(sds s, int would_regrow) {
 
 `sdsResize` 内部还针对 jemalloc 做了优化：如果 `je_nallocx` 告诉我们 `realloc` 不会改变实际分配大小，就跳过这次调用——因为即使分配大小不变，jemalloc 的 `realloc` 本身也有开销。
 
-## 第二部分：dict
+## 2. dict
 
-### 7. 核心问题：不阻塞的 rehash
+### 2.1 核心问题：不阻塞的 rehash
 
 普通哈希表在扩容时需要一次性把所有键从旧表搬到新表。如果表里有几百万个键，这个操作会阻塞服务器几百毫秒甚至更久。Redis 是单线程事件驱动模型，任何操作阻塞主线程都意味着所有客户端挂起。
 
 dict 的解决方案：维护两张哈希表，把 rehash 分摊到每次查找/插入/删除操作中。
 
-### 8. 数据结构
+### 2.2 数据结构
 
 ::: concept dict-struct title="dict 结构体"
 
@@ -250,23 +250,23 @@ typedef struct dictType {
 } dictType;
 ```
 
-`dictType` 是 dict 的"虚函数表"。不同用途的 dict 提供不同的函数指针组合：Redis 的主键空间用 SDS 做 key，提供 SDS 的 hash/compare/free 函数；过期字典用指针直接比较，不需要 compare。
+`dictType` 是 dict 的"虚函数表"。不同用途的 dict 提供不同的函数指针组合：集合类型的 dict 用 SDS 做 key，提供 SDS 的 hash/compare/free 函数；没有提供 compare 的 dict 直接比较两个指针。
 
 :::
 
 ::: generate dict-type-explanation kind=explanation concepts=dict-type
 
-面向有 C 基础的读者，解释 dictType 的函数指针机制如何实现类似面向对象的多态：同一套 dict 代码可以处理各种不同类型的键和值，只要调用者提供正确的 dictType。举 Redis 内部的一两个实际用法为例（比如字符串键用 SipHash + SDS compare，整数键用直接比较）。说明 `resizeAllowed` 回调的作用：Redis 在 fork 子进程做持久化时会禁止 rehash，以减少 copy-on-write 的内存开销。
+面向有 C 基础的读者，解释 dictType 的函数指针机制如何实现类似面向对象的多态：同一套 dict 代码可以处理各种不同类型的键和值，只要调用者提供正确的 dictType。举 Redis 内部的一两个实际用法为例（比如字符串键用 SipHash + SDS compare，整数键用直接比较）。说明 `resizeAllowed` 回调的作用：dict 扩缩容前用它询问调用者是否允许这次分配，Redis 用它避免扩容使内存超过 maxmemory。fork 子进程期间限制 rehash 由 `dict_can_resize` 负责，不要和 resizeAllowed 混为一谈。
 
 :::
 
-### 9. 渐进式 rehash
+### 2.3 渐进式 rehash
 
 ::: concept incremental-rehash title="渐进式 rehash 机制"
 
 dict 始终维护两张表 `ht_table[0]` 和 `ht_table[1]`。正常状态下只使用 `ht_table[0]`，`rehashidx == -1`。
 
-当负载因子（元素数 / 桶数）超过阈值，Redis 分配 `ht_table[1]`（大小是当前元素数向上取整到 2 的幂），将 `rehashidx` 设为 0，开始 rehash。此后每次查找、插入、删除操作都会调用 `_dictRehashStep`，搬迁一个桶的数据。`rehashidx` 记录下一个待搬迁的桶索引。
+当负载因子（元素数 / 桶数）超过阈值，Redis 分配 `ht_table[1]`（大小是比当前元素数大的最小 2 的幂），将 `rehashidx` 设为 0，开始 rehash。此后每次查找、插入、删除操作都会调用 `_dictRehashStepIfNeeded`，搬迁一个桶的数据。`rehashidx` 记录下一个待搬迁的桶索引。
 
 当 `ht_table[0]` 的所有元素都搬完后（`ht_used[0] == 0`），释放旧表，把 `ht_table[1]` 移到 `ht_table[0]`，`rehashidx` 重置为 -1。
 
@@ -292,7 +292,7 @@ int dictRehash(dict *d, int n) {
 }
 ```
 
-`empty_visits` 限制是关键：如果旧表很稀疏（大量空桶），不加限制的话一次 rehash step 可能扫描整张表，违背"分摊"的初衷。
+`empty_visits` 限制一次调用最多访问 `n * 10` 个空桶：如果旧表很稀疏（大量空桶），不加限制的话一次 rehash step 可能扫描整张表，违背"分摊"的初衷。
 
 `rehashEntriesInBucketAtIndex` 在搬迁时有一个优化：如果是缩容（新表更小），不需要重新计算 hash，直接用旧索引与新掩码做 AND 即可：
 
@@ -306,7 +306,7 @@ if (d->ht_size_exp[1] > d->ht_size_exp[0]) {
 
 除了"每次操作搬一步"，Redis 还在定时任务中调用 `dictRehashMicroseconds`，在给定的微秒预算内尽量多搬几轮（每轮搬 100 个桶），加速 rehash 进程。
 
-### 10. 查找与插入
+### 2.4 查找与插入
 
 rehash 过程中，查找需要同时检查两张表：
 
@@ -327,6 +327,7 @@ for (table = 0; table < tables; table++) {
 
     link = &(d->ht_table[table][idx]);
     while (link && *link) {
+        const void *visitedKey = dictStoredKey2Key(d, dictGetKey(*link));
         if (key == visitedKey || cmpFunc(&cmpCache, key, visitedKey))
             return link;
         link = dictGetNextLink(*link);
@@ -338,11 +339,12 @@ for (table = 0; table < tables; table++) {
 
 `dictAdd` 的调用链：`dictAdd` -> `dictAddRaw` -> `dictFindLinkForInsert`（查找位置 + 触发扩容检查 + 执行一步 rehash）-> `dictInsertKeyAtLink`（真正插入）。
 
-### 11. 删除
+### 2.5 删除
 
 ```c
 static dictEntry *dictGenericDelete(dict *d, const void *key, int nofree) {
     h = dictGetHash(d, key);
+    idx = h & DICTHT_SIZE_MASK(d->ht_size_exp[0]);
     // 顺带执行一步 rehash
     _dictRehashStepIfNeeded(d, idx);
 
@@ -374,7 +376,7 @@ static dictEntry *dictGenericDelete(dict *d, const void *key, int nofree) {
 
 `nofree` 参数区分两种删除模式：`dictDelete`（删除并释放）和 `dictUnlink`（只从表中摘除，不释放，让调用者先用再释放）。
 
-### 12. 扩容与缩容的触发条件
+### 2.6 扩容与缩容的触发条件
 
 ::: concept resize-policy title="扩缩容策略"
 
@@ -384,7 +386,7 @@ dict 的扩缩容由全局变量 `dict_can_resize` 控制，有三个档位：
 - `DICT_RESIZE_AVOID`：负载因子 >= 4 时才强制扩容，<= 1/32 时才缩容（fork 子进程期间使用）
 - `DICT_RESIZE_FORBID`：完全禁止
 
-扩容大小：当前元素数向上取整到 2 的幂。缩容大小：同理。最小桶数为 4（`DICT_HT_INITIAL_SIZE`）。
+扩容大小：比当前元素数大的最小 2 的幂。缩容大小：不小于当前元素数的最小 2 的幂。最小桶数为 4（`DICT_HT_INITIAL_SIZE`）。
 
 :::
 
@@ -394,7 +396,7 @@ dict 的扩缩容由全局变量 `dict_can_resize` 控制，有三个档位：
 
 :::
 
-### 13. 迭代器：safe 与 unsafe
+### 2.7 迭代器：safe 与 unsafe
 
 ::: concept dict-iterators title="两种迭代器"
 
@@ -406,7 +408,7 @@ dict 提供两种迭代器：
 
 :::
 
-指纹的计算方式很有意思——把 6 个关键值（两张表的指针、大小指数、已用数量）用 Tomas Wang 的 64 位整数 hash 链式混合：
+指纹的计算方式是把 6 个关键值（两张表的指针、大小指数、已用数量）用 Thomas Wang 的 64 位整数 hash 链式混合：
 
 ```c
 unsigned long long dictFingerprint(dict *d) {
@@ -434,7 +436,7 @@ unsigned long long dictFingerprint(dict *d) {
 
 任何导致 dict 结构变化的操作（增删元素、rehash、扩缩容）都会改变这些值中的至少一个，从而改变指纹。
 
-### 14. dictScan：在 rehash 中存活的游标
+### 2.8 dictScan：在 rehash 中存活的游标
 
 ::: concept dict-scan title="dictScan 的反转位递增算法"
 
@@ -447,6 +449,8 @@ unsigned long long dictFingerprint(dict *d) {
 3. 游标 = 0 表示迭代完成
 
 :::
+
+`dictScan` 直接调用 `dictScanDefrag`：
 
 ```c
 unsigned long dictScanDefrag(dict *d, unsigned long v, ...) {
@@ -478,15 +482,15 @@ unsigned long dictScanDefrag(dict *d, unsigned long v, ...) {
 
 ::: generate dict-scan-walkthrough kind=explanation concepts=dict-scan
 
-面向有一定数据结构基础的读者，用一个具体例子解释反转位递增的工作原理。假设表大小从 4（掩码 11）扩到 8（掩码 111）：正常递增是 00 -> 01 -> 10 -> 11，反转位递增是 00 -> 10 -> 01 -> 11。当表扩到 8 时，原来桶 00 中的元素会散落到 000 和 100，桶 10 的会散落到 010 和 110——而反转位递增的遍历顺序恰好保证了：已经访问过的桶在扩容后的扩展桶不会被遗漏。解释为什么这比记录"已访问桶的集合"更高效（zero state，游标就是全部状态）。
+面向有一定数据结构基础的读者，用一个具体例子解释反转位递增的工作原理。假设表大小从 4（掩码 11）扩到 8（掩码 111）：正常递增是 00 -> 01 -> 10 -> 11，反转位递增是 00 -> 10 -> 01 -> 11。当表扩到 8 时，原来桶 00 中的元素会散落到 000 和 100，桶 10 的会散落到 010 和 110——而反转位递增的遍历顺序恰好保证了：扩容后，已访问桶的扩展桶里只有已经返回过的元素，不必再访问；尚未访问的桶也不会被遗漏。解释为什么这比记录"已访问桶的集合"更高效（zero state，游标就是全部状态）。
 
 :::
 
-### 15. 指针标记优化（no_value dict）
+### 2.9 指针标记优化（no_value dict）
 
-当 dict 被用作集合（`no_value = 1`，没有值字段）时，Redis 做了一个巧妙的空间优化：如果一个桶里只有一个键，就把键指针直接存在桶槽里，不分配 `dictEntry` 结构。
+当 dict 被用作集合（`no_value = 1`，没有值字段）时，Redis 做了一项空间优化：如果一个桶里只有一个键，就把键指针直接存在桶槽里，不分配 `dictEntry` 结构。
 
-区分"桶里存的是 dictEntry 指针还是直接的键指针"靠指针低位标记。`zmalloc` 保证 8 字节对齐，所以指针的低 3 位始终为 0，可以用来编码元数据：
+区分"桶里存的是 dictEntry 指针还是直接的键指针"靠指针低位标记。`zmalloc` 保证 8 字节对齐，所以 `dictEntry` 指针的低 3 位始终为 0，可以用来编码元数据：
 
 ```c
 #define ENTRY_PTR_NORMAL      0 /* 000: dictEntry 指针 */
@@ -504,14 +508,4 @@ void *dictGetKey(const dictEntry *de) {
 }
 ```
 
-这个优化在 Redis 的集合（Set）数据类型中大量使用，能显著减少小集合的内存开销。
-
-## 总结
-
-SDS 和 dict 展示了两种不同维度的 C 语言设计技巧：
-
-**SDS** 的核心思想是**隐藏 header**。通过让用户持有的指针指向字符串内容本身（而不是 header），SDS 在保持与 C 字符串兼容的同时，提供了 O(1) 取长度、二进制安全、自动扩容等能力。代价是所有修改操作都可能使指针失效，调用者必须始终使用返回值。
-
-**dict** 的核心思想是**分摊开销**。通过维护两张表、把 rehash 拆分到每次操作中，dict 避免了传统哈希表扩容时的长时间阻塞。反转位递增的 scan 算法则解决了"无状态游标在变化中的表上迭代"这个更难的问题。
-
-两者都大量运用了 C 语言的底层能力：柔性数组成员、packed 属性、指针算术、负偏移访问、指针低位标记、位操作——这些技巧在高级语言中无法实现，正是 C 在系统编程中不可替代的原因。
+这个优化在 Redis 的集合（Set）数据类型中大量使用，能显著减少集合的内存开销。

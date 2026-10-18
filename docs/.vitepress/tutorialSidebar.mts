@@ -860,7 +860,7 @@ export const TutorialSidebar: DefaultTheme.SidebarItem[] = [
             link: "/教程/正文/数据结构与算法/数据结构/1_ADT",
           },
           {
-            text: "2. 顺序表",
+            text: "2. 线性表",
             link: "/教程/正文/数据结构与算法/数据结构/2_线性表",
           },
           {

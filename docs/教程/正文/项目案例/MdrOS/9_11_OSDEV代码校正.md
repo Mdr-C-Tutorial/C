@@ -2,7 +2,7 @@
 
 因 OSDEV 教程过于古老，并结合笔者实际开发经验，以下章节会有部分对 OSDEV 的代码校正。
 
-## AHCI
+## 1. AHCI
 
 该章节中部分代码可以优化以及校正错误
 
@@ -29,8 +29,8 @@
 
    ```c
    uint64_t phys_ctb = AHCI_BASE + (40<<10) + (portno<<13) + (i<<8);
-   cmdheader[i].ctba = phy_ctb & 0xFFFFFFFF;
-   cmdheader[i].ctbau = phy_ctb >> 32;
+   cmdheader[i].ctba = phys_ctb & 0xFFFFFFFF;
+   cmdheader[i].ctbau = phys_ctb >> 32;
    ```
 
    [Example\_-_Read_hard_disk_sectors](https://wiki.osdev.org/AHCI#Example_-_Read_hard_disk_sectors)

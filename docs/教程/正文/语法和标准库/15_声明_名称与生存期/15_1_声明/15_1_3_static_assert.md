@@ -6,7 +6,7 @@
 
 1. 检查类型大小/对齐是否满足约束；
 2. 检查宏配置是否互相冲突；
-3. 作为“代码级别的约束文档”，把恒定约束写死在编译期。
+3. 把代码依赖的前提（例如某个常量的取值范围）写进源代码，由编译器检查。
 
 ## 1. 语法与版本
 
@@ -17,6 +17,7 @@ C11 引入 `_Static_assert`：
 ```c
 _Static_assert(expression, message);
 ```
+
 其中 `expression` 必须是整数常量表达式；`message` 必须是字符串字面量。
 
 ### 1.2 C23：`static_assert`
@@ -27,6 +28,7 @@ C23 引入 `static_assert`，与 `_Static_assert` 等效，并且允许省略 `m
 static_assert(expression, "message");
 static_assert(expression);
 ```
+
 同时，`_Static_assert` 在 C23 中成为保留的兼容拼写（已被弃用但仍可用）。
 
 ::: tip 头文件
@@ -36,6 +38,8 @@ static_assert(expression);
 :::
 
 ## 2. 示例
+
+以下示例按 C23 编写。
 
 ```c
 #include <stddef.h>
@@ -48,9 +52,10 @@ int main(void) {
     return 0;
 }
 ```
-## 3. 约束应贴近声明点
 
-静态断言最有价值的用法是“贴着被约束对象放置”。例如某个结构要和外部二进制协议对齐，就把 `static_assert(sizeof(...))` 放在该类型定义附近；某个配置宏必须满足范围，就把断言放在相关配置声明附近。这样读者在阅读声明时就能同时看到约束。
+## 3. 断言的放置位置
+
+静态断言通常紧挨着被检查的声明放置。例如某个结构体的布局必须与外部二进制格式一致时，就把检查其 `sizeof` 的断言放在该类型定义之后；某个配置宏必须位于一定范围内时，就把断言放在该宏的定义附近。这样阅读声明时就能同时看到它依赖的前提。
 
 ```c
 #include <stddef.h>
@@ -62,9 +67,10 @@ struct header {
 
 static_assert(sizeof(struct header) == 4, "header layout mismatch");
 ```
+
 ## 4. 与 `#error` 的分工
 
-`#error` 属于预处理阶段，适合检查“宏是否定义、配置组合是否合法”；`static_assert` 属于语言语义阶段，适合检查“类型大小、对齐、常量表达式关系是否满足约束”。把这两层分开使用，诊断信息会更聚焦，也更容易维护。
+`#error` 在预处理阶段起作用，适合检查宏是否定义、配置组合是否合法；预处理器不认识类型，类型大小、对齐以及常量表达式之间的关系要用 `static_assert` 检查。
 
 ## 5. 习题
 

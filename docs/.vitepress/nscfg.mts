@@ -278,7 +278,7 @@ export const Sidebar: DefaultTheme.Sidebar = {
                 },
                 {
                   text: "11001 复数结构体",
-                  link: "/教程/题解/语法和标准库/10_枚举_结构与联合/11701",
+                  link: "/教程/题解/语法和标准库/10_枚举_结构与联合/11001",
                 },
                 {
                   text: "11002 分数结构体",
@@ -342,7 +342,7 @@ export const Sidebar: DefaultTheme.Sidebar = {
               items: [
                 {
                   text: "11701 宏的重复求值",
-                  link: "/教程/题解/语法和标准库/17_预处理与翻译/11901",
+                  link: "/教程/题解/语法和标准库/17_预处理与翻译/11701",
                 },
               ],
             },

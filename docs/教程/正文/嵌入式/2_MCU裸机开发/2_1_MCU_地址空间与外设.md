@@ -2,25 +2,18 @@
 
 ## 1. 简介
 
-**STM32（STMicroelectronics Microcontroller）** 是由意法半导体（STMicroelectronics）公司开发的一系列 32 位微控制器。
-这些微控制器广泛应用于各种嵌入式系统，包括消费电子、工业控制、汽车电子、医疗设备、物联网（IoT）等领域。
+STM32 是意法半导体 (STMicroelectronics) 推出的 32 位微控制器系列，采用 Arm Cortex-M 内核，广泛用于消费电子、工业控制、汽车电子、医疗设备和物联网 (Internet of Things, IoT) 等领域。
 
-STM32 系列微控制器具有以下特点：
+STM32 系列微控制器有以下特点：
 
-1. **高性能**：STM32 微控制器采用高性能的 ARM Cortex-M 内核，提供高处理速度和低功耗。
-2. **丰富的外设**
-   ：STM32 系列微控制器集成了多种外设，如 ADC（模数转换器）、DAC（数模转换器）、PWM（脉宽调制）、SPI（串行外设接口）、I2C（集成电路间总线）、UART（通用异步收发传输器）、USB（通用串行总线）、CAN（控制器局域网）、GPIO（通用输入输出）等，满足各种应用需求。
-3. **低功耗**：STM32 系列微控制器具有多种低功耗模式，适用于电池供电的便携式设备。
-4. **可扩展性**：STM32 系列微控制器支持多种存储器选项，包括闪存、SRAM、EEPROM 等，并且可以通过外部存储器扩展存储容量。
-5. **开发工具**：意法半导体提供了丰富的开发工具，包括 STM32CubeMX（用于配置和初始化微控制器）、STM32CubeIDE（集成开发环境）、STM32
-   HAL 库（硬件抽象层库）等，方便开发者进行软件开发。
-6. **生态系统**：STM32 微控制器拥有庞大的生态系统，包括丰富的开发板、教程、示例代码、社区支持等，便于开发者进行学习和开发。
-
-总之，STM32 微控制器凭借其高性能、丰富的外设、低功耗、可扩展性、开发工具和生态系统，成为嵌入式系统开发的热门选择。
+- 集成了多种外设，如模数转换器 (Analog-to-Digital Converter, ADC)、数模转换器 (Digital-to-Analog Converter, DAC)、脉宽调制 (Pulse-Width Modulation, PWM)、串行外设接口 (Serial Peripheral Interface, SPI)、集成电路间总线 (Inter-Integrated Circuit, I2C)、通用异步收发器 (Universal Asynchronous Receiver/Transmitter, UART)、通用串行总线 (Universal Serial Bus, USB)、控制器局域网 (Controller Area Network, CAN) 和通用输入输出 (General-Purpose Input/Output, GPIO) 等。
+- 有多种低功耗模式，适合电池供电的便携式设备。
+- 支持闪存、SRAM、EEPROM 等多种存储器，也可以外接存储器扩展容量。
+- 意法半导体提供 STM32CubeMX（配置和初始化微控制器）、STM32CubeIDE（集成开发环境）、STM32 HAL 库（硬件抽象层库）等开发工具，开发板、教程、示例代码和社区支持也很丰富。
 
 ## 2. STM32 选型
 
-> 中国有句古话说的好：“工欲善其事，必先利其器”，所以，在开始我们的嵌入式旅程前，得先挑选一块趁手的开发板。
+> 中国有句古话说得好：“工欲善其事，必先利其器”，所以，在开始我们的嵌入式旅程前，得先挑选一块趁手的开发板。
 
 ### 2.1 STM32 分类
 
@@ -77,7 +70,7 @@ STM32 系列微控制器具有以下特点：
         </tr>
         <tr>
             <td rowspan="5">8</td>
-            <td rowspan="5">6502</td>
+            <td rowspan="5">STM8</td>
         </tr>
         <tr>
             <td>STM8s</td>
@@ -117,7 +110,7 @@ STM32 系列微控制器具有以下特点：
 | 下载 IO  | JTAG（JTMS、JTCK、JTDI、JTDO、NJRST）、SWD（SWDIO、SWCLK） |
 | BOOT IO  | BOOT0、BOOT1，设置板子启动方式                             |
 | 复位 IO  | NRST，用于外部复位                                         |
-| GPIO     | 专用总线（I2C、SPI、CAN、USB、FSMC、DMCI 等）、通用 IO     |
+| GPIO     | 专用总线（I2C、SPI、CAN、USB、FSMC、DCMI 等）、通用 IO     |
 
 ### 3.2 关于引脚
 

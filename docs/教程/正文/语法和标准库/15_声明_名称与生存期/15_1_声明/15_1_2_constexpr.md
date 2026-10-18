@@ -16,9 +16,10 @@
 
 并非所有类型都允许使用 `constexpr`。标准对可用类型施加了限制，常见的限制包括：
 
-1. 只允许标量对象（因此数组、结构体等不适用）。
-2. 指针类型仅允许空指针常量 (Null pointer constant) 作为 `constexpr`（即只能是“空指针”这一类值）。
-3. 不允许可变修改类型 (VLA 相关)、原子类型、`volatile` 类型、`restrict` 指针等。
+1. 指针类型仅允许空指针常量 (Null pointer constant) 作为 `constexpr`（即只能是“空指针”这一类值）。
+2. 不允许可变修改类型 (VLA 相关)、原子类型、`volatile` 类型、`restrict` 指针等。
+
+数组、结构体等也可以声明为 `constexpr`（例如 `constexpr int arr[3] = {1, 2, 3};`），其成员同样要满足上面的限制。
 
 ## 3. `const` 与 `constexpr` 的区别
 
@@ -46,6 +47,7 @@ int main(void) {
 42
 
 :::
+
 ## 5. 习题
 
 <Exercise id="11507" :d="1" :w="2">

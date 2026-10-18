@@ -62,7 +62,9 @@ alignof(float[10]) = 4
 alignof(max_align_t) = 16
 
 :::
+
 除 `char` 的对齐要求为 `1` 外，其余数值应以目标实现的实际结果为准。
+
 ## 4. 习题
 
 <Exercise id="11613" :d="1" :w="2">

@@ -22,6 +22,7 @@
 
 void (*signal(int sig, void (*handler)(int)))(int);
 ```
+
 - `sig` 是信号编号（如 `SIGINT`）。
 - `handler` 有三种常见取值：
   1. `SIG_DFL`：默认处理。
@@ -37,6 +38,7 @@ void (*signal(int sig, void (*handler)(int)))(int);
 
 int raise(int sig);
 ```
+
 `raise(sig)` 用于向当前进程发送一个信号 `sig`。
 
 ## 2. 标准 C 常见信号
@@ -58,7 +60,7 @@ int raise(int sig);
 
 ## 3. 信号处理函数应该做什么
 
-信号处理函数运行在“异步打断”的上下文里，能安全做的事情很少。一个可移植且稳妥的策略是：
+信号处理函数运行在“异步打断”的上下文里，能安全做的事情很少。一个可移植的做法是：
 
 1. 定义一个 `volatile sig_atomic_t` 对象作为标志位。
 2. 在处理函数里只设置该标志位。
@@ -111,9 +113,10 @@ press Ctrl+C to stop...
 stopped
 
 :::
+
 ::: warning 关于 `signal` 的语义
 
-历史上不同系统对 `signal` 的语义不完全一致（例如处理函数是否会在触发后自动恢复为默认处理）。如果你需要更可靠、可控的信号语义，通常应使用 POSIX 的 `sigaction`（见项目模块的 POSIX 章节）。
+历史上不同系统对 `signal` 的语义不完全一致（例如处理函数是否会在触发后自动恢复为默认处理）。如果你需要更可靠、可控的信号语义，通常应使用 POSIX 的 `sigaction`（见系统编程模块的[信号、时间与定时器](/教程/正文/系统编程/6_信号_时间与定时器)）。
 
 :::
 

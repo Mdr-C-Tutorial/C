@@ -20,7 +20,7 @@
 
 ### 1.2 浮点分类：`isfinite` / `isinf` / `isnan` / `fpclassify`
 
-对浮点计算结果进行分类，是写健壮数学代码的常用技巧：
+这些分类宏用于判断浮点值属于有限值、无穷大、NaN 等哪一类：
 
 ```c
 #include <math.h>
@@ -30,6 +30,7 @@ int isinf(real-floating x);
 int isnan(real-floating x);
 int fpclassify(real-floating x);
 ```
+
 （标准里的形参类型写作 `real-floating`，表示“实浮点类型”；实际函数对 `float`/`double`/`long double` 都可用。）
 
 `fpclassify` 的结果会落在若干宏之一：`FP_NAN`、`FP_INFINITE`、`FP_ZERO`、`FP_SUBNORMAL`、`FP_NORMAL`。
@@ -82,7 +83,8 @@ rad = 0.523599
 sin = 0.500000
 
 :::
-## 习题
+
+## 5. 习题
 
 <Exercise id="11902" :d="2" :w="2">
 

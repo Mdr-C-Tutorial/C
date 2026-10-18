@@ -1,16 +1,16 @@
 # 2.1 源码阅读：kilo
 
-kilo 是 antirez（Redis 的作者）写的一个终端文本编辑器，整个项目只有一个 C 文件，不到 1000 行有效代码（以 cloc 计）。它不依赖 ncurses，直接向终端发送 VT100 转义序列完成所有渲染，是学习「C 如何与终端交互」的理想材料。
+kilo 是 antirez（Redis 的作者）写的一个终端文本编辑器，整个项目只有一个 C 文件，不到 1000 行有效代码（以 cloc 计）。它不依赖 ncurses，直接向终端发送 VT100 转义序列完成所有渲染，适合用来学习 C 程序如何直接控制终端。
 
-本文从**目的到实现**自顶向下地拆解 kilo 的源码。读完后你会理解：一个终端文本编辑器到底需要解决哪些问题，以及 kilo 用了哪些 C 技术来解决它们。
+本文先列出终端编辑器要解决的问题，再按 `kilo.c` 的代码分区阅读对应的实现。
 
 > 源码仓库：<https://github.com/antirez/kilo>，BSD-2-Clause 许可。本文基于截至 2016 年的最新版本。
 
 ## 1. 一个终端编辑器需要做什么
 
-在终端里运行 `vim` 或 `nano` 时，你看到的是一整屏实时刷新的文字。但终端本身只是一个逐行输入、逐行输出的设备——它并不天然支持"光标移到第 3 行第 7 列"这种操作。所以一个终端编辑器至少需要解决五个问题：
+在终端里运行 `vim` 或 `nano` 时，看到的是一整屏实时刷新的文字。终端在默认模式下按行缓冲输入并自动回显，程序要等用户按下回车才能读到整行文本；要在屏幕任意位置绘制文字，程序必须自己发送转义序列移动光标。因此一个终端编辑器至少需要解决五个问题：
 
-1. **接管终端**：关闭终端的"行缓冲"和"回显"，让程序能逐字节读取用户的每次按键。
+1. **接管终端**：关闭终端的行缓冲和回显，让程序能逐字节读取用户的每次按键。
 2. **读懂按键**：普通字符直接就是 ASCII，但方向键、Page Up 等特殊键会产生多字节的转义序列，需要解析。
 3. **维护文档模型**：在内存里用合适的数据结构保存每一行文本，支持插入、删除、拆行、合并行。
 4. **渲染屏幕**：每次按键后，根据文档模型和光标位置，重新计算整屏内容，用转义序列画出来。
@@ -44,11 +44,11 @@ struct editorConfig {
 static struct editorConfig E;
 ```
 
-这是 C 语言里常见的"单实例全局状态"模式。整个程序通过 `E.cx`、`E.row` 等成员访问一切，不需要在函数间传递上下文指针。
+kilo 一次只编辑一个文件，所以用一个全局结构体保存全部状态。各函数直接通过 `E.cx`、`E.row` 等成员读写状态，不需要在函数间传递上下文指针。
 
 ### 2.2 主循环
 
-`main` 函数只有 10 行，把全部细节委托出去：
+`main` 函数只做初始化，然后进入主循环：
 
 ```c
 int main(int argc, char **argv) {
@@ -72,11 +72,11 @@ int main(int argc, char **argv) {
 }
 ```
 
-核心就是一个无限循环：**画屏幕 → 等按键 → 处理按键 → 再画屏幕**。这是几乎所有交互式终端程序的骨架。
+主循环反复执行两步：按当前状态重绘整屏，然后读取并处理一次按键。
 
 ### 2.3 源码分区
 
-kilo.c 用注释横线把代码分成清晰的六个区域，从底层到高层依次是：
+kilo.c 用注释横线把代码分成七个区域，按在文件中的顺序依次是：
 
 | 区域 | 行范围（约） | 职责 |
 |:---|:---|:---|
@@ -94,33 +94,63 @@ kilo.c 用注释横线把代码分成清晰的六个区域，从底层到高层�
 
 ### 3.1 按键分发
 
-`editorProcessKeypress` 读取一次按键，然后用 `switch` 分发：
+`editorProcessKeypress` 读取一次按键，然后用 `switch` 分发（省略了部分分支）：
 
 ```c
+#define KILO_QUIT_TIMES 3
 void editorProcessKeypress(int fd) {
+    /* 文件已修改时，要求连按多次 Ctrl-Q 才真正退出 */
     static int quit_times = KILO_QUIT_TIMES;
-    int c = editorReadKey(fd);
 
+    int c = editorReadKey(fd);
     switch(c) {
-    case ENTER:       editorInsertNewline();  break;
-    case CTRL_Q:      /* 退出，带未保存保护 */ break;
-    case CTRL_S:      editorSave();           break;
-    case CTRL_F:      editorFind(fd);         break;
-    case BACKSPACE:
-    case CTRL_H:
-    case DEL_KEY:     editorDelChar();        break;
-    case ARROW_UP: case ARROW_DOWN:
-    case ARROW_LEFT: case ARROW_RIGHT:
-        editorMoveCursor(c);                  break;
-    default:          editorInsertChar(c);    break;
+    case ENTER:         /* Enter */
+        editorInsertNewline();
+        break;
+    case CTRL_C:        /* Ctrl-c */
+        /* 忽略 Ctrl-C，避免轻易丢失对文件的修改 */
+        break;
+    case CTRL_Q:        /* Ctrl-q */
+        /* 文件已保存则直接退出 */
+        if (E.dirty && quit_times) {
+            editorSetStatusMessage("WARNING!!! File has unsaved changes. "
+                "Press Ctrl-Q %d more times to quit.", quit_times);
+            quit_times--;
+            return;
+        }
+        exit(0);
+        break;
+    case CTRL_S:        /* Ctrl-s */
+        editorSave();
+        break;
+    case CTRL_F:
+        editorFind(fd);
+        break;
+    case BACKSPACE:     /* Backspace */
+    case CTRL_H:        /* Ctrl-h */
+    case DEL_KEY:
+        editorDelChar();
+        break;
+    /* PAGE_UP、PAGE_DOWN：转换为多次 editorMoveCursor（略） */
+    case ARROW_UP:
+    case ARROW_DOWN:
+    case ARROW_LEFT:
+    case ARROW_RIGHT:
+        editorMoveCursor(c);
+        break;
+    /* CTRL_L、ESC：不做处理（略） */
+    default:
+        editorInsertChar(c);
+        break;
     }
-    quit_times = KILO_QUIT_TIMES;
+
+    quit_times = KILO_QUIT_TIMES; /* 恢复初始值 */
 }
 ```
 
 值得注意的设计：
 
-- **未保存退出保护**：`Ctrl-Q` 在文件 dirty 时不会直接退出，而是要求连按 3 次。用一个 `static` 局部变量 `quit_times` 做倒计数，任何其他按键都会重置它。
+- **未保存退出保护**：`Ctrl-Q` 在文件有未保存的修改时不会直接退出，前 3 次只在状态栏显示警告并提前 `return`，第 4 次才退出。用一个 `static` 局部变量 `quit_times` 做倒计数，任何其他按键都会重置它。
 - **`Ctrl-C` 被忽略**：编辑器不能因为用户按了 `Ctrl-C` 就丢失修改。
 - **默认分支插入字符**：只要不是特殊键，就当作普通字符插入。
 
@@ -191,7 +221,7 @@ int enableRawMode(int fd) {
     raw.c_cflag |= (CS8);
     // 关闭：回显、行缓冲、扩展功能、信号字符
     raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
-    // 最少读 0 字节（非阻塞），超时 100ms
+    // VMIN = 0、VTIME = 1：有字节即返回，否则最多等待 100ms 后返回 0
     raw.c_cc[VMIN] = 0;
     raw.c_cc[VTIME] = 1;
 
@@ -215,18 +245,37 @@ int getWindowSize(int ifd, int ofd, int *rows, int *cols) {
     struct winsize ws;
 
     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0) {
-        // 备用方案：把光标移到右下角，再查询位置
+        // ioctl() 失败，改为向终端本身查询
+        int orig_row, orig_col, retval;
+
+        // 记下当前光标位置，以便稍后恢复
+        retval = getCursorPosition(ifd,ofd,&orig_row,&orig_col);
+        if (retval == -1) goto failed;
+
+        // 把光标移到右下角，再查询位置
         if (write(ofd,"\x1b[999C\x1b[999B",12) != 12) goto failed;
-        return getCursorPosition(ifd,ofd,rows,cols);
+        retval = getCursorPosition(ifd,ofd,rows,cols);
+        if (retval == -1) goto failed;
+
+        // 恢复光标位置
+        char seq[32];
+        snprintf(seq,32,"\x1b[%d;%dH",orig_row,orig_col);
+        if (write(ofd,seq,strlen(seq)) == -1) {
+            /* 无法恢复，忽略 */
+        }
+        return 0;
     } else {
         *cols = ws.ws_col;
         *rows = ws.ws_row;
         return 0;
     }
+
+failed:
+    return -1;
 }
 ```
 
-备用方案的原理：`ESC[999C` 把光标向右移 999 列（会停在右边界），`ESC[999B` 向下移 999 行（停在底边界），然后用 `ESC[6n` 查询光标当前位置——这个位置就是终端的尺寸。
+备用方案的原理：`ESC[999C` 把光标向右移 999 列（会停在右边界），`ESC[999B` 向下移 999 行（停在底边界），然后用 `ESC[6n` 查询光标当前位置——这个位置就是终端的尺寸。查询之前，kilo 先记下光标原来的位置，查询之后再把光标移回去。
 
 kilo 还用 `signal(SIGWINCH, handleSigWinCh)` 监听终端窗口大小变化，收到信号后重新获取尺寸并刷屏。
 
@@ -248,7 +297,7 @@ typedef struct erow {
 } erow;
 ```
 
-为什么需要两份内容（`chars` 和 `render`）？因为 Tab 字符在文件里是一个字节，但在屏幕上占多列（kilo 按 8 列对齐）。`render` 是把 Tab 展开成空格后的版本，`hl` 数组和 `render` 等长，记录每个字符应该用什么颜色渲染。
+`chars` 保存文件中的原始字节，`render` 保存实际显示的内容：Tab 在文件里是一个字节，在屏幕上要展开为多个空格（kilo 按 8 列对齐）。`hl` 数组与 `render` 等长，记录每个字符应该用什么颜色渲染。
 
 所有行存储在 `E.row` 动态数组里，用 `E.numrows` 记录行数。
 
@@ -309,8 +358,9 @@ int editorOpen(char *filename) {
 
     E.dirty = 0;
     free(E.filename);
-    E.filename = malloc(strlen(filename)+1);
-    memcpy(E.filename, filename, strlen(filename)+1);
+    size_t fnlen = strlen(filename)+1;
+    E.filename = malloc(fnlen);
+    memcpy(E.filename,filename,fnlen);
 
     fp = fopen(filename, "r");
     if (!fp) {
@@ -322,7 +372,7 @@ int editorOpen(char *filename) {
     size_t linecap = 0;
     ssize_t linelen;
     while ((linelen = getline(&line, &linecap, fp)) != -1) {
-        // 去掉行尾的 \n 和 \r
+        // 去掉行尾的一个 \n 或 \r
         if (linelen && (line[linelen-1] == '\n' || line[linelen-1] == '\r'))
             line[--linelen] = '\0';
         editorInsertRow(E.numrows, line, linelen);
@@ -387,11 +437,11 @@ void abAppend(struct abuf *ab, const char *s, int len) {
 }
 ```
 
-这就是一个最小的动态字节缓冲区——和 `editorRowAppendString` 的思路一样，每次追加都 `realloc`。在这个场景下每帧只追加几十次，简单直接。
+这就是一个最小的动态字节缓冲区——和 `editorRowAppendString` 的思路一样，每次追加都 `realloc`。正文是逐字符追加的，每帧的追加次数和屏幕上的字符数差不多；在这个规模下，这样写简单直接。
 
 ### 7.2 刷屏流程
 
-`editorRefreshScreen` 是 kilo 最长的函数（约 120 行），做这几件事：
+`editorRefreshScreen` 是 kilo 中较长的函数之一（约 120 行），做这几件事：
 
 1. **隐藏光标**：`ESC[?25l`，避免渲染过程中光标闪烁。
 2. **光标归位**：`ESC[H`，回到左上角开始画。
@@ -405,7 +455,7 @@ void abAppend(struct abuf *ab, const char *s, int len) {
 7. **显示光标**：`ESC[?25h`。
 8. **一次性输出**：`write(STDOUT_FILENO, ab.b, ab.len)`。
 
-颜色渲染部分的逻辑值得关注——kilo 维护一个 `current_color` 变量，只在颜色实际改变时才输出 `ESC[颜色m`，减少不必要的转义序列：
+绘制正文时，kilo 用变量 `current_color` 记录当前颜色，只在颜色实际改变时才输出 `ESC[颜色m`，减少不必要的转义序列：
 
 ```c
 int color = editorSyntaxToColor(hl[j]);
@@ -430,36 +480,51 @@ kilo 没有单独的滚动函数。滚动是**渲染的副作用**：`E.rowoff` 
 void editorFind(int fd) {
     char query[KILO_QUERY_LEN+1] = {0};
     int qlen = 0;
-    int last_match = -1;
+    int last_match = -1;  // 上次匹配所在的行，-1 表示没有
     int find_next = 0;    // 1 向下搜，-1 向上搜
     int saved_hl_line = -1;
     char *saved_hl = NULL;
+
+#define FIND_RESTORE_HL do { \
+    if (saved_hl) { \
+        memcpy(E.row[saved_hl_line].hl,saved_hl, E.row[saved_hl_line].rsize); \
+        free(saved_hl); \
+        saved_hl = NULL; \
+    } \
+} while (0)
 
     // 保存进入搜索前的光标位置
     int saved_cx = E.cx, saved_cy = E.cy;
     int saved_coloff = E.coloff, saved_rowoff = E.rowoff;
 
     while(1) {
-        editorSetStatusMessage("Search: %s (Use ESC/Arrows/Enter)", query);
+        editorSetStatusMessage(
+            "Search: %s (Use ESC/Arrows/Enter)", query);
         editorRefreshScreen();
 
         int c = editorReadKey(fd);
-        if (c == ESC) {
-            // ESC 取消搜索，恢复光标
-            E.cx = saved_cx; E.cy = saved_cy;
-            E.coloff = saved_coloff; E.rowoff = saved_rowoff;
-            /* 恢复高亮... */
+        if (c == DEL_KEY || c == CTRL_H || c == BACKSPACE) {
+            if (qlen != 0) query[--qlen] = '\0';
+            last_match = -1;
+        } else if (c == ESC || c == ENTER) {
+            if (c == ESC) {
+                // ESC 取消搜索，恢复光标；Enter 则停在当前位置
+                E.cx = saved_cx; E.cy = saved_cy;
+                E.coloff = saved_coloff; E.rowoff = saved_rowoff;
+            }
+            FIND_RESTORE_HL;
+            editorSetStatusMessage("");
             return;
-        } else if (c == ENTER) {
-            return;  // Enter 确认搜索，停在当前位置
         } else if (c == ARROW_RIGHT || c == ARROW_DOWN) {
             find_next = 1;
         } else if (c == ARROW_LEFT || c == ARROW_UP) {
             find_next = -1;
         } else if (isprint(c)) {
-            query[qlen++] = c;
-            query[qlen] = '\0';
-            last_match = -1;
+            if (qlen < KILO_QUERY_LEN) {
+                query[qlen++] = c;
+                query[qlen] = '\0';
+                last_match = -1;
+            }
         }
         // 搜索匹配行，高亮匹配文本...
     }
@@ -490,7 +555,7 @@ struct editorSyntax {
 };
 ```
 
-目前只内置了 C/C++ 的规则，但结构设计得可以扩展。关键字列表有一个巧妙的约定：以 `|` 结尾的关键字用第二种颜色显示（用于区分类型名和语法关键字），比如 `"int|"` 和 `"return"`。
+目前只内置了 C/C++ 的规则，但结构设计得可以扩展。关键字列表有一个约定：以 `|` 结尾的关键字用第二种颜色显示（用于区分类型名和语法关键字），比如 `"int|"` 和 `"return"`。
 
 ### 9.2 高亮算法
 
@@ -502,7 +567,7 @@ struct editorSyntax {
 
 扫描按优先级依次检查：单行注释 → 多行注释 → 字符串 → 不可打印字符 → 数字 → 关键字 → 普通字符。找到匹配就 `continue`，跳过后续检查。
 
-最值得注意的是**多行注释的跨行传播**：
+多行注释可以跨行，一行的扫描结果会影响下一行。函数末尾处理这种跨行传播：
 
 ```c
 int oc = editorRowHasOpenComment(row);
@@ -515,7 +580,7 @@ row->hl_oc = oc;
 
 ### 9.3 颜色映射
 
-高亮类型到终端颜色的映射很简单：
+`editorSyntaxToColor` 把高亮类型映射为终端颜色：
 
 ```c
 int editorSyntaxToColor(int hl) {
@@ -536,36 +601,36 @@ int editorSyntaxToColor(int hl) {
 
 ## 10. 光标移动与视口
 
-`editorMoveCursor` 处理四个方向键。逻辑虽然直白，但有几个边界细节：
+`editorMoveCursor` 处理四个方向键，有几处细节：
 
 - **左键到行首**：如果不是第一行，跳到上一行末尾（类似 nano 的行为）。
 - **右键到行尾**：跳到下一行开头。
-- **滚动触发**：如果光标移出了视口（`E.cy < 0` 或 `E.cy >= E.screenrows`），调整 `E.rowoff`/`E.coloff`。
+- **滚动触发**：光标已在视口边缘、还要继续向外移动时，不再移动光标，而是调整 `E.rowoff`/`E.coloff`。
 - **行尾修正**：向上/下移动后，如果新行比原来短，光标列会被钳位到新行的行尾。
 
-光标位置用两套坐标表示：**屏幕坐标** `(E.cx, E.cy)` 是光标在视口中的位置；**文件坐标** `(E.coloff + E.cx, E.rowoff + E.cy)` 是光标在文件中的绝对位置。这种分离让滚动逻辑变得自然。
+光标位置用两套坐标表示：**屏幕坐标** `(E.cx, E.cy)` 是光标在视口中的位置；**文件坐标** `(E.coloff + E.cx, E.rowoff + E.cy)` 是光标在文件中的绝对位置。
 
 ## 11. 值得学习的 C 技术
 
 通读 kilo 的代码，可以看到几个 C 工程实践：
 
-### 动态数组的 realloc 模式
+### 11.1 动态数组的 realloc 模式
 
 kilo 到处使用 `realloc` 扩容：行数组、行内字符、append buffer。模式总是 `realloc(ptr, newsize)` → `memcpy`/`memmove`。在这个规模下足够简单高效。
 
-### goto 做错误处理
+### 11.2 goto 做错误处理
 
 `enableRawMode`、`getWindowSize`、`editorSave` 都用 `goto` 跳转到统一的错误出口。这是 C 语言里替代异常的标准做法。
 
-### 宏做局部代码复用
+### 11.3 宏做局部代码复用
 
 搜索函数里的 `FIND_RESTORE_HL` 宏用 `do { ... } while(0)` 包装，确保在 `if` 等语句里表现正常。这在 C 代码中很常见。
 
-### atexit 保证终端恢复
+### 11.4 atexit 保证终端恢复
 
 `atexit(editorAtExit)` 确保不管程序怎么退出（正常退出、`exit(1)`），终端都能回到 cooked 模式。这比在每个退出路径手动调用 `disableRawMode` 可靠得多。
 
-### 数据与代码分离
+### 11.5 数据与代码分离
 
 语法高亮的**规则**（关键字表、文件匹配模式）和**算法**（状态机扫描）完全分离。要新增一种语言的高亮只需要添加一组数据，不用改算法代码。
 
@@ -596,5 +661,3 @@ main
         └── editorFind
             └── strstr 搜索 + HL_MATCH 高亮
 ```
-
-1300 行代码，实现了文件编辑、语法高亮、增量搜索、滚动、状态栏——没有任何外部依赖。kilo 的价值不在于功能完善，而在于它用最少的代码演示了终端编辑器背后的全部核心问题。

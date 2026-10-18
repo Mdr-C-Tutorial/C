@@ -1,28 +1,28 @@
 # 6.2 源码阅读：SQLite 虚拟机（VDBE）
 
-SQLite 不直接解释 SQL——它先把 SQL 编译成字节码，然后用一台虚拟机逐条执行。这台虚拟机叫 VDBE（Virtual Database Engine），是 SQLite 最核心的运行时组件。用 `EXPLAIN` 可以直接看到编译出的字节码：
+SQLite 不直接解释 SQL，而是先把 SQL 编译成字节码，再由一台虚拟机逐条执行。这台虚拟机叫 VDBE（Virtual Database Engine），是 SQLite 最核心的运行时组件。用 `EXPLAIN` 可以直接看到编译出的字节码（表结构为 `CREATE TABLE users(id INTEGER PRIMARY KEY, name TEXT, age INTEGER)`）：
 
 ```sql
 sqlite> EXPLAIN SELECT name FROM users WHERE age > 30;
 addr  opcode         p1    p2    p3    p4             p5
 ----  -------------  ----  ----  ----  -------------  --
-0     Init           0     10    0                    0
+0     Init           0     9     0                    0
 1     OpenRead       0     2     0     3              0
-2     Rewind         0     9     0                    0
-3       Column       0     2     3                    0
-4       Le           1     8     3     BINARY-8       0x54
-5       Column       0     1     4                    0
-6       ResultRow    4     1     0                    0
-7       Yield        0     0     0                    0
-8     Next           0     3     0                    1
-9     Halt           0     0     0                    0
-10    Integer        30    1     0                    0
+2     Rewind         0     8     0                    0
+3       Column       0     2     1                    0
+4       Le           2     7     1     BINARY-8       84
+5       Column       0     1     3                    0
+6       ResultRow    3     1     0                    0
+7     Next           0     3     0                    1
+8     Halt           0     0     0                    0
+9     Transaction    0     0     1     0              1
+10    Integer        30    2     0                    0
 11    Goto           0     1     0                    0
 ```
 
-这和 Python、Lua 的工作方式一模一样：源码先编译为字节码，然后由虚拟机解释执行。区别在于 SQLite 的指令集是专门为数据库操作设计的——它有打开 B-tree 游标、提取列值、返回结果行等专用指令。
+Python、Lua 也采用同样的方式：源码先编译为字节码，再由虚拟机解释执行。区别在于 SQLite 的指令集专门为数据库操作设计，有打开 B-tree 游标、提取列值、返回结果行等专用指令。
 
-在[架构概述](./6_1_架构概述.md)中，VDBE 位于代码生成器（前端）和 B-tree/Pager（后端）之间。前端把 SQL 翻译成字节码交给 VDBE，VDBE 执行字节码时通过 B-tree API 读写数据。本文聚焦 VDBE 本身的内部实现。
+在[架构概述](./6_1_架构概述.md)中，VDBE 位于代码生成器（前端）和 B-tree/Pager（后端）之间。前端把 SQL 翻译成字节码交给 VDBE，VDBE 执行字节码时通过 B-tree API 读写数据。本文介绍 VDBE 本身的内部实现。
 
 ::: generate vdbe-why-vm kind=explanation concepts=vdbe-bytecode-format
 
@@ -60,7 +60,7 @@ struct VdbeOp {
 
 :::
 
-这种"固定格式 + 操作数含义随 opcode 变化"的设计非常紧凑。对比 x86 指令集需要根据操作码查表才能确定指令长度，VDBE 的每条指令大小固定，解码零开销——直接按数组下标访问即可。SQLite 目前定义了约 190 种操作码（见 `opcodes.h`），涵盖算术、比较、跳转、游标操作、聚合、事务控制等。
+所有指令格式固定，各操作数的含义随操作码变化。x86 指令是变长的，解码时要先根据操作码确定指令长度；VDBE 的每条指令大小相同，按数组下标即可取到下一条指令。SQLite 目前定义了约 190 种操作码（见 `opcodes.h`），涵盖算术、比较、跳转、游标操作、聚合、事务控制等。
 
 ## 2. 寄存器：Mem 结构体
 
@@ -100,9 +100,9 @@ struct sqlite3_value {
 
 :::
 
-`Mem` 结构体的设计体现了一个典型的 C 语言模式：**带标签的联合体**（tagged union）。联合体 `u` 让整数和浮点共享同一块内存，`flags` 字段告诉运行时该读哪个成员。额外的 `z` 指针用于字符串和 BLOB 这类变长数据——它们的内容不放在联合体内，而是指向外部缓冲区。
+`Mem` 结构体是 C 语言中常见的**带标签的联合体**（tagged union）：联合体 `u` 让整数和浮点数共享同一块内存，`flags` 字段告诉运行时应读取哪个成员。字符串和 BLOB 这类变长数据不放在联合体内，而是由额外的 `z` 指针指向外部缓冲区。
 
-`flags` 的设计值得多看一眼。低 6 位（`MEM_AffMask = 0x003f`）表示值类型，高位表示存储方式：
+`flags` 的低 6 位（`MEM_AffMask = 0x003f`）表示值类型，高位表示 `z` 的存储方式：
 
 ```c
 #define MEM_Dyn       0x1000   /* z 指向动态分配的内存，需要调用 xDel 释放 */
@@ -110,11 +110,11 @@ struct sqlite3_value {
 #define MEM_Ephem     0x4000   /* z 指向临时数据（可能随时失效） */
 ```
 
-这三个标志控制 `z` 的内存管理策略。当一个寄存器被覆盖时，如果旧值的 `flags` 包含 `MEM_Dyn`，就调用 `xDel(z)` 释放旧缓冲区。这是手动引用计数的一种极简形式。
+这三个标志决定了 `z` 所指内存的归属。寄存器被覆盖时，如果旧值的 `flags` 包含 `MEM_Dyn`，就调用 `xDel(z)` 释放旧缓冲区；`MEM_Static` 和 `MEM_Ephem` 表示寄存器并不拥有这块内存，不需要释放。
 
 ::: generate vdbe-register-vs-stack kind=comparison concepts=vdbe-mem-struct
 
-面向正在学习 C 语言的读者，对比基于寄存器的虚拟机和基于栈的虚拟机。要点：(1) 栈式 VM（如 JVM、CPython 3.10 以前）用 push/pop 传递操作数，指令短但数量多；(2) 寄存器式 VM（如 Lua 5、CPython 3.11+、VDBE）在指令中直接编码寄存器号，指令长但数量少；(3) VDBE 选择寄存器式的原因：数据库操作经常需要同时持有多个列值、比较结果和游标状态，用寄存器可以避免大量冗余的 push/pop。用一个简单的加法 `a + b` 的例子对比两种方式的指令序列。
+面向正在学习 C 语言的读者，对比基于寄存器的虚拟机和基于栈的虚拟机。要点：(1) 栈式 VM（如 JVM、CPython）用 push/pop 传递操作数，指令短但数量多；(2) 寄存器式 VM（如 Lua 5、VDBE）在指令中直接编码寄存器号，指令长但数量少；(3) VDBE 选择寄存器式的原因：数据库操作经常需要同时持有多个列值、比较结果和游标状态，用寄存器可以避免大量冗余的 push/pop。用一个简单的加法 `a + b` 的例子对比两种方式的指令序列。
 
 :::
 
@@ -139,11 +139,11 @@ struct VdbeCursor {
 };
 ```
 
-注意 `aType` 声明为柔性数组成员（flexible array member）——它的实际大小在运行时由 `allocateCursor` 根据表的列数动态决定。这是 C99 引入的语法，避免了额外的指针间接访问和独立的内存分配。
+`aType` 声明为柔性数组成员（flexible array member），它的实际大小在运行时由 `allocateCursor` 根据表的列数决定。柔性数组成员是 C99 引入的语法，避免了额外的指针间接访问和独立的内存分配。
 
 ## 4. 编译后的程序：Vdbe 结构体
 
-把前面三个部分组装起来：指令数组（`Op[]`）是程序代码，寄存器数组（`Mem[]`）是数据空间，游标数组（`VdbeCursor*[]`）是 I/O 通道。`Vdbe` 结构体把它们统一管理：
+前面三个部分组合起来：指令数组（`Op[]`）是程序代码，寄存器数组（`Mem[]`）是数据空间，游标数组（`VdbeCursor*[]`）是 I/O 通道。`Vdbe` 结构体统一管理它们：
 
 ::: concept vdbe-struct title="Vdbe 结构体是编译后的完整程序"
 
@@ -173,12 +173,12 @@ struct Vdbe {
 | 数组 | 类型 | 作用 |
 |:---|:---|:---|
 | `aOp[0..nOp-1]` | `Op` | 字节码指令序列（只读） |
-| `aMem[0..nMem]` | `Mem` | 寄存器文件（读写） |
+| `aMem[0..nMem-1]` | `Mem` | 寄存器文件（读写） |
 | `apCsr[0..nCursor-1]` | `VdbeCursor*` | B-tree 游标（读写） |
 
 :::
 
-从外部 API 看，`sqlite3_prepare_v2()` 创建一个 `Vdbe`（以 `sqlite3_stmt*` 的形式返回给用户），`sqlite3_step()` 调用 `sqlite3VdbeExec()` 执行它，`sqlite3_finalize()` 销毁它。`Vdbe` 在 prepare 和 finalize 之间可以被反复 step——每次 step 执行到 `OP_ResultRow` 就暂停并返回一行结果，下次 step 从暂停处继续。
+从外部 API 看，`sqlite3_prepare_v2()` 创建一个 `Vdbe`（以 `sqlite3_stmt*` 的形式返回给用户），`sqlite3_step()` 调用 `sqlite3VdbeExec()` 执行它，`sqlite3_finalize()` 销毁它。在 prepare 和 finalize 之间，`Vdbe` 可以被反复 step：每次执行到 `OP_ResultRow` 就暂停并返回一行结果，下次 step 从暂停处继续。
 
 `eVdbeState` 字段跟踪这个生命周期：
 
@@ -189,11 +189,11 @@ struct Vdbe {
 #define VDBE_HALT_STATE     3   /* 已结束，需要 reset 或 finalize */
 ```
 
-这是一个典型的状态机。`sqlite3_step()` 只在 READY 或 RUN 状态下才会调用 `sqlite3VdbeExec()`；HALT 状态下直接返回之前的错误码。`sqlite3_reset()` 把状态从 HALT 重置为 READY，让同一个编译后的程序可以重新执行。
+这是一个状态机。`sqlite3_step()` 只在 READY 或 RUN 状态下才会调用 `sqlite3VdbeExec()`；HALT 状态下会先自动调用 `sqlite3_reset()` 回到 READY，再重新执行。`sqlite3_reset()` 把状态从 HALT 重置为 READY，让同一个编译后的程序可以重新执行。
 
 ## 5. 执行引擎：sqlite3VdbeExec
 
-这是 VDBE 的心脏——一个将近 9000 行的函数，用一个巨大的 `switch` 分发 150 多种操作码。整个函数就是一个 `for` 循环套一个 `switch`，没有函数指针表，没有间接调用。
+`sqlite3VdbeExec` 是 VDBE 的执行核心，一个将近 9000 行的函数，用一个巨大的 `switch` 分发 180 多种操作码。整个函数是一个 `for` 循环套一个 `switch`，没有函数指针表，也没有间接调用。
 
 ::: concept vdbe-dispatch-loop title="指令分发循环的结构"
 
@@ -217,15 +217,17 @@ int sqlite3VdbeExec(Vdbe *p) {
     switch( pOp->opcode ){
       case OP_Goto: { /* ... */ break; }
       case OP_Integer: { /* ... */ break; }
-      /* ... 150+ 个 case ... */
+      /* ... 180 多个 case ... */
     }
   }
 }
 ```
 
-几个关键的设计细节：
+主循环有以下几个设计细节。
 
-**PC 推进方式**：`pOp++` 在 `for` 循环头部完成，每条指令执行完 `break` 后自动前进到下一条。不需要显式的 `pc++`。
+**分发方式**：所有 case 集中在一个函数里，牺牲了代码的模块化，换来最直接的分发：编译器可以为 `switch` 生成跳转表，每条指令的分发开销只有一次间接跳转。
+
+**PC 推进方式**：`pOp++` 在 `for` 循环头部完成，每条指令执行完 `break` 后自动前进到下一条，不需要显式的 `pc++`。
 
 **跳转机制**：需要跳转的指令设置 `pOp = &aOp[target - 1]`（减 1 是因为循环头部会加 1），然后 `break`。为了减少重复代码，源码定义了两个共享的跳转标签：
 
@@ -240,19 +242,19 @@ jump_to_p2_and_check_for_interrupt:
   break;
 ```
 
-**暂停与恢复**：`OP_ResultRow` 把当前 PC 保存到 `p->pc`，然后 `goto vdbe_return` 退出循环，返回 `SQLITE_ROW`。下一次调用 `sqlite3VdbeExec` 时，`for` 循环从保存的 `p->pc` 处恢复执行。
+**暂停与恢复**：`OP_ResultRow` 把下一条指令的地址保存到 `p->pc`，然后 `goto vdbe_return` 退出循环，返回 `SQLITE_ROW`。下一次调用 `sqlite3VdbeExec` 时，`for` 循环从保存的 `p->pc` 处恢复执行。
 
-### 5.2 本地变量缓存
+### 5.2 局部对象缓存
 
-注意函数开头把 `p->aOp` 和 `p->aMem` 复制到了局部变量 `aOp` 和 `aMem`。这不是无意义的冗余——在一个执行数百万次迭代的循环中，访问局部变量比通过指针链 `p->aMem[i]` 快，因为编译器可以把局部变量放进寄存器（CPU 的寄存器，不是 VDBE 的寄存器）。
+函数开头把 `p->aOp` 和 `p->aMem` 复制到了局部对象 `aOp` 和 `aMem`。在一个要迭代数百万次的循环中，访问局部对象比经由 `p->aMem[i]` 多一次解引用更快，因为编译器可以把局部对象放进寄存器（这里指 CPU 的寄存器，不是 VDBE 的寄存器）。
 
 ## 6. 代表性指令拆解
 
-下面选取六条指令，展示 VDBE 执行引擎的工作方式。
+下面分六组拆解几条有代表性的指令。
 
 ### 6.1 OP_Integer：加载常量
 
-最简单的指令——把一个 32 位整数常量写入寄存器：
+这是最简单的指令，把一个 32 位整数常量写入寄存器：
 
 ```c
 /* 语义：r[P2] = P1 */
@@ -263,7 +265,7 @@ case OP_Integer: {
 }
 ```
 
-`out2Prerelease` 是一个辅助函数，它清除目标寄存器的旧内容并设置 `flags = MEM_Int`。对应 `EXPLAIN` 输出中类似 `Integer 30 1 0` 的行——把常量 30 存入寄存器 r[1]。
+`out2Prerelease` 是一个辅助函数，它清除目标寄存器的旧内容并设置 `flags = MEM_Int`。开头 `EXPLAIN` 输出中的 `Integer 30 2 0` 就是把常量 30 存入寄存器 r[2]。
 
 ### 6.2 OP_OpenRead：打开 B-tree 游标
 
@@ -323,7 +325,7 @@ case OP_Next: {
 }
 ```
 
-注意跳转方向的不对称：**Rewind 向前跳**（跳过整个循环），**Next 向后跳**（回到循环头）。这与高级语言的 `for` 循环编译模式一致——先检查是否为空，不为空则进入循环体，循环尾部用条件跳转回到循环头。
+跳转方向并不对称：**Rewind 向前跳**（跳过整个循环），**Next 向后跳**（回到循环头）。这与高级语言 `for` 循环的常见编译方式一致：先检查是否为空，不为空则进入循环体，循环尾部用条件跳转回到循环头。
 
 ### 6.4 OP_Column：提取列值
 
@@ -354,9 +356,9 @@ case OP_Column: {
 }
 ```
 
-这是最复杂的指令之一（完整实现超过 200 行）。SQLite 的记录格式（record format）将一行数据序列化为紧凑的字节流：先是一个头部记录每一列的类型和大小（serial type），后面紧跟实际数据。`OP_Column` 需要解析头部找到目标列的偏移量，然后反序列化值。
+`OP_Column` 是最复杂的指令之一，完整实现超过 200 行。SQLite 的记录格式（record format）把一行数据序列化为紧凑的字节流：开头是记录头，依次记录每一列的类型和大小（serial type），后面紧跟各列的实际数据。`OP_Column` 需要解析记录头，找到目标列的偏移量，再反序列化出值。
 
-为了避免每次都从头解析，`VdbeCursor` 缓存了已解析的头部信息（`nHdrParsed`、`aType`、`aOffset`）。如果请求的列已经解析过（`p2 < nHdrParsed`），直接从缓存读取偏移量和类型，跳过整个头部解析过程。这个优化对 `SELECT *` 这类读取多列的查询效果显著——第一列触发完整解析，后续列直接命中缓存。
+为了避免每次都从头解析，`VdbeCursor` 缓存了已解析的头部信息（`nHdrParsed`、`aType`、`aOffset`）。如果请求的列已经解析过（`p2 < nHdrParsed`），就直接从缓存读取偏移量和类型，不再解析头部。`SELECT *` 这类读取多列的查询因此只需把记录头解析一遍。
 
 ### 6.5 OP_ResultRow：返回结果行
 
@@ -370,7 +372,7 @@ case OP_ResultRow: {
 }
 ```
 
-这条指令的特殊之处在于它**不 break**——它直接跳出整个 `for` 循环。`sqlite3VdbeExec` 返回 `SQLITE_ROW`，控制权回到 `sqlite3_step()`，用户就可以用 `sqlite3_column_text()` 等函数读取结果。用户再次调用 `sqlite3_step()` 时，执行从保存的 `p->pc`（ResultRow 的下一条指令）处恢复。
+这条指令**不执行 break**，而是直接跳出整个 `for` 循环。`sqlite3VdbeExec` 返回 `SQLITE_ROW`，控制权回到 `sqlite3_step()`，用户就可以用 `sqlite3_column_text()` 等函数读取结果。用户再次调用 `sqlite3_step()` 时，执行从保存的 `p->pc`（ResultRow 的下一条指令）处恢复。
 
 ### 6.6 OP_Goto / OP_If：控制流
 
@@ -388,72 +390,54 @@ case OP_If: {
 }
 ```
 
-SQL 的 `WHERE` 子句被编译为 `OP_If` / `OP_IfNot` 指令。条件为假时顺序执行（跳过当前行），条件为真时跳转到输出结果的指令。`p3` 参数处理 SQL 特有的三值逻辑——当寄存器值为 NULL 时，`p3` 决定是把 NULL 当作真还是假。
+`WHERE` 子句中的条件可以编译为 `OP_If` / `OP_IfNot` 指令。条件为假时跳转到循环尾部的 `Next`，跳过当前行；条件为真时顺序执行到输出结果的指令。`p3` 参数处理 SQL 的三值逻辑：寄存器值为 NULL 时，由 `p3` 决定把 NULL 当作真还是假。
 
-在实际生成的字节码中，`WHERE age > 30` 通常不会编译为 `OP_If`，而是编译为比较指令（如 `OP_Le`、`OP_Gt`）——这些指令把比较和条件跳转合并为一步，避免了先比较再判断的两步开销。上面 EXPLAIN 输出中的 `Le 1 8 3` 就是"如果 r[3] <= r[1] 则跳到地址 8"——即"如果 age <= 30 则跳过这一行"。
+对于 `WHERE age > 30` 这样的比较，实际生成的字节码通常不使用 `OP_If`，而是使用比较指令（如 `OP_Le`、`OP_Gt`）。这些指令把比较和条件跳转合并为一步，省去了先比较、再判断的两步开销。开头 EXPLAIN 输出中的 `Le 2 7 1` 表示“如果 r[1] <= r[2] 则跳到地址 7”，即“如果 age <= 30 则跳过这一行”。
 
 ## 7. 实例：一条 SELECT 的完整执行
 
-这段字节码分为初始化段与主循环两部分：地址 10--11 先把常量 30 写入寄存器并跳回地址 1；地址 1--9 打开表游标，通过 `Rewind` 和 `Next` 遍历记录，以 `Column` 读取年龄和姓名，再由 `Le` 跳过不满足条件的行、由 `ResultRow` 返回满足条件的行。对于示例数据，最终依次返回 Bob 和 Charlie。
+开头的字节码分为初始化段与主循环两部分。地址 0 的 `Init` 先跳到地址 9：`Transaction` 开启读事务，`Integer` 把常量 30 写入 r[2]，`Goto` 跳回地址 1。地址 1–8 是主循环：打开表游标，通过 `Rewind` 和 `Next` 遍历记录，以 `Column` 读取年龄和姓名，由 `Le` 跳过不满足条件的行，由 `ResultRow` 返回满足条件的行。若表中有 (1, 'Alice', 25)、(2, 'Bob', 35)、(3, 'Charlie', 40) 三行，查询依次返回 Bob 和 Charlie。
 
 ::: generate vdbe-trace-example kind=example concepts=vdbe-bytecode-format,vdbe-mem-struct,vdbe-struct
 
 面向正在学习 C 语言的读者，逐步跟踪 `SELECT name FROM users WHERE age > 30` 编译出的字节码的执行过程。使用上面 EXPLAIN 输出中的实际指令序列：
 
 ```
-0   Init           0     10    0                    0
+0   Init           0     9     0                    0
 1   OpenRead       0     2     0     3              0
-2   Rewind         0     9     0                    0
-3     Column       0     2     3                    0
-4     Le           1     8     3     BINARY-8       0x54
-5     Column       0     1     4                    0
-6     ResultRow    4     1     0                    0
-7     Yield        0     0     0                    0
-8   Next           0     3     0                    1
-9   Halt           0     0     0                    0
-10  Integer        30    1     0                    0
+2   Rewind         0     8     0                    0
+3     Column       0     2     1                    0
+4     Le           2     7     1     BINARY-8       84
+5     Column       0     1     3                    0
+6     ResultRow    3     1     0                    0
+7   Next           0     3     0                    1
+8   Halt           0     0     0                    0
+9   Transaction    0     0     1     0              1
+10  Integer        30    2     0                    0
 11  Goto           0     1     0                    0
 ```
 
-假设 users 表有三行数据：(Alice, 25), (Bob, 35), (Charlie, 40)，其中 name 是第 1 列，age 是第 2 列。
+假设 users 表（`id INTEGER PRIMARY KEY, name TEXT, age INTEGER`）有三行数据：(1, Alice, 25), (2, Bob, 35), (3, Charlie, 40)，其中 name 是第 1 列，age 是第 2 列。
 
 逐条指令解释执行过程：
-1. Init 跳转到地址 10
-2. Integer 把 30 存入 r[1]
-3. Goto 跳到地址 1
-4. OpenRead 打开 users 表的 B-tree 游标 0
-5. Rewind 定位到第一行 (Alice, 25)
-6. 循环体：Column 读 age 到 r[3]，Le 比较 r[1] 和 r[3]（25 <= 30 为真，跳到 Next 跳过这行）
-7. 第二次循环：Bob 的 age=35 > 30，不跳转，Column 读 name 到 r[4]，ResultRow 返回 "Bob"
-8. Next 跳回地址 3 继续
-9. 第三次循环：Charlie 的 age=40 > 30，返回 "Charlie"
+1. Init 跳转到地址 9
+2. Transaction 开启读事务
+3. Integer 把 30 存入 r[2]
+4. Goto 跳到地址 1
+5. OpenRead 打开 users 表的 B-tree 游标 0
+6. Rewind 定位到第一行 (1, Alice, 25)
+7. 循环体：Column 读 age 到 r[1]，Le 比较 r[1] 和 r[2]（25 <= 30 为真，跳到地址 7 的 Next，跳过这行）
+8. Next 前进到第二行并跳回地址 3：Bob 的 age=35 > 30，不跳转，Column 读 name 到 r[3]，ResultRow 返回 "Bob"
+9. 下一次 step 从地址 7 的 Next 继续，跳回地址 3：Charlie 的 age=40 > 30，返回 "Charlie"
 10. Next 发现没有更多行，顺序执行到 Halt
 
-用表格或编号列表展示每一步的 PC、指令、关键寄存器变化和游标状态。最后总结字节码执行的整体模式：初始化部分放在程序尾部先执行，然后是 Rewind-Next 循环，循环体内做过滤和输出。
+用表格或编号列表展示每一步的 PC、指令、关键寄存器变化和游标状态，并指出初始化部分放在程序尾部、由 Init 跳转过去先执行。
 
 :::
 
-## 8. 总结
+## 8. 用 EXPLAIN 观察字节码
 
-VDBE 的设计可以归纳为三个核心决策：
-
-**字节码作为中间表示**。把 SQL 编译和执行解耦，编译阶段可以做任意复杂的优化（索引选择、连接顺序），执行阶段只需要一个简单的指令分发循环。
-
-**基于寄存器的架构**。每个寄存器是一个 `Mem` 结构体——带类型标签的联合体。数据库操作需要同时持有多个列值、比较结果和中间状态，寄存器架构比栈架构更自然。
-
-**巨型 switch 分发**。150 多个 case 集中在一个函数里，牺牲了代码的模块化，但换来了最直接的分发效率——编译器可以生成跳转表，每条指令的分发开销仅为一次间接跳转。
-
-从 C 语言的角度看，VDBE 的源码展示了几个值得学习的技巧：
-
-| 技巧 | 在 VDBE 中的体现 |
-|:---|:---|
-| Tagged union | `Mem` 用 `flags` + `union` 实现动态类型 |
-| 柔性数组成员 | `VdbeCursor.aType[FLEXARRAY]` 避免额外分配 |
-| 局部变量缓存 | `aOp`/`aMem` 从 `p->` 复制到栈上，帮助寄存器分配 |
-| `goto` 共享路径 | `jump_to_p2` 标签消除跳转代码重复 |
-| 联合体区分用途 | `VdbeOp.p4` 的 `p4type` 标签区分指针类型 |
-
-这些技巧并不局限于数据库引擎——它们是 C 语言构建高性能解释器的通用模式。
+在 sqlite3 命令行工具中，任何 SQL 语句前加上 `EXPLAIN` 即可列出它编译出的字节码；加上 `EXPLAIN QUERY PLAN` 则显示更高层的查询计划。
 
 ::: generate vdbe-explain-usage kind=explanation concepts=vdbe-bytecode-format
 

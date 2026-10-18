@@ -34,6 +34,7 @@ if (/* 返回值表示失败 */) {
     /* 处理 e */
 }
 ```
+
 ::: warning 先判断返回值，再看 errno
 
 很多初学者直接检查 `errno != 0` 来判断失败，这是不可靠的，因为 `errno` 可能保留着上一次失败留下的值。
@@ -82,7 +83,9 @@ int main(void) {
 range error
 
 :::
+
 如果某个实现提供了足以容纳该值的更宽 `long`，程序会改为打印转换后的数值。
+
 ## 4. 示例：`fopen` 失败后用 `perror` 输出原因
 
 `perror` 会根据当前 `errno` 输出一条人类可读的消息：
@@ -106,9 +109,11 @@ int main(void) {
 可能的输出：
 
 ::: terminal
+
 fopen: No such file or directory
 
 :::
+
 ::: tip `errno` 与 I/O 的关系
 
 并非所有 I/O 失败都只靠 `errno` 判断。很多 I/O 接口还需要结合返回值与流状态（如 `ferror`、`feof`）一起判断。

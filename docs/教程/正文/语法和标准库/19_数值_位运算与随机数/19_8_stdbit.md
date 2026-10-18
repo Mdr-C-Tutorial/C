@@ -1,6 +1,6 @@
 # 19.8 位操作
 
-## 位操作函数
+## 1. 位操作函数
 
 `<stdbit.h>` 是 C23 引入的头文件，提供一组面向**无符号整数类型**的位操作工具。
 
@@ -17,15 +17,14 @@
 2. 统计前导/尾随 0/1：`stdc_leading_zeros` / `stdc_trailing_zeros` / `stdc_leading_ones` / `stdc_trailing_ones`
 3. 位宽与取整：`stdc_bit_width` / `stdc_bit_floor` / `stdc_bit_ceil`
 4. 单比特判断：`stdc_has_single_bit`
-5. 循环移位：`stdc_rotate_left` / `stdc_rotate_right`
 
-它们通常还提供若干“按类型区分”的版本，例如：
+它们还提供按类型区分的版本，例如：
 
-- `stdc_count_ones_ui`：以 `unsigned int` 为主要目标类型
-- `stdc_count_ones_ul`：以 `unsigned long` 为主要目标类型
-- `stdc_count_ones_ull`：以 `unsigned long long` 为主要目标类型
+- `stdc_count_ones_ui`：形参类型为 `unsigned int`
+- `stdc_count_ones_ul`：形参类型为 `unsigned long`
+- `stdc_count_ones_ull`：形参类型为 `unsigned long long`
 
-## 示例：统计二进制 1 的个数
+## 2. 示例：统计二进制 1 的个数
 
 ```c
 #include <stdio.h>
@@ -45,7 +44,8 @@ int main(void) {
 ones = 4
 
 :::
-## 端序
+
+## 3. 端序
 
 端序是构成多字节对象的字节的顺序。更多相关内容请参考 [Wikipedia](https://zh.wikipedia.org/wiki/%E5%AD%97%E8%8A%82%E5%BA%8F)。
 
@@ -84,8 +84,8 @@ int main(void) {
 小端序
 
 :::
-大端序实现会输出 `大端序`；若实现无法归入这两类，则输出 `未知的端序`。
-## 习题
+
+## 4. 习题
 
 <Exercise id="11909" :d="3" :w="2">
 
@@ -102,6 +102,6 @@ int main(void) {
 
 写一个程序：从标准输入读入一个 `unsigned int` `x` 和一个非负整数 `k`，输出把 `x` 循环左移 `k` 位的结果。
 
-要求：使用 `stdc_rotate_left_ui`。
+要求：C23 的 `<stdbit.h>` 没有循环移位函数，请用移位和按位或运算实现。
 
 </Exercise>

@@ -14,7 +14,7 @@
 8. **`iscntrl()`:** 判断字符是否为控制字符 (ASCII 码 0-31 和 127，包括 null 字符 `\x00` 和 delete 字符 `\x7F` )。如果是，返回非零值；否则返回 0。
 9. **`ispunct()`:** 判断字符是否为标点符号 (例如：``! " # $ % & ' ( ) * + , - . / : ; < = > ? @ [ \ ] ^ _ ` { | } ~``)。如果是，返回非零值；否则返回 0。
 10. **`isblank()`:** 判断字符是否为空格符（空格或水平制表符 `\t`）。如果是，返回非零值；否则返回 0。
-11. `isgraph()` 判断字符有没有图形表示，即 ``0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~`` 返回非零值，否则返回 **0**。简单地，对于 ASCII 表中的字符 `c`，如果 `iscntrl(c) == 0 && isblank(c) == 0`，那么 `isgraph(c)` 返回 非零值，否则返回 **0**
+11. `isgraph()` 判断字符有没有图形表示，即 ``0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~`` 返回非零值，否则返回 **0**。简单地，对于 ASCII 表中的字符 `c`，如果 `iscntrl(c) == 0 && isblank(c) == 0`，那么 `isgraph(c)` 返回非零值，否则返回 **0**。
 
 ::: tip 非零值
 
@@ -128,6 +128,7 @@ Character   isalnum   isalpha   islower   isupper   isdigit   isxdigit  isspace 
   %              0         0         0         0         0         0         0         0         4         0     32768
 
 :::
+
 ## 2. 大小写转换
 
 在 `<ctype.h>` 中，定义了 **大小写转换** 的函数，如下：
@@ -147,7 +148,7 @@ Character   isalnum   isalpha   islower   isupper   isdigit   isxdigit  isspace 
 - [字符分类](https://zh.cppreference.com/w/c/string/byte#.E5.AD.97.E7.AC.A6.E5.88.86.E7.B1.BB)
 - [宽字符分类](https://zh.cppreference.com/w/c/string/wide#.E5.AD.97.E7.AC.A6.E5.88.86.E7.B1.BB)
 
-## 习题
+## 3. 习题
 
 <Exercise id="10902" :d="0" :w="1">
 

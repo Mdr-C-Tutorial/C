@@ -7,6 +7,7 @@
 ```c
 #line 120 "schema.dsl"
 ```
+
 从这一行之后，预处理器会把行号视为 `120`，文件名视为 `schema.dsl`。编译器报错、`assert` 信息、调试输出中的位置元数据也会随之变化。
 
 ## 2. 示例
@@ -28,7 +29,6 @@ int main(void) {
 generated_from_template.c:42
 
 :::
-输出会显示为 `generated_from_template.c:42`。这能让用户在阅读诊断时定位到“真正编辑的源”，而不是中间产物。
 
 ## 3. 生成代码中的常见用法
 
@@ -41,7 +41,8 @@ struct person {
     const char *name;
 };
 ```
-如果这段定义触发诊断，报错位置会落到 `model.idl` 的对应行，排错路径会更短。
+
+如果这段定义触发诊断，报错位置会落到 `model.idl` 的对应行。
 
 ## 4. 指令形式补充
 

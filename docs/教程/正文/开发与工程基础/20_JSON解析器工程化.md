@@ -1,10 +1,10 @@
 # 20. JSON 解析器工程化
 
-这一章把前面章节里的字符串处理、内存管理、递归下降和错误处理放到一个完整案例中：实现一个最小可用的 JSON 解析器。目标不是一次写出完整工业实现，而是建立“语法到对象结构”的工程路径。
+这一章把前面章节里的字符串处理、内存管理、递归下降和错误处理放到一个完整案例中：实现一个最小可用的 JSON 解析器。它读入 JSON 文本，构造出内存中的树形结构，不追求完整的工业实现。
 
 ## 1. 范围约束
 
-本案例支持对象、数组、字符串、数字、`true`、`false`、`null`。先不处理注释、`NaN`、`Infinity` 等非标准扩展。把范围收紧，才能把正确性做到可验证。
+本案例支持对象、数组、字符串、数字、`true`、`false`、`null`。先不处理注释、`NaN`、`Infinity` 等非标准扩展。范围小一些，才容易验证实现是否正确。
 
 ## 2. 数据结构
 
@@ -36,11 +36,12 @@ struct json_value {
     } as;
 };
 ```
-这个结构把“标签 + 联合体”模式落地为统一 JSON 节点表示。不同种类共享外层壳体，访问时由 `kind` 决定解释方式。
+
+每个 JSON 值都用一个 `json_value` 表示，这种写法称为标签联合 (Tagged Union)：`kind` 记录值的种类，联合 `as` 存放相应的数据。读取时先检查 `kind`，再访问联合中对应的成员。
 
 ## 3. 解析流程
 
-解析器维护一个只读游标，跳过空白后按首字符分派：`{` 进入对象解析，`[` 进入数组解析，`\"` 进入字符串解析，数字前缀进入数字解析，字母前缀匹配关键字。每个子解析函数成功时推进游标，失败时返回错误码并保持资源可回收。
+解析器维护一个只读游标，跳过空白后按首字符分派：`{` 进入对象解析，`[` 进入数组解析，`"` 进入字符串解析，数字前缀进入数字解析，字母前缀匹配关键字。每个子解析函数成功时推进游标并返回新建的节点；失败时释放自己已经分配的内存，记录错误信息并返回 `NULL`。
 
 ```c
 typedef struct {
@@ -51,13 +52,14 @@ typedef struct {
 
 static void skip_ws(json_parser *p) {
     while (p->cur < p->end &&
-           (*p->cur == ' ' || *p->cur == '\\n' ||
-            *p->cur == '\\r' || *p->cur == '\\t')) {
+           (*p->cur == ' ' || *p->cur == '\n' ||
+            *p->cur == '\r' || *p->cur == '\t')) {
         p->cur++;
     }
 }
 ```
-这类游标结构可以把错误定位到具体输入位置，也便于后续扩展增量解析。
+
+游标记录了当前解析到的位置，解析失败时可以据此报告错误出现在输入中的哪个位置。
 
 ## 4. 内存与清理策略
 
@@ -214,10 +216,12 @@ static json_value *parse_string(json_parser *p) {
     char *buf = NULL;
     size_t len = 0;
     size_t cap = 0;
+    int closed = 0;
 
     while (p->cur < p->end) {
         unsigned char c = (unsigned char)*p->cur++;
         if (c == '\"') {
+            closed = 1;
             break;
         }
         if (c == '\\') {
@@ -287,14 +291,7 @@ static json_value *parse_string(json_parser *p) {
         }
     }
 
-    if (p->cur > p->end || (p->cur <= p->end && (p->cur == p->end) && (len == 0 || buf[len - 1] != '\"'))) {
-        /* no-op: real close check already by break */
-    }
-    if (p->cur > p->end || (p->cur == p->end && (len == 0 || (len > 0 && buf[len - 1] != '\"')))) {
-        /* no-op guard to keep parser simple */
-    }
-
-    if (p->cur <= p->end && (p->cur == p->end || p->cur[-1] != '\"')) {
+    if (!closed) {
         parser_fail(p, "unterminated string");
         free(buf);
         return NULL;
@@ -610,7 +607,7 @@ static json_value *parse_value(json_parser *p) {
     }
 }
 
-static json_value *json_parse(const char *text, const char **err_msg, const char **err_pos) {
+static json_value *json_parse(const char *text, const char **err_pos, const char **err_msg) {
     json_parser p;
     p.cur = text;
     p.end = text + strlen(text);
@@ -723,7 +720,7 @@ int main(void) {
 
     const char *err_msg = NULL;
     const char *err_pos = NULL;
-    json_value *root = json_parse(src, &err_msg, &err_pos);
+    json_value *root = json_parse(src, &err_pos, &err_msg);
     if (root == NULL) {
         long pos = (long)(err_pos - src);
         printf("parse error at %ld: %s\n", pos, err_msg != NULL ? err_msg : "unknown");
@@ -740,6 +737,7 @@ int main(void) {
 可能的输出（示例）：
 
 ::: terminal
+
 {
   "name": "mdr",
   "ok": true,
@@ -760,16 +758,17 @@ int main(void) {
 
 这一节的完整实现已经放在示例代码目录：[`/教程/示例代码/开发与工程基础/json_parser.c.md`](/教程/示例代码/开发与工程基础/json_parser.c)。同一份实现也已同步到代码目录：`/code/开发与工程基础/20_JSON解析器工程化/json_parser.c`。实现包含以下能力：对象、数组、字符串、数字、`true`、`false`、`null`，并提供统一 `json_free` 深度释放。
 
-核心入口保持为三个接口：
+它提供以下三个函数：
 
 ```c
 json_value *json_parse(const char *text, const char **err_pos, const char **err_msg);
 void json_free(json_value *v);
 const json_value *json_object_get(const json_value *obj, const char *key);
 ```
+
 ## 8. 运行示例
 
-下面给出一个最小调用片段，展示“解析 -> 读取 -> 释放”的主路径：
+下面的片段演示解析、读取和释放的基本用法：
 
 ```c
 const char *text =
@@ -796,6 +795,7 @@ json_free(root);
 可能的输出（示例）：
 
 ::: terminal
+
 user=Ada
 
 :::
