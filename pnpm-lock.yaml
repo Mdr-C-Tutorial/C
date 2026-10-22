@@ -88,8 +88,8 @@ importers:
         specifier: ^17.12.0
         version: 17.12.0
       markdown-it:
-        specifier: ^14.3.1
-        version: 14.3.1
+        specifier: ^14.3.3
+        version: 14.3.3
       markdown-it-footnote:
         specifier: ^4.0.0
         version: 4.0.0
@@ -2746,8 +2746,8 @@ packages:
   markdown-it-mathjax3@4.3.2:
     resolution: {integrity: sha512-TX3GW5NjmupgFtMJGRauioMbbkGsOXAAt1DZ/rzzYmTHqzkO1rNAdiMD4NiruurToPApn2kYy76x02QN26qr2w==}
 
-  markdown-it@14.3.1:
-    resolution: {integrity: sha512-4Ej49aYTDFIQ+uBkfX8GBvJGccoARxxPep+7aWTs55ozbjQJpW9M26Fe53vnGgvLeVzva/amzjQQaQu9w0vMhA==}
+  markdown-it@14.3.3:
+    resolution: {integrity: sha512-L//tDAkjTjJCU6pBUSBTgs3Kg4InVaZuUZog/b6V12UKhcDQ7S78877ibbCanRExwPuYP1CZD7Gd2dxSy1GXRg==}
     hasBin: true
 
   marked@16.4.2:
@@ -4551,7 +4551,7 @@ snapshots:
     dependencies:
       '@gentorial/core': 0.2.0
       '@lucide/vue': 1.26.0(vue@3.5.43(typescript@6.0.3))
-      markdown-it: 14.3.1
+      markdown-it: 14.3.3
       vue: 3.5.43(typescript@6.0.3)
 
   '@gentorial/theme-default@0.2.2(mermaid@11.16.1)(vitepress@1.6.4(@algolia/client-search@5.55.0)(@types/node@25.9.8)(lightningcss@1.33.0)(markdown-it-mathjax3@4.3.2)(postcss@8.5.29)(search-insights@2.17.3)(terser@5.48.0)(typescript@6.0.3))(vue@3.5.43(typescript@6.0.3))':
@@ -6425,7 +6425,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  markdown-it@14.3.1:
+  markdown-it@14.3.3:
     dependencies:
       argparse: 2.0.1
       entities: 4.5.0
