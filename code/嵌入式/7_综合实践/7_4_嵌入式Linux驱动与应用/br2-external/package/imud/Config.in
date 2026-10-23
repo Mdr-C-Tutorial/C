@@ -1,0 +1,10 @@
+config BR2_PACKAGE_IMUD
+	bool "imud"
+	depends on BR2_USE_MMU
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	select BR2_PACKAGE_COREMQTT
+	help
+	  MDR 的 IMU 服务。读 /dev/mdr_imu 的定长样本，用互补滤波算倾角，
+	  按周期把遥测发布到 MQTT 服务器；命令主题支持 rate。
+
+	  https://github.com/Mdr-C-Tutorial/C

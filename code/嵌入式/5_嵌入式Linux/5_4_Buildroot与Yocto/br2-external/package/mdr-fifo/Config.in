@@ -1,0 +1,8 @@
+config BR2_PACKAGE_MDR_FIFO
+	bool "mdr-fifo"
+	depends on BR2_LINUX_KERNEL
+	help
+	  5.7 的示例字符设备：一个纯软件的先进先出缓冲区。
+	  加载后出现 /dev/mdr_fifo。
+
+	  https://github.com/Mdr-C-Tutorial/C

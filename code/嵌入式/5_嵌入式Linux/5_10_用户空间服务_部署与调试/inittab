@@ -1,0 +1,6 @@
+# /etc/inittab（BusyBox init）：::respawn: 表示进程退出后立即重新启动
+::sysinit:/etc/init.d/rcS
+::respawn:/usr/bin/sensord -f /data/sensord.conf
+::respawn:/sbin/getty -L ttyS0 115200 vt100
+::ctrlaltdel:/sbin/reboot
+::shutdown:/bin/umount -a -r

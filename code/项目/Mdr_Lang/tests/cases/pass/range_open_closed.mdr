@@ -1,0 +1,15 @@
+let r_open = 3..8;
+print(r_open);
+// [3, 4, 5, 6, 7]
+
+let r_closed = 3...8;
+print(r_closed);
+// [3, 4, 5, 6, 7, 8]
+
+let r_small_open = 5..6;
+print(r_small_open);
+// [5]
+
+let r_small_closed = 5...6;
+print(r_small_closed);
+// [5, 6]

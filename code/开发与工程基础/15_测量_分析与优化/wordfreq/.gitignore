@@ -1,0 +1,10 @@
+build/
+build-*/
+*.gcda
+*.gcno
+*.gcov
+docs/
+_CPack_Packages/
+wordfreq-*.zip
+wordfreq-*.tar.gz
+crash-*

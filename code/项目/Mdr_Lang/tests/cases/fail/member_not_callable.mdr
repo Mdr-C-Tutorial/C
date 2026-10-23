@@ -1,0 +1,3 @@
+struct Box(v: i32); function main() -> () { Box(1).v(); }
+
+// expect-error: 1:52: member is not callable

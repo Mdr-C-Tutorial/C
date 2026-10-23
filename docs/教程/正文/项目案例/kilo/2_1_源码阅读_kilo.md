@@ -661,3 +661,214 @@ main
         └── editorFind
             └── strstr 搜索 + HL_MATCH 高亮
 ```
+
+## 13. 习题
+
+### 13.1 巩固
+
+<Exercise id="50201" :d="2" :w="2">
+
+写一个 `rawmode.c`，把第 4.1 节 `enableRawMode` 的改动逐项验证一遍。
+
+1. 用 `tcgetattr` 保存原设置，复制到 `raw`，按 kilo 的写法清掉 `BRKINT`、`ICRNL`、`INPCK`、`ISTRIP`、`IXON`、`OPOST`、`ECHO`、`ICANON`、`IEXTEN`、`ISIG`，置上 `CS8`，`VMIN` 设 0，`VTIME` 设 1，用 `tcsetattr` 写回。
+2. 进入前后各打印一次六项：`ICANON`、`ECHO`、`ISIG`、`OPOST`、`VMIN`、`VTIME`。在 raw 模式下读一个字节并打印它的十进制值，然后恢复终端。
+3. 验收：raw 期间那组是 `ICANON=0 ECHO=0 ISIG=0 OPOST=0 VMIN=0 VTIME=1`；按 `a` 打印 97，按 `Ctrl-C` 打印 3，程序不会被信号终止。
+
+最后回答两个问题：`ISIG` 关掉之后 `Ctrl-C` 为什么不再产生信号？`OPOST` 关掉之后，程序输出的换行符在终端上还会不会回到行首？
+
+</Exercise>
+
+<Exercise id="50202" :d="2" :w="2">
+
+第 3.1 节的 `editorProcessKeypress` 用 `static int quit_times` 做未保存退出的倒计数。先按下表预测每步的结果，再编译验证。
+
+文件打开后已经插入过一个字符，`E.dirty` 为 1。此后依次按键：
+
+| 步骤 | 按键 | 状态栏显示 | 是否退出 |
+|:---|:---|:---|:---|
+| 1 | `Ctrl-Q` | ? | ? |
+| 2 | `Ctrl-Q` | ? | ? |
+| 3 | `a` | ? | ? |
+| 4 | `Ctrl-Q` | ? | ? |
+| 5 | `Ctrl-Q` | ? | ? |
+| 6 | `Ctrl-Q` | ? | ? |
+| 7 | `Ctrl-Q` | ? | ? |
+
+要求：
+
+1. 把表填完，每格写出状态栏文字与其中的倒计数。
+2. 把源码里的 `KILO_QUIT_TIMES` 改成 1，重新编译，用同样的按键序列跑一遍，说明表里哪些格子变了。
+3. 回答：去掉 `quit_times` 前面的 `static`，行为会变成什么？这个对象为什么必须跨调用保持值？
+
+</Exercise>
+
+<Exercise id="50203" :d="2" :w="2">
+
+`erow` 同时保存 `chars` 和 `render`，Tab 在 `render` 里展开为空格。实现两个函数：
+
+```c
+/* 把 s 的前 n 个字节展开到 out，返回写入的字节数；制表位按 8 列对齐。 */
+int expand_tabs(const char *s, int n, char *out);
+
+/* 光标位于 s 的第 n 个字节之后，返回它所在的屏幕列号。 */
+int screen_col(const char *s, int n);
+```
+
+要求：
+
+1. 对任意前缀，`expand_tabs` 写入的字节数必须等于 `screen_col` 返回的列号。
+2. 用下表逐行打印两个返回值，与期望对照（“制表符”指一个字节的 Tab）：
+
+| 输入 | `expand_tabs` | `screen_col` |
+|:---|:---|:---|
+| 空串 | 0 | 0 |
+| `abc` | 3 | 3 |
+| 一个制表符 | 8 | 8 |
+| `a` 加制表符加 `b` | 9 | 9 |
+| `abc` 加制表符加 `de` | 10 | 10 |
+| `12345678` 加制表符 | 16 | 16 |
+| 两个制表符 | 16 | 16 |
+
+最后回答：`editorRefreshScreen` 定位光标时为什么不直接用 `E.cx`，而要从 `render` 重新算列号？如果制表位改成 4 列，上表哪几行的值会变？
+
+</Exercise>
+
+### 13.2 编程
+
+<Exercise id="50204" :d="3" :w="3">
+
+按第 6 节实现文件的读入与写回，写一个 `filecopy.c`：
+
+```text
+./filecopy 源文件 目标文件
+```
+
+1. 读入用 `getline` 逐行读取，每行去掉行尾的一个 `\n` 或 `\r`，存进一个动态的字符行数组。读完之后打印总行数与总字节数。
+2. 写回用 `open(目标, O_RDWR|O_CREAT, 0644)`、`ftruncate`、一次 `write`，把所有行用 `\n` 连接起来写出，末尾补一个换行。不要用 `fopen("w")`。
+3. 验收：准备一个 10 行的源文件，目标文件先用 20 行内容占着，复制之后 `cmp 源文件 目标文件` 无输出，`wc -l` 显示 10 行，目标文件里原来的内容一点不剩。
+4. 再验证：目标文件不存在时会新建；源文件最后一行没有换行时，复制结果末尾仍然带一个换行。
+
+最后回答：kilo 为什么选 `ftruncate` 加 `write`，而不是先 `unlink` 再重建？按 kilo 的做法，写到一半失败时磁盘上的文件处于什么状态？
+
+</Exercise>
+
+<Exercise id="50205" :d="3" :w="3">
+
+第 7.1 节的 append buffer 每帧只调用一次 `write`。写一个 `frame.c` 把这件事测出来：给定 24 行文本，把整屏内容拼进一个 `struct abuf`，最后一次性写到标准输出。
+
+1. 每行先输出 `\x1b[0K` 清行，再输出文本，最后 `\r\n`；不足 24 行的部分输出 `~`。前 8 个字符用红色（`\x1b[31m`），之后恢复 `\x1b[39m`。
+2. 另写一份 `frame_bad.c`，同样的内容但每个字符调用一次 `write`。
+3. 用 strace 数 `write` 的次数：
+
+```console
+$ strace -e trace=write -c ./frame < t.txt > /dev/null
+$ strace -e trace=write -c ./frame_bad < t.txt > /dev/null
+```
+
+4. 验收：`frame` 里拼帧的那一次输出就是一次 `write`（其余几次数的是启动与退出时别的写操作），`frame_bad` 的次数是文本长度的量级；把两者重定向到文件后 `cmp` 输出相同。
+
+最后回答：为什么逐字符 `write` 会让屏幕闪烁，而攒进缓冲区后一次性写出不会？
+
+</Exercise>
+
+<Exercise id="50206" :d="3" :w="3">
+
+第 8 节的增量搜索靠 `strstr` 和环绕跳转。先不碰终端，把搜索核心单独写出来：
+
+```c
+/* 从 start 行开始（含），direction 为 1 向下、-1 向上，查找包含 query 的行。
+ * 找到返回行号，找不到返回 -1；搜索绕回，最多检查 lines 行。 */
+int find_line(char **lines, int count, int start, const char *query, int direction);
+```
+
+1. `lines` 是每行的 `render` 文本，用下面的数据测试：
+
+```c
+char *doc[] = {"int main(void) {", "    printf(\"hi\");", "    return 0;", "}"};
+```
+
+2. 依次验证这几组调用并写出期望输出：从第 0 行向下找 `return`；从第 2 行向下找 `int`（应绕回第 0 行）；从第 0 行向上找 `printf`（应绕回第 2 行）；找不存在的 `while`；query 为空串。
+3. 增加一个 `find_all`，打印所有匹配行的行号与列号（列号用 `strstr` 的返回值减去行首）。
+4. 验收：程序的输出与你手算的表逐行一致。
+
+最后回答：kilo 的 `editorFind` 为什么在每次匹配后先保存 `E.row[e].hl`，离开搜索时再恢复？如果直接改 `hl` 不恢复，屏幕会留下什么？
+
+</Exercise>
+
+<Exercise id="50207" :d="4" :w="3">
+
+第 9.1 节说语法高亮的规则是数据，新增一种语言只改数据。给 kilo 加上 Python 的规则：
+
+1. 在 `editorSyntax` 数组里新增一项，文件匹配写 `"*.py"`，关键字里 `def`、`class`、`if`、`else`、`for` 作第一类颜色，`str`、`int`、`list`、`dict` 末尾加 `|` 作第二类颜色，单行注释前缀 `#`，多行注释留空，`flags` 打开字符串与数字高亮。
+2. 写一个 `test.py` 覆盖三件事：`#` 开头的注释整行变色；字符串里的 `def` 不变色；`int` 与 `if` 显示成两种颜色。
+3. 用 `kilo_drive -o raw.out` 保存原始输出，在 `raw.out` 里找出 `\x1b[33m`（第一类关键字）与 `\x1b[32m`（第二类关键字）各出现的位置，验证 `int` 走的是第二种颜色。
+4. 验收：同一份 `test.py` 在改动前显示为纯白，改动后出现青、黄、绿、品红至少四种颜色；`make test` 仍然全过。
+
+最后回答：为什么多行注释字段留空串就能让 `editorUpdateSyntax` 跳过跨行传播？如果 Python 的关键字表里漏掉某个词，代码需要改几处？
+
+</Exercise>
+
+<Exercise id="50208" :d="4" :w="3">
+
+第 5.3 节的拆行代码在 `editorInsertRow` 之后重新取了 `row` 指针。用一个小程序把这个陷阱复现出来：
+
+```c
+struct row {
+    int size;
+    char *chars;
+};
+```
+
+1. 写 `append_row(struct row **rows, int *n, const char *s)`，内部 `realloc` 扩容并复制字符串。
+2. 写 `split_row(struct row **rows, int *n, int at, int col)`：取出 `rows[at]` 的指针，调用 `append_row` 插入新行，然后**不重新取指针**，直接写 `r->chars[col] = '\0'; r->size = col;`。
+3. 用 `-fsanitize=address -g` 编译，构造一个足够长的行（比如 100 个字符）让 `realloc` 换块，观察 ASan 的 `heap-use-after-free` 报告，记录分配与释放的调用点。
+4. 修正：在插入后重新取 `r = &(*rows)[at]`，再跑一次，报告消失，程序输出的两行内容正确。
+5. 验收：两次运行的输出都贴出来，说明第一次的哪一行写入落在了已释放的内存上。
+
+最后回答：`erow` 结构里有没有别的指针会因为 `E.row` 的 `realloc` 失效？`editorRefreshScreen` 里 `r = &E.row[filerow]` 为什么是安全的？
+
+</Exercise>
+
+<Exercise id="50209" :d="4" :w="4">
+
+第 3.2 节靠 VTIME 超时区分单独的 Esc 和转义序列，第 4.2 节在 `ioctl` 失败时用 `ESC[999C` 加 `ESC[6n` 兜底。把这两件事各写成一个小程序。
+
+1. 写 `keycode.c`，用 `editorReadKey` 的同款逻辑，把下列输入翻译成逻辑按键并打印：`a`、`ESC [ A`、`ESC [ 5 ~`、单独的 `ESC`（分三次写入，间隔 50 毫秒）、`ESC` 后紧跟 `x`。最后一种的期望是什么？
+2. 写 `winsize.c`，先试 `ioctl(1, TIOCGWINSZ, &ws)`，失败或 `ws_col == 0` 时走兜底：记下当前光标位置（发送 `ESC[6n` 并从标准输入读回 `ESC[行;列R`），发送 `ESC[999C ESC[999B`，再查一次光标位置，最后用 `ESC[行;列H` 恢复。两种路径打印的尺寸都要和 `stty size` 的结果一致。
+3. 用 `script` 或 `kilo_drive` 提供一个伪终端来运行 `winsize`，把窗口设为 24 行 80 列，验证兜底分支得到 `24 80`。在普通重定向到文件的场景下运行，说明 `ioctl` 分支会失败在哪里。
+4. 验收：`keycode` 的五组输出都与预期一致，其中「`ESC` 后紧跟 `x`」的解释要写清楚，`winsize` 的两条路径都要有输出。
+
+最后回答：`getWindowSize` 在兜底分支里为什么要先保存光标位置？如果不恢复，下一次刷屏会发生什么？
+
+</Exercise>
+
+### 13.3 综合与挑战
+
+<Exercise id="50210" :d="5" :w="5">
+
+写一个最小的终端编辑器 `tiny.c`，把第 3、4、5、7 节的主线走通，并与 kilo 的对应部分对照：
+
+1. 进入 raw 模式（`ICANON`、`ECHO`、`ISIG` 关闭，`VMIN=0`、`VTIME=1`），用 `atexit` 注册恢复函数。
+2. 文档模型用动态行数组，每行保存 `chars` 与 `size`，支持在光标处插入字符、退格、回车拆行。
+3. 渲染用 append buffer，每帧一次 `write`：正文、状态栏（显示行列号与文件名）、光标定位。光标列要按 Tab 展开计算。
+4. 支持方向键移动，光标到视口边界时调整 `offset`，而不是继续移动光标。
+5. 用 `code/项目/kilo/kilo_drive.c` 驱动它：
+
+```console
+$ gcc -std=c11 -Wall -Wextra -o tiny tiny.c
+$ cat > tiny.keys <<'EOF'
+keys hello
+keys <left><left>
+keys XY
+sleep 200
+keys <C-q><C-q>
+EOF
+$ ./kilo_drive -l tiny.last tiny.keys -- ./tiny
+$ cat tiny.last
+```
+
+6. 验收：标准输出末帧第一行是 `helXYlo`，光标停在 `Y` 之后；按 Esc 能单独识别；程序正常退出后终端设置复原。
+
+最后回答：`tiny` 里哪一部分与 kilo 的 `editorInsertNewline` 对应？为什么拆行时也要重新取行指针？`tiny` 少了 kilo 的哪一层，导致方向键到达视口边缘时行为不同？
+
+</Exercise>

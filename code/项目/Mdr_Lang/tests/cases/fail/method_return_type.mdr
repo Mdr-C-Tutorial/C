@@ -1,0 +1,3 @@
+struct Calc(v: i32); function Calc.as_bool() -> bool { return true; } function main() -> () { let x: i32 = Calc(1).as_bool(); }
+
+// expect-error: 1:99: binding initializer type mismatch: expected i32, got bool

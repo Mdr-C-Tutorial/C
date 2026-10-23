@@ -1,0 +1,13 @@
+# 客户端发送与服务器确认的事件，按发生顺序
+SEND seq=1000 len=200
+SEND seq=1200 len=300
+ACK ack=1500
+SEND seq=1500 len=500
+ACK ack=2000
+SEND seq=2000 len=300
+SEND seq=2300 len=200
+ACK ack=2300
+SEND seq=2300 len=200
+ACK ack=2500
+SEND seq=2500 len=100
+ACK ack=2600

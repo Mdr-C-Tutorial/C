@@ -1,0 +1,1 @@
+obj-m += mdr_mpu6050.o

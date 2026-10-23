@@ -1,0 +1,2 @@
+name: MDR
+desc: MDR 的 IMU 产品：mdr_mpu6050 驱动、imud 服务与 coreMQTT

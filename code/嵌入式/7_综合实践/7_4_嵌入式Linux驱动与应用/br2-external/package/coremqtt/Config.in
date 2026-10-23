@@ -1,0 +1,7 @@
+config BR2_PACKAGE_COREMQTT
+	bool "coreMQTT"
+	help
+	  FreeRTOS 的 MQTT 3.1.1 客户端库，只装头文件与静态库。
+	  imud 用它发布遥测；7.3 的固件用的是同一个库。
+
+	  https://github.com/FreeRTOS/coreMQTT

@@ -16,6 +16,9 @@ import CodeRunner from "./components/CodeRunner.vue";
 import TermIndex from "./components/TermIndex.vue";
 import SolutionBackLink from "./components/SolutionBackLink.vue";
 import SolutionPageHeader from "./components/SolutionPageHeader.vue";
+import BitField from "./components/BitField.vue";
+import MemoryMap from "./components/MemoryMap.vue";
+import TimingDiagram from "./components/TimingDiagram.vue";
 
 const runtime = createGentorialRuntime({
   allowUnsafeHtml: course.rendering?.allowUnsafeHtml,
@@ -71,6 +74,9 @@ const cTheme = {
     app.component("Exercise", Exercise);
     app.component("CodeRunner", CodeRunner);
     app.component("SolutionBackLink", SolutionBackLink);
+    app.component("BitField", BitField);
+    app.component("MemoryMap", MemoryMap);
+    app.component("TimingDiagram", TimingDiagram);
   },
   Layout: MdrCTutorialLayout,
 };

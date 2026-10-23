@@ -1,0 +1,12 @@
+let i = 0;
+let total = 0;
+while (i < 4) {
+    total += i;
+    i += 1;
+}
+print(total);
+// expect: 6
+print(total == 6);
+// expect: true
+print(total != 6);
+// expect: false

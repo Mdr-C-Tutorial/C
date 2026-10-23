@@ -1,0 +1,9 @@
+config BR2_PACKAGE_MDR_IMU
+	bool "mdr-imu"
+	depends on BR2_LINUX_KERNEL
+	help
+	  MPU6050 的字符设备驱动（7.4）。加载后出现 /dev/mdr_imu，
+	  一次 read 交出一个带时间戳的定长样本；
+	  /sys/class/misc/mdr_imu/ 下有 sample_rate 与 accel_range。
+
+	  https://github.com/Mdr-C-Tutorial/C

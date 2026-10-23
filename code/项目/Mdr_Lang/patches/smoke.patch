@@ -1,0 +1,11 @@
+--- a/compiler/tests/smoke.mjs
++++ b/compiler/tests/smoke.mjs
+@@ -14,7 +14,7 @@
+   "docs",
+   "教程",
+   "正文",
+-  "项目",
++  "项目案例",
+   "Mdr_Lang",
+   "example",
+ );

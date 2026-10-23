@@ -1,0 +1,8 @@
+config BR2_PACKAGE_SENSORD
+	bool "sensord"
+	depends on BR2_USE_MMU
+	help
+	  MDR 的传感器轮询服务。周期读取数据源，往标准输出打印
+	  一行统计；SIGHUP 重载配置，SIGTERM 干净退出。
+
+	  https://github.com/Mdr-C-Tutorial/C

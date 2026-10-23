@@ -444,3 +444,159 @@ case OP_If: {
 面向正在学习 C 和 SQL 的读者，简要介绍如何在实践中使用 EXPLAIN 和 EXPLAIN QUERY PLAN 来观察 SQLite 的字节码。说明 EXPLAIN 显示完整的指令序列，EXPLAIN QUERY PLAN 显示更高层的查询计划（使用了哪个索引、是全表扫描还是索引查找）。给出 2-3 个实际的 sqlite3 命令行示例，鼓励读者自己尝试。
 
 :::
+
+## 9. 习题
+
+### 9.1 巩固
+
+<Exercise id="50656" :d="2" :w="2">
+
+不运行程序，按 §7 的方法逐条走一遍下面这段字节码（`users` 表的三行是 (1, Alice, 25)、(2, Bob, 35)、(3, Charlie, 40)，`name` 是第 1 列，`age` 是第 2 列）：
+
+```text
+addr  opcode         p1    p2    p3    p4
+0     Init           0     11    0
+1     OpenRead       0     2     0     3
+2     Rewind         0     10    0
+3       Column       0     2     1
+4       Le             2     9     1     BINARY-8
+5       Column       0     1     1
+6       Eq             3     9     1     BINARY-8
+7       Column       0     1     4
+8       ResultRow      4     1     0
+9     Next           0     3     0
+10    Halt           0     0     0
+11    Transaction    0     0     1     0
+12    Integer        30    2     0
+13    String8        0     3     0     Bob
+14    Goto           0     1     0
+```
+
+1. 逐行列出每次循环里 r[1]、r[2]、r[3]、r[4] 的值与 `pc` 的去向，指出哪几行会被 `ResultRow` 输出。
+2. 地址 5 的 `Column 0 1 1` 与地址 3 的 `Column 0 2 1` 写的是同一个寄存器 r[1]。这样复用安全吗？地址 6 的 `Eq` 用的是哪两个寄存器，谁与谁比较？
+3. 把地址 13 的字符串改成 `Charlie`，输出变成什么？把地址 4 的 `Le` 的两个输入操作数互换（P1 改 1、P3 改 2），输出又变成什么？后一种改法得到的条件是不是原条件的「反」？往表里加一行 `(4, 'Dana', 30)`，两种写法各输出哪些行？
+
+做完用 `sqlite3` 命令行执行 `SELECT name FROM users WHERE age > 30 AND name <> 'Bob'` 核对第 1 问。验收：第 1 问的寄存器值与实测输出一致；第 2 问指出复用安全的原因是 r[1] 里的 age 在本次循环已经用完；第 3 问指出互换后跳过条件从 `age <= 30` 变成 `30 <= age`，输出只剩 Alice，而 Dana 在两种写法里都跳过——`Le` 的语义是「r[P3] <= r[P1] 时跳转」，互换操作数得到的是另一个方向的比较，不是逻辑取反。
+
+</Exercise>
+
+<Exercise id="50657" :d="3" :w="2">
+
+六个比较运算符编译出来的指令与源码里的运算符并不相同。对同一张 `users` 表分别执行 `EXPLAIN`，填一张表：
+
+| WHERE 子句 | 指令 | p1 | p3 |
+|:---|:---|:---|:---|
+| `age > 30` | | | |
+| `age >= 35` | | | |
+| `age < 30` | | | |
+| `age <= 30` | | | |
+| `age = 35` | | | |
+| `age <> 35` | | | |
+
+1. 补全表格，说明为什么 `>` 编译成 `Le` 而不是 `Gt`（提示：比较指令的语义是「若条件成立则跳转」，而跳转的目标是循环尾部的 `Next`）。
+2. 30 这个常量由哪条指令写进哪个寄存器？六行里被比较的列值又落在哪个寄存器？说明 `p1`、`p3` 在比较指令里各代表什么。
+3. 往表里插一行 `(4, 'Dana', NULL)`，再执行 `SELECT name FROM users WHERE age > 30`。Dana 不会出现，解释原因，并指出 `Le` 指令的 p5（十进制 84）里哪一部分让 NULL 直接跳转。
+
+验收：六行的指令分别为 `Le`、`Lt`、`Ge`、`Gt`、`Ne`、`Eq`；第 3 问指出 `age > 30` 对 NULL 求值为 NULL，`Le` 的 p5 带 `SQLITE_JUMPIFNULL` 位，比较结果为 NULL 时按跳转处理。
+
+</Exercise>
+
+<Exercise id="50658" :d="3" :w="3">
+
+`sqlite3_stmt_status(stmt, SQLITE_STMTSTATUS_VM_STEP, reset)` 返回这条语句执行过的 VDBE 指令数。用它观察 §7 那条查询：
+
+1. 每次 `sqlite3_step` 之后读取一次 `VM_STEP`（第三个参数传 0，表示不重置），记录三次调用的增量。预测值分别是多少，再实测。
+2. 用 `sqlite3_progress_handler(db, 1, cb, NULL)` 安装一个每次 VDBE 执行一条指令就调用一次的回调，统计每次 `sqlite3_step` 里的回调次数，与第 1 问的增量对比。
+3. 把查询改成 `SELECT name FROM users`（没有 WHERE），再测一遍。为什么第一条 `step` 的增量变小了？
+4. 把回调的返回值改成「第 6 次以后返回非 0」，记录 `sqlite3_step` 的返回码、回调次数、`VM_STEP` 与 `sqlite3_errmsg`。
+
+验收：三次增量为 13、5、2（合计 20，与 `EXPLAIN` 的指令数和行数对得上）；回调次数与增量逐次相等；没有 WHERE 的那条第一条增量是 7；第 4 问在 `SQLITE_INTERRUPT`（9）处停下，回调 6 次、`VM_STEP` 为 9，错误信息是 `interrupted`。说明 `VM_STEP` 统计的是**执行过**的指令，不是字节码的总条数。
+
+</Exercise>
+
+### 9.2 编程
+
+<Exercise id="50659" :d="4" :w="3">
+
+实现一个 6 条指令的迷你虚拟机，体会 §5 的主循环。指令与语义自己定，但必须包含加载常量、加法、比较跳转、无条件跳转、输出一行、停机六种。把它跑通下面这段程序，输出应当是 `55`：
+
+```text
+0   Integer    r1 = 0
+1   Integer    r2 = 1
+2   Integer    r3 = 10
+3   Integer    r4 = 1
+4   Le         if r2 <= r3 goto 6
+5   Goto       9
+6   Add        r1 = r1 + r2
+7   Add        r2 = r2 + r4
+8   Goto       4
+9   ResultRow  output r1
+10  Halt
+```
+
+要求：
+
+1. 指令存成结构体数组，`pc` 是数组下标；主循环用 `for` 加 `switch`，跳转指令直接改 `pc`。不要用函数指针表。
+2. `ResultRow` 输出当前寄存器并暂停：`run()` 返回 1，再次调用从下一条继续；`Halt` 返回 0。写一个 `while (run(&vm))` 的主程序。
+3. 统计执行过的指令条数，与手工数出来的一致。
+4. 增加 `Multiply`，把程序改成计算 1 到 10 的平方和，期望 385；输出 385 之后统计的步数写进报告。
+
+验收：输出恰好一行 `55`（第 4 问是 `385`），步数与你手工推算一致；`-Wall -Wextra` 无警告。说明这段程序里哪条指令对应 SQLite 的 `OP_ResultRow` 暂停、哪条对应 `OP_Next` 的回跳。
+
+</Exercise>
+
+<Exercise id="50660" :d="4" :w="3">
+
+`Mem` 的 `flags` 与 `zMalloc`/`xDel` 决定了寄存器里的值由谁释放。把 `sqlite3.c` 直接 `#include` 进自己的程序（不要链接它），然后：
+
+1. 对 `SELECT name FROM users WHERE age > 30` 在每次 `step` 之后打印 r[1]、r[2]、r[3] 的 `flags`、`z`、`zMalloc`、`xDel`，用 §2 的宏解码 flag 的每一位。
+2. 对 `SELECT ?1, ?2` 分别用 `SQLITE_STATIC` 和 `SQLITE_TRANSIENT` 绑定同一块栈缓冲区，`step` 之后打印两个寄存器的 `z` 与 `zMalloc`，比较它们与源缓冲区的地址关系。然后把源缓冲区的内容改掉，再读回结果。
+3. 打印 `(VdbeCursor *)p->apCsr[0]` 的 `nField`、`nHdrParsed`、`aType[0..nField-1]`，分别对 `SELECT name FROM users` 与 `SELECT * FROM users` 各跑一次，解释 `nField` 为什么不同。
+4. 回答：`MEM_Static` 与 `MEM_Dyn` 的区别在寄存器被覆盖时体现为哪一句代码？`MEM_Term` 位对应 `Mem.n` 与 `z` 的什么关系？
+
+验收：第 2 问 `SQLITE_STATIC` 的寄存器 `z` 与源缓冲区地址相同、改内容后读到新值，`SQLITE_TRANSIENT` 的地址不同、读到旧值；第 3 问一个 `nField=2`、一个 `nField=3`，`aType` 分别是 `0 23` 与 `0 23 1`（数值随表结构与列数而定）。这些字段是内部结构，升级合并源码后布局可能变化，报告里写明你用的版本。
+
+</Exercise>
+
+<Exercise id="50661" :d="5" :w="4">
+
+写一个字节码静态分析器 `vdbedump.c`：输入一条 SQL，用 `EXPLAIN` 取出指令表，输出按基本块划分的清单。
+
+1. 把每条跳转指令（`Init`、`Goto`、`Rewind`、`Next`、`Le`、`If`、`IfNot`、`Seek*` 等，遇到不认识的按「p2 是跳转目标」处理）的目标地址记下来，标出哪些地址是跳转入口。
+2. 按「上一条是跳转或本条是跳转目标」切分基本块，每块打印起止地址与块内指令。
+3. 找出所有向后跳转（目标地址小于当前地址），它们构成循环。打印循环头、循环尾与循环体包含的块。
+4. 对 `SELECT name FROM users WHERE age > 30` 与 `SELECT name FROM users ORDER BY name` 各跑一次，比较循环个数与块的个数。后者为什么多出几块？
+
+验收：第一条查询识别出一个以 `Next` 结尾的循环，循环头是地址 3；第二条查询多出排序器相关的块，且 `SorterNext` 也构成一个循环。分析器完全不执行 SQL，只看 `EXPLAIN` 的行。
+
+</Exercise>
+
+### 9.3 综合与挑战
+
+<Exercise id="50662" :d="5" :w="4">
+
+在 50659 的迷你虚拟机上做一次常量折叠，观察代码生成、跳转与执行三者的关系。
+
+1. 用 `EXPLAIN SELECT 1+2*3` 拿到真实的字节码，把它抄成你自己的指令数组：`Init` 跳到常量区，常量区依次 `Integer 1`、`Integer 2`、`Integer 3`、`Multiply`、`Add`，最后 `Goto` 回主程序。
+2. 写一个 `fold()`：扫描连续的「两个 `Integer` 加一条二元运算」，把结果算出来替换成一条 `Integer`，并让后续指令不再依赖被删除的寄存器。
+3. 折叠之后指令数组里出现空洞。实现一步「压实」：把有效指令往前挪，同时重写所有跳转目标（注意 `Init` 的 p2 与 `Goto` 的 p2 都要减）。
+4. 在折叠前后各跑一次执行器，结果必须都是 7；打印折叠前后 `nOp` 与指令清单。
+5. 回答：为什么不改跳转目标就等于改错了程序？在真实 SQLite 里，`vdbe_addoptrace` 打印的负数跳转地址（见 6.4）说明代码生成器用的是哪一种回填策略？
+
+验收：折叠后指令数减少、结果不变；压实后所有跳转仍落在正确的指令上；报告里贴出两份指令清单和 `nOp` 的前后值。
+
+</Exercise>
+
+<Exercise id="50663" :d="6" :w="5" scope="*">
+
+用 `VM_STEP` 与 `EXPLAIN QUERY PLAN` 量化一次查询的执行代价，回答「索引一定更省吗」。
+
+1. 建一张 1000 行的 `users(id INTEGER PRIMARY KEY, name TEXT, age INTEGER)`，`age` 在 20–519 之间循环取值。
+2. 对 `SELECT name FROM users WHERE age > 300` 在无索引、有 `age` 索引两种情况下分别记录：结果行数、`VM_STEP`、`FULLSCAN_STEP`、`EXPLAIN QUERY PLAN` 的一行输出。再把查询改成只取 `age`（覆盖索引），在同样两种情况下各测一次，比较它比取 `name` 少了哪一步。
+3. 再测 `SELECT count(*) FROM users`、`SELECT name FROM users ORDER BY name`、`SELECT name FROM users ORDER BY id`，记录 `VM_STEP` 与 `SORT` 计数。`ORDER BY id` 为什么不排序？
+4. 把第 2 问的阈值改成 `age > 20`（几乎所有行都命中），重新测三种情况。解释为什么此时索引的优势变小甚至消失。
+5. 结合 §2 的 `Mem`、§6.5 的 `ResultRow`，写一段说明：`VM_STEP` 把「读一列值」和「比较一次」都算作一步，它衡量的是什么，不能衡量什么（提示：一次性读整页与逐页读取的差别）。
+
+验收：无索引时 `FULLSCAN_STEP` 约为 999，有索引时为 0；索引版本取 `name` 时 `VM_STEP` 约 1760、只取 `age` 时约 1321，后者少的是对表页的 `Column`（覆盖索引直接从索引页取列值）；`ORDER BY id` 的 `SORT` 为 0，`ORDER BY name` 为 1；第 4 问给出两组实测数字（本例为 998 行命中时索引约 4000 步、全表扫描约 5003 步）并解释。`count(*)` 走的是 `Count` 指令而不是逐行循环，所以只需 9 步左右。
+
+</Exercise>

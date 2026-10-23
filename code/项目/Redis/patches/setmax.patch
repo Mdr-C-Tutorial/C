@@ -1,0 +1,52 @@
+--- a/src/t_string.c
++++ b/src/t_string.c
+@@ -457,6 +457,39 @@
+     c->argv[3] = tryObjectEncoding(c->argv[3]);
+     setGenericCommand(c, OBJ_PX, c->argv[1], &(c->argv[3]), c->argv[2], UNIT_MILLISECONDS, NULL, NULL, NULL);
+ }
++/* SETMAX key value
++ *
++ * Write `value` only if the key does not exist, or if its current integer
++ * value is smaller. Returns 1 when the value is written, 0 otherwise. */
++void setmaxCommand(client *c) {
++    long long value;
++    if (getLongLongFromObjectOrReply(c, c->argv[2], &value, NULL) != C_OK) return;
++
++    dictEntryLink link;
++    kvobj *o = lookupKeyWriteWithLink(c->db, c->argv[1], &link);
++    if (checkType(c, o, OBJ_STRING)) return;
++
++    if (o != NULL) {
++        long long old;
++        if (getLongLongFromObjectOrReply(c, o, &old, NULL) != C_OK) return;
++        if (value <= old) {
++            addReply(c, shared.czero);
++            return;
++        }
++    }
++
++    robj *new = createStringObjectFromLongLongForValue(value);
++    if (o != NULL) {
++        dbReplaceValueWithLink(c->db, c->argv[1], &new, link);
++    } else {
++        dbAddByLink(c->db, c->argv[1], &new, &link);
++    }
++
++    addReply(c, shared.cone);
++    keyModified(c, c->db, c->argv[1], new, 1);
++    notifyKeyspaceEvent(NOTIFY_STRING, "setmax", c->argv[1], c->db->id);
++    server.dirty++;
++}
+ 
+ int getGenericCommand(client *c) {
+     kvobj *o;
+--- a/src/server.h
++++ b/src/server.h
+@@ -4523,6 +4523,7 @@
+ void commandDocsCommand(client *c);
+ void setCommand(client *c);
+ void setnxCommand(client *c);
++void setmaxCommand(client *c);
+ void setexCommand(client *c);
+ void psetexCommand(client *c);
+ void getCommand(client *c);

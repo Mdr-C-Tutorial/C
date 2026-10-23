@@ -1,0 +1,18 @@
+[Unit]
+Description=mdr sensor daemon
+After=network.target
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/sensord -f /data/sensord.conf
+WatchdogSec=10s
+Restart=on-failure
+RestartSec=2s
+User=sensord
+Group=sensord
+ReadWritePaths=/data
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

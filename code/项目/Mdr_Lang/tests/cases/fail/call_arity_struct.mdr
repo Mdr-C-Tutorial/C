@@ -1,0 +1,3 @@
+struct Vec2(a: i32, b: i32); function main() -> () { Vec2(1); }
+
+// expect-error: 1:54: argument count mismatch for Vec2

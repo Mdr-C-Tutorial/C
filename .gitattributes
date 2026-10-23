@@ -1,0 +1,4 @@
+# Shell 脚本和 Makefile 要在 Linux 上直接运行，始终以 LF 换行检出
+*.sh text eol=lf
+Makefile text eol=lf
+*.mk text eol=lf

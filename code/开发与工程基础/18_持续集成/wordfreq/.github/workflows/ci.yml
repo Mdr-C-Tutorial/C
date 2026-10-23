@@ -1,0 +1,122 @@
+name: CI
+
+# 每次推送 main 与每个拉取请求都跑四个平台格子与五个检查作业；
+# 定时任务只跑模糊测试，结果不阻塞日常提交。
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # 每天 02:00 UTC 跑一次模糊测试
+    - cron: "0 2 * * *"
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }} / ${{ matrix.cc }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # 一个格子失败不取消其余格子，一次就能看到哪些平台有问题
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        cc: [gcc, clang, default]
+        exclude:
+          # Windows 与 macOS 不装 GCC 和 Clang，只跑平台默认的编译器
+          - os: windows-latest
+            cc: gcc
+          - os: windows-latest
+            cc: clang
+          - os: macos-latest
+            cc: gcc
+          - os: macos-latest
+            cc: clang
+          # Ubuntu 上不用默认编译器，两个格子都明确指定
+          - os: ubuntu-latest
+            cc: default
+    steps:
+      - uses: actions/checkout@v7
+      - name: Configure
+        # 不指定生成器：Linux 与 macOS 用 Unix Makefiles，Windows 用 Visual Studio
+        shell: bash
+        run: |
+          if [ "${{ matrix.cc }}" != "default" ]; then
+            export CC="${{ matrix.cc }}"
+          fi
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+      - name: Build
+        # 多配置生成器（Windows 的 Visual Studio）要 --config，单配置生成器忽略它
+        run: cmake --build build --config Debug
+      - name: Test
+        run: ctest --test-dir build -C Debug --output-on-failure
+
+  sanitize:
+    name: sanitize (ubuntu, ASan + UBSan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Configure
+        run: cmake -S . -B build-asan -DWF_SANITIZE=ON
+      - name: Build
+        run: cmake --build build-asan
+      - name: Test
+        run: ctest --test-dir build-asan --output-on-failure
+
+  warnings:
+    name: warnings as errors (ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Configure
+        run: cmake -S . -B build-werror -DWF_WERROR=ON
+      - name: Build
+        run: cmake --build build-werror
+
+  analyze:
+    name: static analysis (ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Configure with -fanalyzer
+        run: >
+          cmake -S . -B build-analyzer
+          -DCMAKE_C_FLAGS="-fanalyzer -Werror=analyzer-file-leak -Werror=analyzer-malloc-leak"
+      - name: Build
+        run: cmake --build build-analyzer
+
+  replay:
+    name: fuzz corpus replay (ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Configure
+        run: cmake -S . -B build-fuzz -DWF_FUZZ=ON
+      - name: Build
+        run: cmake --build build-fuzz
+      - name: Replay corpus and regression inputs
+        run: ctest --test-dir build-fuzz -R replay --output-on-failure
+
+  fuzz:
+    name: libFuzzer (ubuntu, nightly)
+    # 只在定时任务里跑，不在每次推送时跑
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build with clang
+        run: |
+          clang -g -O1 -fsanitize=fuzzer,address -Iinclude \
+            fuzz/fuzz_token.c src/token.c -o fuzz_token
+      - name: Fuzz for five minutes
+        run: |
+          mkdir -p corpus
+          cp tests/data/sample.txt corpus/
+          ./fuzz_token -max_total_time=300 corpus/
+      - name: Upload crash inputs
+        # 作业因崩溃失败时，把 libFuzzer 写出的 crash-<sha1> 文件保存为制品
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: crash-inputs
+          path: crash-*
+          if-no-files-found: ignore

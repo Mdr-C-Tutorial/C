@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# 由 BusyBox init 在启动时执行（/etc/init.d/S60imud）。
+# 设备节点与 sysfs 属性由 mdr_mpu6050.ko 提供，本脚本只负责拉起服务。
+
+DAEMON=/usr/bin/imud
+CONF=/data/imud.conf
+DEFAULT_CONF=/etc/imud.conf
+PIDFILE=/var/run/imud.pid
+
+start() {
+    printf 'Starting imud: '
+    # /data 上有配置就用它，否则用出厂配置
+    [ -r "$CONF" ] || CONF="$DEFAULT_CONF"
+    start-stop-daemon -S -q -b -m -p "$PIDFILE" -x "$DAEMON" -- -f "$CONF"
+    [ $? -eq 0 ] && echo 'OK' || echo 'FAIL'
+}
+
+stop() {
+    printf 'Stopping imud: '
+    start-stop-daemon -K -q -p "$PIDFILE"
+    [ $? -eq 0 ] && echo 'OK' || echo 'FAIL'
+}
+
+case "$1" in
+    start) start ;;
+    stop) stop ;;
+    restart) stop; sleep 1; start ;;
+    *) echo "Usage: $0 {start|stop|restart}"; exit 1 ;;
+esac

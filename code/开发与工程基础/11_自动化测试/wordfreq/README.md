@@ -1,0 +1,80 @@
+# wordfreq
+
+统计文本中出现次数最多的单词。本目录是教程「开发与工程基础」第 11 章结束时的版本 v0.1，
+在第 9 章的构建文件之上增加了 `tests/`：两个单元测试程序，一个端到端测试，以及它们共用的
+小型测试框架 `check.h`/`check.c`。
+
+## 用法
+
+```text
+usage: wordfreq [-n N] [FILE...]
+```
+
+1. 输出出现次数最多的 N 个单词，N 默认为 10，可取 1 到 1000000。
+2. 没有 FILE 时读标准输入；给出多个 FILE 时把它们合并统计。
+3. 单词是连续的 ASCII 字母（A–Z、a–z），统计时转成小写；其他字节（数字、标点、空白、
+   0x80 以上的字节）都是分隔符。超过 63 个字母的单词只保留前 63 个。
+4. 按次数从多到少输出，次数相同的按 `strcmp` 升序排列。每行先是右对齐、占 7 列的次数，
+   再是一个空格和单词。
+5. 退出状态：0 表示成功；1 表示文件无法打开或读取（标准错误输出
+   `wordfreq: <路径>: <错误说明>`），或内存不足；2 表示用法错误（标准错误输出上面的用法行）。
+
+## 构建与运行
+
+### CMake 与 CTest
+
+```sh
+cmake -S . -B build -G Ninja
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
+
+三个测试：
+
+| 测试 | 类型 | 内容 |
+| --- | --- | --- |
+| `token` | 单元测试 | `wf_tokenizer_next` 的分词、标点、大小写、截断 |
+| `counter` | 单元测试 | `wf_counter_add/get/size/top` 与同次数排序 |
+| `e2e` | 端到端测试 | 运行 `wordfreq -n 3 tests/data/sample.txt`，与 `sample.expected` 比较 |
+
+`ctest -L unit` 只运行带 `unit` 标签的单元测试，`ctest -R token` 按名字筛选。
+端到端测试由 `tests/run_e2e.cmake` 执行，比较时忽略行尾的 `\r`（Windows 上标准输出是
+文本模式）。
+
+### Make
+
+```sh
+make
+make test
+```
+
+`make test` 依次运行两个单元测试程序，再用 `diff` 比较样例输出。
+
+### XMake
+
+`xmake.lua` 与第 9 章相同，测试的接入方式只在正文里作说明，本文件不登记测试。
+
+## 目录
+
+```text
+wordfreq/
+├── include/wf/       公开头文件：token.h、counter.h、report.h
+├── src/              三个模块的实现：token.c、counter.c、report.c
+├── app/main.c        命令行程序：解析参数、读文件、调用三个模块
+├── tests/
+│   ├── check.h       测试框架的接口：CHECK、CHECK_EQ_SIZE、CHECK_STR_EQ、check_report
+│   ├── check.c       框架的实现
+│   ├── test_token.c  分词模块的单元测试
+│   ├── test_counter.c  计数模块的单元测试
+│   ├── run_e2e.cmake 端到端测试脚本
+│   └── data/         sample.txt 与 sample.expected
+├── Makefile          第 8 章的构建文件，test 目标已改为运行测试
+├── CMakeLists.txt    CMake 的目标描述，enable_testing 与三个测试
+├── xmake.lua         XMake 的目标描述
+├── build_by_hand.sh  第 7 章的手工构建脚本，保留作对照
+├── README.md
+└── .gitignore        忽略 build/
+```
+
+模块之间的依赖只从上层指向下层：`app/main.c` 使用全部三个模块，`report` 使用 `counter`
+中的 `wf_entry`，`token` 与 `counter` 互不依赖。

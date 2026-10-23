@@ -1,0 +1,512 @@
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete
+boot ok
+disk /dev/sda1 mounted
+network 192.168.1.10 up
+user alice logged in from 192.168.1.77
+job 42 finished with status 0 after 1200 ms
+warning: retrying connection to 192.168.1.20:21000 (attempt 3 of 5)
+error: checksum mismatch on block 88123 of device /dev/sdb
+shutdown complete

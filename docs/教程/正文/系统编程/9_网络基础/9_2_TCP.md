@@ -66,3 +66,77 @@ TCP 具有拥塞控制机制，它可以根据网络的拥塞情况来动态调�
    数据传输可以使用 send 和 recv 函数来发送和接收数据。发送方将数据分割成小的数据段并发送，接收方按顺序接收和组装数据段。在 Linux 中，socket 本身也是一个 file descriptor，它也可以使用标准的文件操作来传输数据，例如 read、write 和 sendfile。实际上，对于 blocking 的 socket，还可以使用 fdopen 函数转成 C 的 FILE* 然后使用 stdio 的格式化输入输出函数来传输数据。
 5. 断开连接
    使用 close 函数来关闭 TCP 连接，这将触发四步挥手的过程，确保连接的正确关闭。
+
+## 5. 习题
+
+下面的题用到 `setsockopt`、`getsockopt`、`shutdown` 和 `TCP_INFO`。`TCP_INFO` 与 `TCP_MAXSEG` 在 Linux 的 `netinet/tcp.h` 里，取完整的 `struct tcp_info` 需要定义 `_DEFAULT_SOURCE`（`_POSIX_C_SOURCE` 不够）。服务器一律绑 `127.0.0.1`，端口自己挑一个空闲的。
+
+<Exercise id="40914" :d="2" :w="1" multi>
+
+本章反复说 TCP 是字节流，不保留 `send` 的边界。先写下预测，再写程序验证：
+
+(1) _[1.1]_ 客户端连上后连续 `send` 三次，内容是 `GET`、` /index.html`、回车换行两遍，共 18 字节；服务器故意晚 300 毫秒才开始第一次 `recv`，缓冲区 4096 字节。这一次 `recv` 返回多少字节？如果程序把「一次 `recv` 得到的数据」当成一条完整请求，会出什么问题？
+
+(2) _[2.2]_ 服务器的缓冲区改成 8 字节，其余不动。读完 18 字节要调用几次 `recv`，各次返回多少？这时「一次 `send` 对应一次 `recv`」是从哪一端先失效的？
+
+(3) _[2.2]_ 改成一次 `send` 发 3000 字节，服务器缓冲区是 1024 字节。这时又要几次 `recv`？把这一问和前一问合起来，说明 `send` 与 `recv` 的配对关系在两个方向上都不成立。
+
+</Exercise>
+
+<Exercise id="40915" :d="3" :w="3">
+
+正文说数据段按 MSS 切分。写一个 `segplan MSS TOTAL`，按给定的 MSS 把一个 `TOTAL` 字节的字节流切成分段，假定初始序号是 1000，输出每段的序号区间、长度，最后打印段数：
+
+```text
+MSS 536, total 2000, ISN 1000
+  seg 1: seq 1000..1535  len 536
+  seg 2: seq 1536..2071  len 536
+  seg 3: seq 2072..2607  len 536
+  seg 4: seq 2608..2999  len 392
+4 segments
+```
+
+验收：
+
+- `./segplan 536 2000` 输出 4 段，前 3 段各 536 字节，第 4 段 392 字节，第 4 段序号是 2608；
+- `./segplan 1460 4000` 输出 3 段，长度 1460、1460、1080；
+- `./segplan 536 536` 只输出 1 段，序号 1000..1535。
+
+再回答两个问题：确认号推进到 2608 时，接收方已经收下多少字节？为什么序号和确认号的单位都是字节，而不是段？
+
+</Exercise>
+
+<Exercise id="40916" :d="4" :w="4">
+
+`shutdown` 与 `close` 在 TCP 上不是一回事。写一对程序：服务器发完 `bye\n` 之后调用 `shutdown(fd, SHUT_WR)`，然后继续读客户端随后发来的数据，读到 0 才 `close`；客户端读到 `bye\n` 之后继续发一条 `thanks\n`，再关闭。
+
+要求：
+
+1. 服务器与客户端分开跑，用 `ss -tan '( sport = :PORT or dport = :PORT )'` 在两个时刻各记录一次状态：客户端 `shutdown` 之后、服务器 `close` 之前，以及服务器 `close` 之后。写出 `FIN-WAIT-1`、`FIN-WAIT-2`、`CLOSE-WAIT`、`LAST-ACK`、`TIME-WAIT` 分别出现在哪一端、按什么顺序出现；
+2. 把服务器的 `shutdown` 换成 `close`，重新运行。客户端还能不能把 `thanks\n` 送出去？服务器还收不收得到？客户端那边 `send` 返回什么、`errno` 是什么？
+3. 在客户端 `shutdown(SHUT_WR)` 前后用 `getsockopt(fd, IPPROTO_TCP, TCP_INFO, ...)` 各读一次 `tcpi_state`，再隔几百毫秒读一次。三次的数值分别是多少，分别对应哪个状态名？这个字段报的是本端还是对端的连接状态？
+
+验收：第 1 问应当看到客户端先进入 `FIN-WAIT-1`，服务器收到 FIN 后进入 `CLOSE-WAIT`（服务器还开着写方向），客户端收到服务器的 ACK 后停在 `FIN-WAIT-2`；服务器 `close` 后，服务器侧那条连接离开 `CLOSE-WAIT`，客户端侧进入 `TIME-WAIT`。第 2 问里服务器已经关掉整条连接，客户端再 `send` 会在第二次写时得到 `EPIPE`（先收到 RST 时是 `ECONNRESET`）。第 3 问中三次读数应当依次落在 `ESTABLISHED`、`FIN_WAIT1`、`FIN_WAIT2` 对应的取值上，写的时候把数值和状态名对上；这个字段只描述本端套接字的状态，不能拿它判断对端是否已经关闭。
+
+</Exercise>
+
+<Exercise id="40917" :d="5" :w="4">
+
+正文说 `TCP_NODELAY` 和 `TCP_CORK` 会影响分段策略。写一个程序：客户端连上后连续 `send` 十次、每次 1 字节，然后等 300 毫秒；服务器只接受连接，等一会儿再关。用 `ss -tin "( dport = :PORT )"` 读发送端的 `data_segs_out`，在四种设置下各测一次：
+
+| 设置 | 做法 |
+| --- | --- |
+| 默认 | 不做任何设置 |
+| `TCP_NODELAY` | `setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof one)` |
+| `TCP_CORK` | 十次 `send` 之前打开，之后关掉 |
+| `MSG_MORE` | 前九次 `send` 的 `flags` 传 `MSG_MORE`，最后一次传 0 |
+
+要求：
+
+1. 四种设置下 `data_segs_out` 各是多少？为什么默认与 `TCP_NODELAY` 在这里给出相同的段数，而 `TCP_CORK` 和 `MSG_MORE` 都把十次写并成了一段？
+2. `TCP_CORK` 是套接字选项，`MSG_MORE` 是每次调用的标志。十次写发完之后，`TCP_CORK` 必须由程序显式关掉才把数据推出去，`MSG_MORE` 则靠什么决定最后一次推出去？各举一个适合用它的场景（提示：前者适合服务器用 `writev` 拼一个首部加正文，后者适合循环里连续写）。
+3. 在回环上把服务器改成「收到请求后睡 45 毫秒再回复」，客户端用 `clock_gettime(CLOCK_MONOTONIC)` 量从发第一个字节到读到回复的时间，`TCP_NODELAY` 开与关各测一次，两种设置下都在 45 毫秒上下。既然实测没有差别，为什么教科书还强调「小段写入加延迟 ACK 会产生 40 毫秒延迟」？要让它显现出来，需要哪几个条件同时成立？
+
+验收：第 1 问的实测结果是默认 10、`TCP_NODELAY` 10、`TCP_CORK` 1、`MSG_MORE` 1。第 3 问里两种设置都在 45 毫秒左右，因为这段时间由服务器那 45 毫秒决定，写端的小段策略在其中不起作用；回答要点到 Nagle 只在「已有未确认数据且新数据不满一个 MSS」时才压住小段，而延迟 ACK 让这个等待拖到一个 ACK 定时器，两个条件缺一就不会出现 40 毫秒。
+
+</Exercise>

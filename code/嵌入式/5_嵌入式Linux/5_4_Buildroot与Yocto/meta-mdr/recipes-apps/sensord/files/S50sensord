@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# 由 BusyBox init 在启动时执行（/etc/init.d/S50sensord）。
+# start-stop-daemon 负责按 pid 文件启动与停止，避免重复启动。
+
+DAEMON=/usr/bin/sensord
+CONF=/data/sensord.conf
+PIDFILE=/var/run/sensord.pid
+
+start() {
+    printf 'Starting sensord: '
+    start-stop-daemon -S -q -b -m -p "$PIDFILE" -x "$DAEMON" -- -f "$CONF"
+    [ $? -eq 0 ] && echo 'OK' || echo 'FAIL'
+}
+
+stop() {
+    printf 'Stopping sensord: '
+    start-stop-daemon -K -q -p "$PIDFILE"
+    [ $? -eq 0 ] && echo 'OK' || echo 'FAIL'
+}
+
+case "$1" in
+    start) start ;;
+    stop) stop ;;
+    restart) stop; sleep 1; start ;;
+    *) echo "Usage: $0 {start|stop|restart}"; exit 1 ;;
+esac

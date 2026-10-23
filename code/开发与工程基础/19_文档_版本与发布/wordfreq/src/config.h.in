@@ -1,0 +1,12 @@
+/* SPDX-License-Identifier: MIT */
+/*
+ * 由 CMake 从 src/config.h.in 生成，不要直接编辑这份生成结果。
+ * WF_CONFIG_HAVE_GETLINE 在配置时由 check_symbol_exists 检测，也可以用
+ * -DWF_HAVE_GETLINE=OFF 强制走 fgets 的回退路径。
+ */
+#ifndef WF_CONFIG_H
+#define WF_CONFIG_H
+
+#cmakedefine WF_CONFIG_HAVE_GETLINE 1
+
+#endif

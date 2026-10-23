@@ -1,0 +1,14 @@
+# Doxyfile：Doxygen 1.10 的配置，关键项如下。
+# 完整配置用 `doxygen -g` 生成后对照修改。
+PROJECT_NAME           = wordfreq
+PROJECT_BRIEF          = "Word frequency counter"
+OUTPUT_DIRECTORY = docs
+INPUT                  = include/wf
+RECURSIVE              = YES
+OPTIMIZE_OUTPUT_FOR_C  = YES
+EXTRACT_ALL            = NO
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_INCOMPLETE_DOC = YES
+WARN_NO_PARAMDOC       = YES
+GENERATE_LATEX         = NO
+QUIET                  = NO

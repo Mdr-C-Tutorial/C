@@ -1,0 +1,17 @@
+[Unit]
+Description=lecho line echo service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/lecho_hardened 21400 /etc/lecho.conf
+Restart=on-failure
+RestartSec=2s
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+DynamicUser=yes
+
+[Install]
+WantedBy=multi-user.target

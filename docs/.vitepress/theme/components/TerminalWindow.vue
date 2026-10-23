@@ -93,4 +93,40 @@ defineProps({
   margin-right: 8px;
   user-select: none;
 }
+
+/* 终端里嵌套的代码块（```text、```console、```ansi）：原样显示，不解析 Markdown，保留缩进 */
+.terminal-window .terminal-body :deep(div[class*="language-"]) {
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background-color: transparent;
+}
+
+.terminal-window
+  .terminal-body
+  :deep(div[class*="language-"] + div[class*="language-"]) {
+  margin-top: 0.75rem;
+}
+
+.terminal-window .terminal-body :deep(div[class*="language-"] pre) {
+  padding: 0;
+}
+
+.terminal-window .terminal-body :deep(div[class*="language-"] code) {
+  padding: 0;
+  color: #e0e0e0;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.terminal-window .terminal-body :deep(div[class*="language-"] .vp-code span) {
+  color: var(--shiki-dark, inherit);
+}
+
+.terminal-window .terminal-body :deep(div[class*="language-"] > button.copy),
+.terminal-window .terminal-body :deep(div[class*="language-"] > span.lang),
+.terminal-window .terminal-body :deep(.line-numbers-wrapper) {
+  display: none;
+}
 </style>

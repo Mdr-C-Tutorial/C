@@ -1,0 +1,14 @@
+diff --git a/kilo.c b/kilo.c
+index 0d8aef4..6bf3b10 100644
+--- a/kilo.c
++++ b/kilo.c
+@@ -486,7 +486,8 @@ void editorUpdateSyntax(erow *row) {
+                 int kw2 = keywords[j][klen-1] == '|';
+                 if (kw2) klen--;
+ 
+-                if (!memcmp(p,keywords[j],klen) &&
++                if (klen <= (int) strlen(p) &&
++                    !memcmp(p,keywords[j],klen) &&
+                     is_separator(*(p+klen)))
+                 {
+                     /* Keyword */

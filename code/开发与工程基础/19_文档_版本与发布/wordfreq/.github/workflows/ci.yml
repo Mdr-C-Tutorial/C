@@ -1,0 +1,114 @@
+name: CI
+
+# 每次推送 main 与每个拉取请求都跑：三个系统、两个编译器、检查作业。
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # 每天 02:00 UTC 跑一次模糊测试
+    - cron: "0 2 * * *"
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }} / ${{ matrix.cc }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        cc: [default]
+        include:
+          - os: ubuntu-latest
+            cc: gcc
+          - os: ubuntu-latest
+            cc: clang
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Ninja
+        if: runner.os != 'Windows'
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            sudo apt-get update && sudo apt-get install -y ninja-build
+          else
+            brew install ninja
+          fi
+      - name: Configure
+        shell: bash
+        run: cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+        env:
+          CC: ${{ matrix.cc == 'default' && 'cc' || matrix.cc }}
+      - name: Build
+        run: cmake --build build
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+  sanitize:
+    name: sanitize (ubuntu, ASan + UBSan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Configure
+        run: cmake -S . -B build-asan -G Ninja -DWF_SANITIZE=ON
+      - name: Build
+        run: cmake --build build-asan
+      - name: Test
+        run: ctest --test-dir build-asan --output-on-failure
+
+  warnings:
+    name: warnings as errors (ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Configure
+        run: cmake -S . -B build-werror -G Ninja -DWF_WERROR=ON
+      - name: Build
+        run: cmake --build build-werror
+
+  analyze:
+    name: static analysis (ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Configure
+        run: cmake -S . -B build -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+      - name: Build with -fanalyzer
+        run: |
+          cmake -S . -B build-analyzer -G Ninja \
+            -DCMAKE_C_FLAGS="-fanalyzer -Werror=analyzer-file-leak -Werror=analyzer-malloc-leak"
+          cmake --build build-analyzer
+
+  replay:
+    name: fuzz corpus replay (ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Configure
+        run: cmake -S . -B build-fuzz -G Ninja -DWF_FUZZ=ON
+      - name: Build
+        run: cmake --build build-fuzz
+      - name: Replay corpus and crash inputs
+        run: ctest --test-dir build-fuzz -R replay --output-on-failure
+
+  fuzz:
+    name: libFuzzer (ubuntu, nightly)
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build with clang
+        run: |
+          clang -g -O1 -fsanitize=fuzzer,address -Iinclude \
+            fuzz/fuzz_token.c src/token.c -o fuzz_token
+      - name: Fuzz for five minutes
+        run: |
+          mkdir -p corpus
+          cp tests/data/sample.txt corpus/
+          ./fuzz_token -max_total_time=300 corpus/
+      - name: Upload crash inputs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: crash-inputs
+          path: crash-*
+          if-no-files-found: ignore

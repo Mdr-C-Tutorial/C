@@ -1,0 +1,56 @@
+{
+    "SETMAX": {
+        "summary": "Sets the string value of a key to the given integer only if it is greater than the current value. Creates the key if it doesn't exist.",
+        "complexity": "O(1)",
+        "group": "string",
+        "since": "8.10.2",
+        "arity": 3,
+        "function": "setmaxCommand",
+        "command_flags": [
+            "WRITE",
+            "DENYOOM",
+            "FAST"
+        ],
+        "acl_categories": [
+            "STRING"
+        ],
+        "key_specs": [
+            {
+                "flags": [
+                    "RW",
+                    "ACCESS",
+                    "UPDATE"
+                ],
+                "begin_search": {
+                    "index": {
+                        "pos": 1
+                    }
+                },
+                "find_keys": {
+                    "range": {
+                        "lastkey": 0,
+                        "step": 1,
+                        "limit": 0
+                    }
+                }
+            }
+        ],
+        "reply_schema": {
+            "description": "1 if the value was written, 0 if the key already held a greater or equal integer.",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1
+        },
+        "arguments": [
+            {
+                "name": "key",
+                "type": "key",
+                "key_spec_index": 0
+            },
+            {
+                "name": "value",
+                "type": "integer"
+            }
+        ]
+    }
+}

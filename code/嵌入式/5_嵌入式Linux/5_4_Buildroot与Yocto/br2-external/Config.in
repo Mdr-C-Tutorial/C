@@ -1,0 +1,2 @@
+source "$BR2_EXTERNAL_MDR_PATH/package/sensord/Config.in"
+source "$BR2_EXTERNAL_MDR_PATH/package/mdr-fifo/Config.in"

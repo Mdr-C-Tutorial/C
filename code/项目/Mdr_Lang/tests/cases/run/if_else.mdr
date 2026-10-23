@@ -1,0 +1,15 @@
+let n = 7;
+if (n > 5) {
+    print(1);
+} else {
+    print(0);
+}
+// expect: 1
+
+let m = 3;
+if (m > 5) {
+    print(1);
+} else {
+    print(0);
+}
+// expect: 0

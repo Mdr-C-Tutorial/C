@@ -1,0 +1,7 @@
+input 04 line 1
+input 04 line 2
+input 04 line 3
+input 04 line 4
+input 04 line 5
+input 04 line 6
+input 04 line 7

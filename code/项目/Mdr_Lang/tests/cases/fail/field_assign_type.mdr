@@ -1,0 +1,3 @@
+struct Box(v: i32); function main() -> () { let b = Box(1); b.v = true; }
+
+// expect-error: 1:65: assignment type mismatch: expected i32, got bool

@@ -1,0 +1,3 @@
+function foo(a: i32) -> () { } function main() -> () { foo(); }
+
+// expect-error: 1:56: argument count mismatch for foo

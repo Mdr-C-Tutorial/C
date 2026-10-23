@@ -1,0 +1,10 @@
+--- a/compiler_c/src/mdr_compiler.c
++++ b/compiler_c/src/mdr_compiler.c
+@@ -876,6 +876,7 @@ static bool parse_function_decl(parser *p) {
+     }
+ 
+     if (!parser_expect_operator(p, "(", "expected '(' after function name")) {
++        free(method_key);
+         name_vec_free(&generic_names);
+         return false;
+     }

@@ -1,0 +1,27 @@
+/dts-v1/;
+/plugin/;
+
+/*
+ * 把 MPU6050 挂到 DK 板的 I2C5 上（Arduino 接口 D14/D15）。
+ * 编译后由 U-Boot 或 /boot 目录下的启动脚本加载；
+ * 也可以在 Buildroot 的 post-image 脚本里合进主设备树。
+ */
+
+/ {
+	compatible = "st,stm32mp157a-dk1", "st,stm32mp157d-dk1",
+		     "st,stm32mp157c-dk2", "st,stm32mp157f-dk2";
+
+	fragment@0 {
+		target = <&i2c5>;
+		__overlay__ {
+			status = "okay";
+
+			imu@68 {
+				compatible = "mdr,mpu6050";
+				reg = <0x68>;
+				interrupt-parent = <&gpioa>;
+				interrupts = <8 1>;
+			};
+		};
+	};
+};

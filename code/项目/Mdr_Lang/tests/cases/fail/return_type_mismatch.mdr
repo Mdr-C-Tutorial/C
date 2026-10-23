@@ -1,0 +1,3 @@
+function bad() -> i32 { return true; }
+
+// expect-error: 1:32: return type mismatch: expected i32, got bool

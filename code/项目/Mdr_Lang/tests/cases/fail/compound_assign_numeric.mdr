@@ -1,0 +1,3 @@
+function main() -> () { let x: bool = true; x += 1; }
+
+// expect-error: 1:47: left side of compound assignment must be numeric

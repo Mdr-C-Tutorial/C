@@ -278,3 +278,209 @@ if ( /* 其他条件 */ ) {
 这个问题曾经导致了苹果的一次严重的安全漏洞：[**The Apple ‘goto fail;’ vulnerability**](https://www.blackduck.com/blog/understanding-apple-goto-fail-vulnerability-2.html)
 
 :::
+
+## 3. 习题
+
+### 3.1 巩固
+
+<Exercise id="10418" :d="1" :w="1">
+
+下面四个函数都用了 `if`，但有的条件是多余的，有的条件写错了。
+
+```c
+static int sign_of(int n) {
+    if (n > 0) {
+        return 1;
+    }
+    if (n < 0) {
+        return -1;
+    }
+    return 0;
+}
+
+static int is_even(int n) {
+    if (n % 2 == 1) {
+        return 0;
+    }
+    return 1;
+}
+
+static int in_range(int value, int lo, int hi) {
+    if (value >= lo || value <= hi) {
+        return 1;
+    }
+    return 0;
+}
+
+static int is_upper(char ch) {
+    if (ch >= 'A') {
+        if (ch <= 'Z') {
+            return 1;
+        }
+    }
+    return 0;
+}
+```
+
+1. `sign_of` 的三个分支分别覆盖哪些输入？最后一个 `return 0` 有没有更直接的写法？
+2. `is_even(-3)` 返回什么？`-3 % 2` 等于多少？`is_even` 对哪些输入会给出错误答案？用 `if (n % 2 != 0)` 改写，并说明为什么这样写对正负数都成立。
+3. `in_range(0, 1, 10)` 返回什么？`in_range(100, 1, 10)` 呢？把 `||` 改成正确的运算符，再给出 `is_upper` 那种两层嵌套的等价写法。
+4. `is_upper` 的两层 `if` 可以合并成一个条件。合并后与原来的可读性相比如何？什么时候分层写更清楚？
+5. 四个函数里哪些 `if` 是卫语句，哪些是普通分支？按 4.3.1 节 2.2 小节的说法，`sign_of` 改成卫语句后代码是变短了还是变长了？
+
+</Exercise>
+
+<Exercise id="10419" :d="2" :w="2">
+
+下面的程序判断三角形，但条件顺序有问题。
+
+```c
+#include <stdio.h>
+
+/* 返回 3：等边；2：等腰；1：不等边；0：不能构成三角形；-1：边长非法 */
+static int classify_triangle(int a, int b, int c) {
+    if (a <= 0 || b <= 0 || c <= 0) {
+        return -1;
+    }
+    if (a == b || b == c || a == c) {
+        return 2;
+    }
+    if (a + b <= c || b + c <= a || a + c <= b) {
+        return 0;
+    }
+    if (a == b && b == c) {
+        return 3;
+    }
+    return 1;
+}
+
+int main(void) {
+    printf("%d %d %d %d %d %d %d\n",
+           classify_triangle(3, 3, 3), classify_triangle(3, 3, 4),
+           classify_triangle(3, 4, 5), classify_triangle(1, 2, 3),
+           classify_triangle(0, 4, 5), classify_triangle(2, 2, 5),
+           classify_triangle(-1, 4, 5));
+    return 0;
+}
+```
+
+1. 写出七个数。
+2. `classify_triangle(3, 3, 3)` 本该返回 3，实际返回 2。哪个条件先满足了？说明 `if` 链的判定顺序怎样影响结果。
+3. `classify_triangle(1, 2, 3)` 返回什么？三边满足三角形不等式吗？
+4. 调整条件的顺序，使七个结果依次为 `3 2 1 0 -1 0 -1`。只能移动现有的 `if`，不能改变任何一个条件的写法。
+5. 调整后的顺序是否唯一？说明为什么「等边」必须排在「等腰」之前，而「三边合法」又必须排在两者之前。
+6. 用 `else if` 改写调整后的链，输出不变。改用 `else if` 之后，某个条件的真假还依赖前面条件的结果吗？
+
+</Exercise>
+
+### 3.2 编程
+
+<Exercise id="10420" :d="4" :w="3">
+
+下面的函数用六层嵌套处理下单，逻辑正确但难以阅读。
+
+```c
+#include <stdio.h>
+
+/* 返回应收金额（分）；库存或数量不合法时返回 -1，
+   并在返回前打印一行 settled 记录。 */
+static int checkout(int stock, int qty, int coupon) {
+    int total = 0;
+
+    if (stock > 0) {
+        if (qty > 0) {
+            if (qty <= stock) {
+                total = qty * 100;
+                if (coupon > total) {
+                    coupon = total;
+                }
+                total -= coupon;
+            } else {
+                total = -1;
+            }
+        } else {
+            total = -1;
+        }
+    } else {
+        total = -1;
+    }
+
+    printf("settled: %d\n", total);
+    return total;
+}
+
+int main(void) {
+    printf("= %d\n", checkout(0, 1, 0));
+    printf("= %d\n", checkout(5, 0, 0));
+    printf("= %d\n", checkout(5, 6, 0));
+    printf("= %d\n", checkout(5, 2, 0));
+    printf("= %d\n", checkout(5, 2, 50));
+    printf("= %d\n", checkout(5, 2, 500));
+    return 0;
+}
+```
+
+1. 写出十二行输出（`settled` 与 `=` 交替）。
+2. 用卫语句改写三个失败分支，主路径最多两层缩进。要求函数结尾那行 `settled` 记录在任何输入下都照常打印。
+3. 直接在每个卫语句里写 `return -1;` 会出什么问题？用原程序的测试用例验证，指出哪几行少了。
+4. 给出两种保留尾部的改法：一种把所有失败情况压成一条 `if` 链；另一种用 `goto` 跳到函数末尾的记录处（`goto` 的用法见 [5.5.2](/教程/正文/语法和标准库/5_循环与跳转/5_5_跳转语句/5_5_2_goto)，现在只需照抄结构）。两者的输出必须与原程序完全一致。
+5. 比较两种改法：分支数、缩进层数、新增的标号各是多少？如果以后要在失败时再加一条 `printf`，哪种改法改一处就够？
+
+</Exercise>
+
+### 3.3 综合与挑战
+
+<Exercise id="10421" :d="5" :w="4">
+
+下面这段告警判定编译通过，但输出不对。
+
+```c
+#include <stdio.h>
+
+/* 返回告警等级：3 严重，2 警告，1 注意，0 正常，-1 参数错误 */
+static int alarm_level(int temp, int pressure, int door_open) {
+    int level = 0;
+
+    if (temp < -40 || temp > 125) {
+        return -1;
+    }
+    if (pressure < 0 || pressure > 200) {
+        return -1;
+    }
+
+    if (temp > 100 || pressure > 150);
+    {
+        level = 3;
+    }
+
+    if (temp > 80 || pressure > 120) {
+        level = 2;
+    }
+
+    if (door_open)
+        if (level == 0)
+            level = 1;
+        else
+            level = 0;
+
+    return level;
+}
+
+int main(void) {
+    printf("%d %d %d %d %d %d %d %d\n",
+           alarm_level(20, 100, 0), alarm_level(20, 100, 1),
+           alarm_level(85, 100, 0), alarm_level(20, 130, 0),
+           alarm_level(101, 100, 0), alarm_level(20, 151, 1),
+           alarm_level(-41, 100, 0), alarm_level(20, 201, 0));
+    return 0;
+}
+```
+
+1. 用 `-Wall -Wextra` 编译，抄下全部诊断（三条警告外加一条 note）。它们分别指向哪三处写法？
+2. 写出八个返回值。逐项对照：温度 20、压力 100、门关着时本应返回 0，实际返回什么？门开着、其余正常时本应返回 1，实际呢？
+3. 逐一说明这三处写法各自错在哪：`if (...);` 后面跟块、连续的 `if` 覆盖、以及没有花括号的 `if` 嵌套。第三处里 `else` 实际属于哪个 `if`？
+4. 修复三处缺陷，并把重复的阈值判定改成 `else if` 链。要求八个输出依次为 `0 1 2 2 3 3 -1 -1`。
+5. 修复后，`level` 的赋值路径一共几条？画一张 `temp`、`pressure`、`door_open` 到 `level` 的判定表（可以只列边界值），说明每条路径都能落到唯一一个等级。
+6. 这道题的三处缺陷，`-Wall -Wextra` 都给出了警告。把这段代码当作一次代码评审的材料：如果团队把警告当作错误（`-Werror`）处理，这三个缺陷能否进入仓库？
+
+</Exercise>

@@ -1,0 +1,2 @@
+name: MDR
+desc: MDR 板级定制：sensord 服务与 mdr_fifo 内核模块

@@ -1,0 +1,13 @@
+# 换行符由仓库统一：文本文件在索引里用 LF，检出时按平台转换；
+# 下面的 eol=lf / eol=crlf 覆盖个别类型。
+* text=auto
+
+# shell 脚本必须用 LF，Windows 上检出成 CRLF 后 bash 会报 $'\r': command not found
+*.sh text eol=lf
+
+# 批处理文件用 CRLF
+*.bat text eol=crlf
+
+# 图片按二进制处理，不做任何转换
+*.png binary
+*.jpg binary

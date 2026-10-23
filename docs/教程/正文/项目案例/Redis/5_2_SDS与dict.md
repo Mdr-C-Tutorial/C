@@ -509,3 +509,125 @@ void *dictGetKey(const dictEntry *de) {
 ```
 
 这个优化在 Redis 的集合（Set）数据类型中大量使用，能显著减少集合的内存开销。
+
+## 3. 习题
+
+### 3.1 巩固
+
+<Exercise id="50520" :d="2" :w="3" multi>
+
+(1) _[2.3]_ 下表中每一行是一个刚由 `sdsnewlen` 建出、还没追加过的 SDS。把 SDS 类型、header 字节数、传给 `s_malloc_usable` 的请求字节数、`sdslen`、`sdsavail` 填出来。再写一个二十行的小程序，把 `sdsReqType` 与 `sizeof(struct sdshdrN)` 抄进去验证类型与 header 两列。
+
+| 初始化长度 | 0 | 31 | 32 | 252 | 253 | 65530 | 65531 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 类型 | | | | | | | |
+| header 字节 | | | | | | | |
+| 请求字节数 | | | | | | | |
+| `sdsavail` | | | | | | | |
+
+请求字节数按 `hdrlen + initlen + 1` 算，`sdsavail` 按「分配器正好给出请求的大小」算。这张表里每一行的 `sdsavail` 都是 0，但原因不同：长度 31 那一行的 0 来自 TYPE_5 根本没有 `alloc` 字段，`sdsavail` 直接返回常量；其余几行是因为新建时没有多余空间。这正是正文说「空字符串不用 TYPE_5」以及 TYPE_5 不适合追加的原因。另外两问：长度 0 为什么不用 TYPE_5；252 与 253 之间为什么差一级 header。
+
+(2) _[2.3]_ 按 5.1 的方式启动一个只绑本机的实例，先写入一个 64 字节的值，再追加 100 字节，两次各查一次 `DEBUG SDSLEN`：
+
+::: terminal title="zsh - redis-cli"
+
+```console
+$ ./src/redis-cli -p 24730 SET k "$(printf 'a%.0s' $(seq 64))"
+$ ./src/redis-cli -p 24730 DEBUG SDSLEN k
+$ ./src/redis-cli -p 24730 APPEND k "$(printf 'b%.0s' $(seq 100))"
+$ ./src/redis-cli -p 24730 DEBUG SDSLEN k
+```
+
+:::
+
+记下两次的 `val_sds_len` 与 `val_sds_avail`，再按正文的预分配规则手算 `alloc`：`newlen = len + addlen` 之后做了哪一步，`sdsReqType(newlen)` 选到哪种 header，请求的总字节数是多少。两次的「`val_sds_len + val_sds_avail`」都比请求的总字节数减去 header 和结尾 `\0` 后多出几个字节，多出来的部分就是 `s_malloc_usable` 返回的 `bufsize` 比请求的大出的量，它被 `sdssetalloc` 一并记进了 `alloc`。本机 jemalloc 实测的一组读数是 `64/4` 与 `164/174`，你的分配器若不同，按自己的读数算。
+
+(3) _[2.2]_ 用 `printf 'a\0b' | ./src/redis-cli -x -p 24730 SET bin` 写入一个含 `\0` 的值，记录 `STRLEN bin` 与 `DEBUG SDSLEN bin` 的结果。再写一段 C 程序，对同样的三个字节调用 `strlen`，比较两者，说明 SDS 的 `len` 字段解决了什么问题。
+
+</Exercise>
+
+### 3.2 编程
+
+<Exercise id="50521" :d="4" :w="4">
+
+写一份自己的 SDS，只实现 TYPE_5、TYPE_8、TYPE_16 三种 header，接口如下：
+
+```c
+typedef char *sds;
+
+sds sdsnewlen(const void *init, size_t initlen);
+sds sdscatlen(sds s, const void *t, size_t len);
+void sdsfree(sds s);
+size_t sdslen(const sds s);
+size_t sdsavail(const sds s);
+```
+
+要求：
+
+1. 一次 `malloc` 分配 header、内容与结尾的 `\0`，`sds` 指向内容首字节，类型从 `s[-1] & 7` 读出。header 加 `__attribute__((__packed__))`。
+2. `sdsnewlen("", 0)` 得到 TYPE_8。扩容照正文的预分配规则：新长度小于 1MB 时翻倍，否则加 1MB。类型超过 TYPE_16 能表示的长度时返回 `NULL`。
+3. 写测试程序，从空串开始连续 `sdscatlen` 一个字节一千次，打印每次真正 `realloc` 时的 `len` 与 `alloc`，最后打印总次数。按「分配器正好给请求大小」计算，总次数是 9，`alloc` 依次为 2、6、14、30、62、126、254、510、1022。再回答：真实 Redis 里 `s_malloc_usable` 拿到的块比请求的大，这会让重分配次数变多还是变少？
+4. 把 `s = sdscatlen(s, ...)` 写成 `sdscatlen(s, ...)`，丢弃返回值，用 `-fsanitize=address` 编译运行。贴出报告第一行与 `#0`、`#1` 两帧，说明指针为什么失效。（ASan 的 `realloc` 每次都换地址，不必额外制造搬移。）
+5. 追加 `"a\0b"` 三个字节，用 `printf("%zu %s\n", sdslen(x), x)` 打印，解释输出为什么是 `3 a`。
+
+验收：类型表、realloc 计数输出、ASan 报告摘录、第 5 步的输出。
+
+</Exercise>
+
+<Exercise id="50522" :d="5" :w="4">
+
+写一个最小 dict，把正文 2.1～2.7 的机制落到代码里：
+
+```c
+typedef struct mdict mdict;
+mdict *mdict_create(void);
+int mdict_add(mdict *d, const char *key);      /* 已存在返回 0 */
+int mdict_contains(mdict *d, const char *key);
+int mdict_delete(mdict *d, const char *key);
+size_t mdict_size(const mdict *d);
+int mdict_is_rehashing(const mdict *d);
+```
+
+要求：
+
+1. 两张表 `ht[2]`，桶数始终为 2 的幂且不小于 4；元素用拉链法，新元素插到链头。
+2. 键的类型通过一张回调表交给调用者，至少包含 `hash`、`compare`、`destroy` 三个函数指针，取值与正文的 `dictType` 对应。另加一个 `resizeAllowed(size_t moreMem, double ratio)`，返回 0 时本次扩容被跳过，用来模拟 Redis 在 fork 期间切换到 `DICT_RESIZE_AVOID` 的做法：构造函数多一个参数，允许把「比值达到 1 才扩容」改成「比值达到 4 才扩容」。
+3. 负载因子达到 1（或按 `resizeAllowed` 调整后的阈值）时分配 `ht[1]`，大小为大于元素数的最小 2 的幂，`rehashidx` 置 0。之后每次 `add`、`contains`、`delete` 搬迁一个非空桶。连续空桶最多跳 `10 * n` 个（`n` 是本次要搬的桶数），超过就提前返回，避免稀疏表空转。
+4. rehash 期间查找与删除都要查两张表，跳过 `ht[0]` 中下标小于 `rehashidx` 的桶；新增一律进 `ht[1]`。
+5. 搬完 `ht[0]` 后释放旧表，`rehashidx` 回到 -1。
+6. 再实现两种迭代器。safe 版在迭代期间把 `pauserehash` 加一，此时 `mdict_add` 不触发搬迁；unsafe 版在开始与结束时各算一次指纹，把两张表的指针、桶数指数、元素数共 6 个整数按正文的 Thomas Wang 混合，不一致就 `abort()`。
+
+测试程序：
+
+- 插入 100000 个键，键名用 `snprintf(buf, sizeof buf, "key%06d", i)` 生成；每 10000 次打印一次 `mdict_is_rehashing`、两张表的元素数与 `rehashidx`。
+- 插入完成后逐个 `contains`，打印缺失个数，必须为 0；再删除一半，打印删除失败个数，必须为 0。
+- safe 迭代器遍历时删除当前键，结束后元素数应当减半；unsafe 迭代器遍历时故意插入一个键，确认程序 `abort`，退出码非零。
+
+验收：rehash 进度、缺失与删除失败计数、safe 遍历后的元素数三组输出，以及 unsafe 版 `abort` 的那次运行。
+
+</Exercise>
+
+### 3.3 综合与挑战
+
+<Exercise id="50523" :d="6" :w="5" multi>
+
+(1) _[6.5]_ 写一个 `dictScan` 模拟器，不依赖 Redis。桶数组是 16 个，每个元素记为「桶下标加序号」，实现 `rev()`、`v |= ~m0`、`rev(v)++`、`rev(v)` 这一串。
+
+要求：
+
+- 第一轮表大小为 4（掩码 3），扫到一半时扩到 16，旧桶里的元素按 `hash & 15` 重新分布；再扫到一半时缩回 4，按 `hash & 3` 合并。
+- 游标从 0 开始，每步调用一次，返回 0 时结束。
+- 记录每个元素被访问的次数。验收：每个元素至少出现一次；重复返回是允许的；打印遗漏个数（必须为 0）与重复次数最多的元素。
+- 用 100 组随机的「扩容/缩容时机 + 100 个键」各跑一遍，全部无遗漏才算完成。
+
+(2) _[4.3]_ 实现正文 2.9 的指针标记。写三个构造函数：
+
+```c
+void *make_entry(void *key);        /* 正常 dictEntry，8 字节对齐 */
+void *make_odd_key(const char *s);  /* 返回奇数地址，内容以 s 开头 */
+void *make_even_key(const char *s); /* 返回偶数地址 */
+```
+
+`dictGetKey` 按 `ENTRY_PTR_NORMAL`、`ENTRY_PTR_IS_ODD_KEY`、`ENTRY_PTR_IS_EVEN_KEY` 分派。验收：三个对象各取一次键，打印原始指针的低 3 位与取出的键；再把 `make_odd_key` 改成返回偶数地址，说明标记方案为什么会失效，以及 Redis 为什么能依赖「SDS 的 buf 地址是奇数」这一事实。
+
+</Exercise>

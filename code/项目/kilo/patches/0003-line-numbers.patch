@@ -1,0 +1,124 @@
+diff --git a/kilo.c b/kilo.c
+index 0d8aef4..4954d88 100644
+--- a/kilo.c
++++ b/kilo.c
+@@ -111,6 +111,19 @@ struct editorConfig {
+ 
+ static struct editorConfig E;
+ 
++/* Width of the line-number gutter: the digits of the largest line number
++ * plus one space separating it from the text. */
++int editorLineNumberWidth(void) {
++    char numbuf[32];
++    return snprintf(numbuf,sizeof(numbuf),"%d",E.numrows)+1;
++}
++
++/* Columns left for the text once the gutter is taken away. */
++int editorTextCols(void) {
++    int cols = E.screencols-editorLineNumberWidth();
++    return cols > 0 ? cols : 1;
++}
++
+ enum KEY_ACTION{
+         KEY_NULL = 0,       /* NULL */
+         CTRL_C = 3,         /* Ctrl-c */
+@@ -713,7 +726,7 @@ void editorInsertChar(int c) {
+     }
+     row = &E.row[filerow];
+     editorRowInsertChar(row,filecol,c);
+-    if (E.cx == E.screencols-1)
++    if (E.cx == editorTextCols()-1)
+         E.coloff++;
+     else
+         E.cx++;
+@@ -776,8 +789,8 @@ void editorDelChar(void) {
+         else
+             E.cy--;
+         E.cx = filecol;
+-        if (E.cx >= E.screencols) {
+-            int shift = (E.screencols-E.cx)+1;
++        if (E.cx >= editorTextCols()) {
++            int shift = (editorTextCols()-E.cx)+1;
+             E.cx -= shift;
+             E.coloff += shift;
+         }
+@@ -903,6 +916,8 @@ void editorRefreshScreen(void) {
+                 while(padding--) abAppend(&ab," ",1);
+                 abAppend(&ab,welcome,welcomelen);
+             } else {
++                int pad = editorLineNumberWidth();
++                while (pad--) abAppend(&ab," ",1);
+                 abAppend(&ab,"~\x1b[0K\r\n",7);
+             }
+             continue;
+@@ -910,10 +925,18 @@ void editorRefreshScreen(void) {
+ 
+         r = &E.row[filerow];
+ 
++        char numbuf[32];
++        int numlen = snprintf(numbuf,sizeof(numbuf),"%*d ",
++                              editorLineNumberWidth()-1,filerow+1);
++        abAppend(&ab,"\x1b[90m",5);
++        abAppend(&ab,numbuf,numlen);
++        abAppend(&ab,"\x1b[39m",5);
++
++        int textcols = editorTextCols();
+         int len = r->rsize - E.coloff;
+         int current_color = -1;
+         if (len > 0) {
+-            if (len > E.screencols) len = E.screencols;
++            if (len > textcols) len = textcols;
+             char *c = r->render+E.coloff;
+             unsigned char *hl = r->hl+E.coloff;
+             int j;
+@@ -981,7 +1004,7 @@ void editorRefreshScreen(void) {
+      * at which the cursor is displayed may be different compared to 'E.cx'
+      * because of TABs. */
+     int j;
+-    int cx = 1;
++    int cx = editorLineNumberWidth()+1;
+     int filerow = E.rowoff+E.cy;
+     erow *row = (filerow >= E.numrows) ? NULL : &E.row[filerow];
+     if (row) {
+@@ -1096,8 +1119,8 @@ void editorFind(int fd) {
+                 E.rowoff = current;
+                 E.coloff = 0;
+                 /* Scroll horizontally as needed. */
+-                if (E.cx > E.screencols) {
+-                    int diff = E.cx - E.screencols;
++                if (E.cx > editorTextCols()) {
++                    int diff = E.cx - editorTextCols();
+                     E.cx -= diff;
+                     E.coloff += diff;
+                 }
+@@ -1124,9 +1147,9 @@ void editorMoveCursor(int key) {
+                 if (filerow > 0) {
+                     E.cy--;
+                     E.cx = E.row[filerow-1].size;
+-                    if (E.cx > E.screencols-1) {
+-                        E.coloff = E.cx-E.screencols+1;
+-                        E.cx = E.screencols-1;
++                    if (E.cx > editorTextCols()-1) {
++                        E.coloff = E.cx-editorTextCols()+1;
++                        E.cx = editorTextCols()-1;
+                     }
+                 }
+             }
+@@ -1136,7 +1159,7 @@ void editorMoveCursor(int key) {
+         break;
+     case ARROW_RIGHT:
+         if (row && filecol < row->size) {
+-            if (E.cx == E.screencols-1) {
++            if (E.cx == editorTextCols()-1) {
+                 E.coloff++;
+             } else {
+                 E.cx += 1;
+@@ -1270,7 +1293,7 @@ void updateWindowSize(void) {
+ void handleSigWinCh(int unused __attribute__((unused))) {
+     updateWindowSize();
+     if (E.cy > E.screenrows) E.cy = E.screenrows - 1;
+-    if (E.cx > E.screencols) E.cx = E.screencols - 1;
++    if (E.cx > editorTextCols()-1) E.cx = editorTextCols() - 1;
+     editorRefreshScreen();
+ }
+ 

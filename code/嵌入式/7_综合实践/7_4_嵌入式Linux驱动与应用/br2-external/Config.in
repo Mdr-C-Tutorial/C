@@ -1,0 +1,3 @@
+source "$BR2_EXTERNAL_MDR_PATH/package/coremqtt/Config.in"
+source "$BR2_EXTERNAL_MDR_PATH/package/mdr-imu/Config.in"
+source "$BR2_EXTERNAL_MDR_PATH/package/imud/Config.in"
