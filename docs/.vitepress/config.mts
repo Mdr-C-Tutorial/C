@@ -183,7 +183,7 @@ export default withPwa(
       includeAssets: ["favicon.svg"],
       workbox: {
         globPatterns: ["**/*.{css,js,woff2}"],
-        maximumFileSizeToCacheInBytes: 10485760,
+        maximumFileSizeToCacheInBytes: 16777216,
       },
       experimental: {
         includeAllowlist: true,
