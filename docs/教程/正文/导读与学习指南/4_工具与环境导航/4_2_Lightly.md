@@ -1,4 +1,4 @@
-# 6.2 Lightly
+# 4.2 Lightly
 
 ## 1. C 项目的创建
 
