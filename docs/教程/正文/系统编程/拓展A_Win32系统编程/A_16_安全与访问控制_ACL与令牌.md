@@ -1,16 +1,18 @@
 # A.16 安全与访问控制（ACL 与令牌）
 
-同一份程序，装在 `C:\Program Files` 下就能跑，拷到别的目录也正常，可它一启动就报「拒绝访问」，因为程序要往自己的安装目录写日志。A.12 的回声服务器用默认设置创建了命名管道，任何本机用户都能连上来读走数据。还有人遇到「拒绝访问」时，直接把对象的访问控制改成「所有人完全控制」，问题当场消失，也没有人再提。
+在 Windows 平台进行系统开发时，权限问题几乎总会在某些意想不到的时刻浮出水面。一份在开发者本地工作目录下调试通畅的程序，打包安装到 `C:\Program Files` 后启动便崩溃并报错「拒绝访问」，原因往往只是它在试图将日志写进自己的安装目录；A.12 中建立的命名管道如果沿用系统默认的安全属性，局域网或本机上的其他未受信任主体可能轻而易举连接进来读取传输内容；更有不少初学者在被 `ERROR_ACCESS_DENIED` 困扰时，习惯于粗暴地将目标文件或内核对象的安全描述符改成「对所有人完全开放」，尽管报错立刻消失，却在系统防御面上留下了难以察觉的巨大豁口。
 
-这三件事分别对应访问检查、安全描述符里的访问控制列表和访问令牌。这一页先把一次访问检查的参与者讲清楚，再分别拆开令牌和访问控制列表两部分：怎样读自己进程的令牌，怎样读一个文件的安全描述符并与 `icacls` 对上，怎样为新文件或命名管道指定只有自己人才能访问的 DACL，最后是怎样正确启用特权。做完这些，应当能回答「这次打开为什么被拒绝」，也能写出一个默认就拒绝别人的对象。
+这些看似分散的现象，背后遵循着同一套严整的访问控制架构。操作系统并非通过简单的「黑白名单」或粗粒度的用户身份来决定每一次行为，而是将每一次资源请求解构为三位一体的判定流程：主动发起动作的主体所持有的访问令牌（Access Token）、附着在目标资源上的安全描述符（Security Descriptor）及其内部的自主访问控制列表（DACL），以及在打开句柄那一瞬由内核统一执行的访问检查逻辑。理解了这套体系，开发者不仅能准确排查每一次被内核拦截的具体缘由，更能在创建共享内存、管道、事件以及敏感配置文件时，主动构建起最小权限原则所要求的防御边界。
 
-本页的示例都在 Windows 11 x64 上用 MinGW-w64 GCC 13.2 编译运行，全部以普通（未提升）用户身份执行，不触发用户账户控制（User Account Control，UAC）的提示。输出里的计算机名、用户名和 SID 的机器部分已替换成 `DESKTOP-EXAMPLE`、`user` 与 `S-1-5-21-…-1001`。
+本页的所有示例均在 Windows 11 x64 环境下使用 MinGW-w64 GCC 13.2 编译运行，且全程保持在普通未提升权限的用户会话中执行，不会弹出 UAC 提权提示。为了通用性与隐私，终端输出中的机器名、用户名和局域网 SID 均统一展示为 `DESKTOP-EXAMPLE`、`user` 与 `S-1-5-21-…-1001` 等占位形式。
 
 ## 1. 一次访问检查里有哪些角色
 
-访问检查（access check）有两方。主动的一方是发起请求的线程，它带着一个访问令牌（access token），令牌里写着这个线程代表哪个用户、属于哪些组、有哪些特权。被动的一方是可保护对象（securable object），文件、目录、注册表项、命名管道、进程、线程、事件、互斥量都算，每个对象带一个安全描述符（security descriptor），里面有一份自主访问控制列表（discretionary access control list，DACL）。
+Windows 的安全子系统将安全模型清晰地划分为请求者与被请求对象两端。主动的一方通常是正在执行某段代码的线程，它代表着某个特定的安全上下文，其身份与权限边界完全凝结在一个被称为访问令牌（Access Token）的内核对象中。令牌中记录了该主体属于哪个具体用户、归入哪些安全组、拥有哪些被系统赋予的特权，以及处于何种完整性级别。
 
-线程请求打开对象时，系统拿令牌里的安全标识符（security identifier，SID）逐条比对 DACL 里的访问控制项（access control entry，ACE），得出允许或拒绝。这个过程只发生在打开的那一刻。
+被动的一方则是系统中的各类可保护对象（Securable Object）。在 Windows 中，文件、目录、注册表键值、命名管道、进程与线程句柄、同步事件以及文件映射等，均属于可保护对象的范畴。每个可保护对象在创建时都会关联一个安全描述符（Security Descriptor），其中最核心的组成部分便是一份自主访问控制列表（Discretionary Access Control List，简称 DACL）。
+
+当线程试图调用 `CreateFileW`、`OpenProcess` 或 `CreateNamedPipeW` 打开或新建某个对象时，安全引用监视器（Security Reference Monitor，SRM）会介入其中，取出调用者令牌里的安全标识符（SID）列表，逐项与对象 DACL 内部的访问控制项（ACE）进行比对演算，最终做出允许或是拒绝的裁决。这个判定流程具有严格的时效特征：它仅仅发生在获取对象句柄的那一瞬间。
 
 ::: concept win-ac-check-once title="访问权限在打开对象时检查一次"
 
@@ -18,7 +20,7 @@
 
 :::
 
-这条规则贯穿整页。它解释了为什么「文件正在被使用」时可以删掉它，也解释了为什么给一个正在运行的程序补权限不会立刻生效：程序手里的句柄是旧的。
+这一设计具有深远的系统编程含义。它直观地解释了为什么一个文件即便正在被某个只读进程打开使用，拥有删除权限的进程依然可以直接标记并完成删除；也解释了为什么在管理员临时调整了某个正在运行的服务的 ACL 之后，服务原先持有的句柄依然能够按照打开时的权限正常工作——因为已分发出去的内核句柄内部已经固化了授予的权限掩码，内核在后续的数据读写路径上绝不会重复遍历复杂的 ACL 链表。
 
 ```mermaid
 flowchart TD
@@ -41,15 +43,15 @@ flowchart TD
     M -->|否| G
 ```
 
-用 POSIX 的说法对照一下。主线第 3 章讲的权限模型是三个三元组加上一个「谁是属主」的判断，能表达的只是读、写、执行三种权限，一条记录管一个属主或一个组；root 直接跳过整套检查，`CAP_DAC_OVERRIDE` 和 `CAP_DAC_READ_SEARCH` 两个能力也绕过检查。Windows 这边没有「超级用户一律放行」这回事：管理员能不能写一个文件，同样要看 DACL，区别只在于管理员可以改 DACL、可以接管所有权。访问控制列表也不止三项权限，而是 32 位的访问掩码，还能按主体逐条排列、按继承关系下发到子对象。
+如果将这套逻辑与 POSIX 体系进行对比，两者的哲学差异尤为鲜明。传统 Unix 依靠属主、所属组与其它人这三组读写执行（rwx）九个位构成的权限位，辅以 root 用户无视绝大部分权限检查的特权语义；即便引入了 capabilities，本质上依然是给调用者线程赋予豁免检查的能力（例如 `CAP_DAC_OVERRIDE`）。然而 Windows 在设计之初就没有所谓的「绝对豁免超级用户」概念。即便是内置的管理员（Administrator）甚至系统服务（LocalSystem），想要打开一个指定的文件，同样必须老老实实经过 DACL 的规则遍历。管理员之所以强大，是因为管理员组通常天然拥有修改 DACL（`WRITE_DAC`）或接管对象所有权（`WRITE_OWNER`）的标准权限，他们能通过改写规则来获得权限，但绝不能绕过判决流水线本身。此外，DACL 中的每一项控制都可以精细控制多达 32 个维度的具体访问位，并且原生支持复杂的树状容器继承机制。
 
 ## 2. SID 与访问令牌
 
 ### 2.1 SID 的写法
 
-SID 是变长结构，字符串形式是 `S-1-5-21-…-1001` 这样一串用连字符分开的数字，依次是修订号、标识颁发机构、若干子颁发机构。最后一段叫相对标识符（relative identifier，RID），同一个域里的账户靠它区分。
+在 Windows 安全世界中，用户名和组名只是面向人类操作员的可读外壳，底层所有权限认定的真正载体是安全标识符（Security Identifier，简称 SID）。SID 是一个变长的数据结构，在序列化为文本时，通常呈现形如 `S-1-5-21-…-1001` 的格式。它的每一个字段都有明确的数学与组织含义：前缀 `S` 代表标识符本身，接下来的 `1` 是数据修订版本号，随后的 `5` 是标识颁发机构（Identifier Authority，5 代表 NT Authority），后面的若干段数字构成了子机构层次，而最末端的一段数值则被称为相对标识符（Relative Identifier，简称 RID）。在一个特定的域或单机数据库内，每个独立的用户或安全组都由唯一的 RID 进行区分。
 
-常用的众所周知的 SID 有几个，写 SDDL 时可以直接用缩写：
+除了每个系统动态生成的具体用户 SID 外，Windows 还预置了一组具有全局通用含义的固定 SID。在配置权限或撰写安全描述符定义语言（SDDL）时，开发者可以直接使用系统定义的简写字符串：
 
 | SID | 缩写 | 含义 |
 | --- | --- | --- |
@@ -66,9 +68,9 @@ SID 是变长结构，字符串形式是 `S-1-5-21-…-1001` 这样一串用连�
 
 ### 2.2 令牌里有什么
 
-访问令牌是进程或线程的安全上下文。进程有一个主令牌（primary token），线程在模拟别的用户时还有一个模拟令牌（impersonation token）。令牌里装着用户 SID、组 SID 及每组的属性、特权列表、所有者 SID、主要组 SID、默认 DACL、完整性级别等信息。
+访问令牌构成了进程或线程在内核层面的完整安全上下文。在 Windows 体系中，每个进程启动时都会被赋予一个主令牌（Primary Token），它代表了该进程基础的身份与权力底线；而当工作线程需要临时假借远程客户端或其他账户的身份处理局部任务时，还可以为该线程单独挂载一个模拟令牌（Impersonation Token）。令牌内部封存了关于发起者的一切安全要素：主体自身的用户 SID、所属安全组的 SID 数组及其附带的行为属性、系统特权列表、默认对象所有者 SID、新建对象时缺省下发的默认 DACL，以及用于强制完整性控制的级别标签。
 
-下面这个程序把自己进程的令牌读出来打印。它用 `OpenProcessToken` 取得令牌句柄，用 `GetTokenInformation` 分几次取不同类别的内容；`GetTokenInformation` 的「两次调用」写法与 A.2 的字符转换一样：第一次传空缓冲区取得所需字节数，第二次再取数据。
+通过 Win32 API 探索进程自身的令牌结构，有助于直观建立起对这套凭据机制的感知。调用 `OpenProcessToken` 获取当前进程的主令牌句柄后，可以通过 `GetTokenInformation` 逐项拉取不同分类的安全数据。由于安全描述结构在长度上往往高度动态（例如安全组的数量与特权列表的大小各不相同），`GetTokenInformation` 普遍沿用了 Win32 经典的「两阶段探测」约定：初次调用传入 NULL 缓冲区以探知内核实际所需的内存字节大小，在堆上分配足额空间后，再发起第二次调用读取真实的二进制数据块。
 
 ```c
 /* tokeninfo.c 的取数据工具：第一次问大小，第二次取内容。 */
@@ -92,7 +94,7 @@ static void *token_info(HANDLE token, TOKEN_INFORMATION_CLASS cls) {
 }
 ```
 
-程序取 `TokenUser`、`TokenElevationType`、`TokenElevation`、`TokenIntegrityLevel`、`TokenGroups`、`TokenPrivileges` 六项，把 SID 用 `ConvertSidToStringSidW` 转成字符串，用 `LookupAccountSidW` 查账户名，用 `LookupPrivilegeNameW` 把特权的 LUID 转回名字。完整程序在 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/tokeninfo.c`。
+配套示例中按顺序提取了 `TokenUser`、`TokenElevationType`、`TokenElevation`、`TokenIntegrityLevel`、`TokenGroups` 与 `TokenPrivileges` 等关键项，借助 `ConvertSidToStringSidW` 与 `LookupAccountSidW` 将底层二进制 SID 还原为人类可读的账户名称，并用 `LookupPrivilegeNameW` 将系统特权的 64 位本地唯一标识符（LUID）映射为系统宏名称。完整源码位于 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/tokeninfo.c`。
 
 ::: terminal title="PowerShell - tokeninfo"
 
@@ -133,7 +135,7 @@ PS> .\tokeninfo.exe
 
 :::
 
-把这份输出与 `whoami /all` 对一遍，两者是同一份数据：
+如果将上述输出与系统内置诊断命令 `whoami /all` 进行对照，会发现两者的底层数据完全一致：
 
 ::: terminal title="PowerShell - whoami /all（节选）"
 
@@ -176,9 +178,11 @@ SeTimeZonePrivilege           Change the time zone                 Disabled
 
 ### 2.3 「仅用于拒绝」的组
 
-输出里最值得注意的是 `BUILTIN\Administrators` 那一行的属性：`Group used for deny only`，中文版是「只用于拒绝的组」。它表示当前账户确实属于管理员组，但在这个进程的令牌里，这个组只在匹配拒绝型 ACE 时起作用，不能用来换取访问权限。
+在上述输出列表中，`BUILTIN\Administrators` 那一行的属性格外值得深思：它的状态被标记为 `Group used for deny only`（仅用于拒绝的组）。很多开发者初次见到时会感到困惑：当前登录的明明是这台计算机的主人，属于管理员组，为什么这个组既没有被直接移除，也没有正常生效？
 
-这个区别不是文字游戏。下面两个文件，一个的 DACL 只给 `BUILTIN\Administrators`，一个只给 `BUILTIN\Users`，用同一个普通进程去打开：
+这正是 Windows 用户账户控制体系（UAC）防范权限越界的一处绝妙工程折中。如果操作系统在生成普通令牌时直接将 Administrators 组从组列表中剔除，那么一旦某个文件的安全描述符中显式写了一行「拒绝 Administrators 组的一切访问」，这个未提升的普通进程反而会因为不再具有管理员身份而侥幸绕过这条拒绝规则，从而非法读取到敏感数据。为了杜绝这种利用降权反向穿透拒绝策略的漏洞，内核保留了该组的 SID，但将其打上 `SE_GROUP_USE_FOR_DENY_ONLY` 标记：在后续的每一次访问检查中，系统如果扫描到了针对该组的「拒绝 ACE」，该组依然参与匹配并将访问果断掐断；然而一旦遇到针对该组的「允许 ACE」，该组则被视同不存在，无法为当前线程主张任何积极的访问授权。
+
+这个机制带来的直接后果可以通过实验清晰展现。我们准备两个新文件：一个文件的 DACL 仅授予 `BUILTIN\Administrators` 完全控制权限，另一个则仅授予普通的 `BUILTIN\Users`，然后让同一个处于未提升状态的普通进程尝试打开它们：
 
 ```c
 /* 两个文件各自的 DACL 只有一条允许 ACE。 */
@@ -199,7 +203,7 @@ DACL 只给 BUILTIN\Users：成功
 
 :::
 
-按成员关系算，当前账户既在 Administrators 里也在 Users 里，可第一条打开失败。原因就是「仅用于拒绝」：令牌里 `BUILTIN\Administrators` 这个组不能被允许型 ACE 使用。完整程序在 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/deny_only_group.c`。
+从单纯的用户组成员身份来看，当前登录账户确确实实同时归属于这两个组。然而在未提权的日常执行流中，试图打开仅对管理员开放的文件却以 `ERROR_ACCESS_DENIED`（错误代码 5）告终。原因正是当前令牌中的 Administrators 处于「仅用于拒绝」状态，无法被允许 ACE 所兑现。完整示例参见 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/deny_only_group.c`。
 
 <Quiz
   type="single"
@@ -226,23 +230,25 @@ DACL 只给 BUILTIN\Users：成功
 
 ### 3.1 一对关联令牌
 
-管理员账户登录时，系统发一对关联令牌（linked token）：一个是完整令牌，一个是筛选后的令牌。资源管理器等日常程序用筛选后的令牌启动，令牌里 Administrators 组的属性变成「仅用于拒绝」，大部分高权限特权被删掉，完整性级别是中。点「以管理员身份运行」时，系统创建的是一个新进程，它使用完整令牌；已经在运行的进程不能原地提权。
+现代 Windows 运行环境中，管理员在交互式登录时并不会直接获得全权的运行环境，系统登录服务（LSASS）会在后台为该会话同时派发一对互相关联的令牌（Linked Tokens）：其一为拥有全部特权与完整管理组属性的完整令牌（Full Token），其二则是剔除了高危特权、将管理员组降格为「仅用于拒绝」并贴上中完整性标签的受限令牌（Filtered Token / Limited Token）。日常使用的资源管理器（`explorer.exe`）以及由其派生的所有常规应用均默认承载这份受限令牌运行。
 
-程序可以通过清单里的 `requestedExecutionLevel` 声明自己需要哪种令牌，也可以用 `ShellExecuteExW` 的 `runas` 动词请求提权。两者都会让系统弹一次同意对话框，由用户确认。
+当用户在界面上右键选择「以管理员身份运行」，或者某个应用程序在内嵌的应用程序清单（Manifest）中通过 `requestedExecutionLevel` 声明了 `requireAdministrator` 时，系统便会借助应用程序信息服务（AppInfo）向用户弹出知名的提权许可确认框。用户点击同意后，系统会依据当前受限令牌所关联的完整令牌凭证，创建一个崭新的、运行在提升上下文中的独立进程。
 
 ::: warning `runas` 不会把当前进程变成管理员
 
-「以管理员身份运行」的结果是一个新进程，不是当前进程获得了权限。已经打开的文件句柄、已经创建的对象都不会因此改变。
+「以管理员身份运行」会创建一个新进程，当前进程不会因此获得权限。已经打开的文件句柄、已经创建的对象都不会因此改变。
 
 :::
 
-示例程序不触发这一步。上面的 `tokeninfo.exe` 输出 `Limited`，就是筛选后的令牌在起作用：同一个账户在提权的命令行里运行，会打印 `Full`。
+在工程上必须建立清醒的认知：Windows 没有类似 POSIX 中 `setuid` 改变当前进程有效用户 ID 的原地提权途径。一个已经在运行的进程绝不可能凭空将自身的受限令牌刷新为完整令牌。提权实质上是一次全新的进程派生；原本进程内部已经打开的文件句柄、网络套接字以及映射视图，既不会继承新进程的高权限，也不能反向把高权限传递回旧进程。
 
 ### 3.2 完整性级别
 
-完整性级别（integrity level）是 DACL 之外的第二道检查，先于 DACL 执行。系统里定义了四档：低、中、高、系统。普通用户拿到中，提权后的进程是高，系统服务是系统级；低留给浏览器渲染进程这类处理不可信输入的程序。
+除了经典的基于用户和组 SID 的自主访问控制（DACL）外，Windows 自 Vista 时代起还引入了强制完整性控制（Mandatory Integrity Control，简称 MIC）。它构成了访问判决流水线上的另一道关卡，并且在逻辑上先于 DACL 被求值。系统内预先划定了四个核心完整性阶梯：低（Low）、中（Medium）、高（High）以及系统级（System）。
 
-进程的级别放在令牌里，以组的 SID 出现（`S-1-16-8192` 为中）；对象的级别叫完整性标签（integrity label），放在系统访问控制列表（system access control list，SACL）的一条 `SYSTEM_MANDATORY_LABEL_ACE` 里。标签的访问掩码规定「比对象级别低的进程能做什么」，默认是 `SYSTEM_MANDATORY_LABEL_NO_WRITE_UP`（`NW`），也就是不能写。
+在默认配置下，普通用户启动的日常进程被赋予中完整性级别；以管理员身份提升启动的进程获得高完整性级别；核心系统服务运行在系统级别；而像现代 Web 浏览器的沙箱渲染进程或受限网络下载器这类容易接触外部不可信载荷的组件，则往往被主动降级至低完整性级别。
+
+进程的完整性级别以特定的标签 SID 形式内嵌在访问令牌中（例如 `S-1-16-8192` 对应中完整性）。与之相对应，受保护的内核或文件对象也可以在其安全描述符的系统访问控制列表（SACL）中附带一条 `SYSTEM_MANDATORY_LABEL_ACE` 完整性标签。该标签定义了当低完整性进程试图接触高完整性对象时的阻断策略，缺省的系统行为是 `SYSTEM_MANDATORY_LABEL_NO_WRITE_UP`（简写为 `NW`，即「禁止向上写入」）。
 
 ::: concept win-ac-no-write-up title="完整性级别限制向上写"
 
@@ -250,7 +256,11 @@ DACL 只给 BUILTIN\Users：成功
 
 :::
 
-验证很简单：先在中完整性下建一个文件，再把令牌降到低完整性，然后改写它。
+进程的完整性级别低于对象时，即使 DACL 允许写，写操作也会失败。默认策略是「不能向上写」；读和执行默认不受限制。没有完整性标签的对象按中级别处理。
+
+:::
+
+为了验证完整性控制的强制性，可以通过一个极具启发性的实验进行观察：首先在常规的中完整性环境下建立一个目标测试文件与测试目录，随后在程序内部主动调用 `SetTokenInformation` 将当前主令牌的完整性级别降阶至低完整性（`S-1-16-4096`），接着再次尝试对先前的目标发起写入与创建动作：
 
 ```c
 /* 把自己的令牌降到低完整性。 */
@@ -282,9 +292,9 @@ PS> .\low_integrity.exe
 
 :::
 
-第二次失败不是 DACL 的问题：两个对象的 DACL 里都有当前用户的完全控制。失败来自完整性级别。降到低完整性之后，连在临时目录里新建文件也会被拒绝，因为临时目录的标签是中（没有标签的对象按中处理）。
+仔细审视终端里的第二次失败：它与 DACL 没有任何关系。目标文件的 DACL 中白纸黑字地为当前用户授予了完全控制权限，但在降低完整性级别之后，内核的强制完整性检查优先拦截了这次打开请求。由于目标文件与目录继承了父目录的缺省中完整性标签，而发起请求的线程已沦为低完整性级别，根据「禁止向上写入」的铁律，内核直接返回了 `ERROR_ACCESS_DENIED`（5）。甚至此时在系统临时目录下新建临时文件同样会被拒绝，因为未显式打标的系统目录默认均处于中完整性水准。
 
-反过来，低级别的进程想给对象贴高级别的标签也不行。整个过程不需要管理员权限，只在中完整性下尝试：
+同样，低级别的进程也绝无可能逾越特权去给新对象张贴更高的完整性标签。即使在中完整性下尝试为新文件赋予高完整性标签：
 
 ::: terminal title="PowerShell - integrity_label"
 
@@ -298,36 +308,40 @@ label_high.txt   创建失败: error 1314
 
 :::
 
-1314 是 `ERROR_PRIVILEGE_NOT_HELD`。中完整性的进程只能贴中及以下的标签，贴一个高标签就等于给自己开了向上写的口子，系统直接拒绝。完整的程序在 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/integrity_label.c`，它用 `D:P(A;;FA;;;WD)S:(ML;;NW;;;ME)` 这样的 SDDL 一次给出 DACL 和完整性标签，`S:` 后面的 `ML` 就是 mandatory label。
+系统返回了错误代码 1314（`ERROR_PRIVILEGE_NOT_HELD`）。中完整性进程只能为主管对象贴上自身级别及以下的标签；如果允许普通程序自由标注高完整性，低权限代码便能通过制造高完整性陷阱实施特权提升攻击。完整验证源码见 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/integrity_label.c`。其中通过形如 `D:P(A;;FA;;;WD)S:(ML;;NW;;;ME)` 的 SDDL 串统一指定了 DACL 与 SACL，`S:` 引导的 `ML` 即代表 Mandatory Label。
 
 ## 4. 安全描述符与 ACL
 
 ### 4.1 四个组成部分
 
-安全描述符有四个部分，SDDL（Security Descriptor Definition Language）把它们写成一串文本：
+安全描述符是系统内核保护所有资源实体的元数据容器。为了避免在代码与脚本中直接手工操纵复杂的底层二进制 C 结构体指针，Windows 引入了安全描述符定义语言（Security Descriptor Definition Language，简称 SDDL），将安全描述符的四大支柱压缩为精炼紧凑的文本格式：
 
-| 字段 | 内容 |
+| 字段前缀 | 内容定义 |
 | --- | --- |
-| `O:` | 所有者（owner）的 SID |
-| `G:` | 主要组（primary group）的 SID |
-| `D:` | DACL，后面跟若干括号包起来的 ACE；`D:` 后面什么都不写表示空 DACL |
-| `S:` | SACL，存放审核项和完整性标签 |
+| `O:` | 资源所有者（Owner）的 SID |
+| `G:` | 主要组（Primary Group）的 SID（主要用于 POSIX 子系统兼容） |
+| `D:` | 自主访问控制列表（DACL），后接若干对圆括号封装的 ACE 项；若 `D:` 后紧随空内容，则代表空 DACL |
+| `S:` | 系统访问控制列表（SACL），专门存放审计（Audit）规则与强制完整性标签 |
 
-`D:` 后面可以带几个控制标志，常用的有两个：`P`（protected）表示 DACL 受保护，不从父容器继承 ACE；`AI`（auto-inherited）表示 DACL 里已经包含从父容器继承来的 ACE。`D:P` 和 `D:AI` 经常一起出现，写成 `D:PAI`。
+在 `D:` 标头后通常可以紧跟若干控制位。工程中最为常见的有两个：其一是 `P`（Protected，受保护），声明当前 DACL 被严密隔绝，拒绝自父级目录或容器自动继承任何 ACE；其二是 `AI`（Auto-Inherited，自动继承），声明当前列表内已经包含了按树状层级由父级下发继承而来的规则。两者在很多生产配置中会联合出现，简写为 `D:PAI`。
 
-一条 ACE 的字符串形式是六个用分号隔开的字段：
+在括号内部，每一条访问控制项（ACE）均由六个以英文分号分隔的字段所定义：
 
 ```text
 ace_type;ace_flags;rights;object_guid;inherit_object_guid;account_sid
 ```
 
-前三个最常用。`ace_type` 为 `A` 是允许，`D` 是拒绝，`OA`、`OD` 是带对象类型的版本，`AU` 是审核。`ace_flags` 写继承方式，`CI`（container inherit）表示容器继承，`OI`（object inherit）表示对象继承，`IO`（inherit only）表示只作用于子对象、不作用于自己。`rights` 是访问掩码，可以写十六进制，也可以用缩写，文件对象的常用缩写是 `FA`（完全控制）、`FR`（读）、`FW`（写）、`FX`（执行）。
+日常系统编程主要关注前三项与最后一项：
+1. `ace_type`：控制规则的定性，`A` 代表允许访问（Allow），`D` 代表拒绝访问（Deny），`AU` 代表系统审计；
+2. `ace_flags`：继承传播标志，`CI`（Container Inherit）表示子目录等容器继承，`OI`（Object Inherit）表示子文件等非容器对象继承，`IO`（Inherit Only）表示当前规则不作用于自身、仅向下渗透；
+3. `rights`：授予或剥夺的具体权限位掩码，既可以直接书写十六进制常量，也可以使用系统缩写，例如文件对象中最常见的 `FA`（File All Access，完全控制）、`FR`（只读）、`FW`（只写）与 `FX`（执行）；
+4. `account_sid`：此项规则所绑定的主体 SID（或系统预置缩写如 `SY`、`BA`）。
 
-所以 `D:P(A;;FA;;;SY)` 的意思是：DACL 受保护，一条允许 ACE，完全控制，给 LocalSystem。
+例如字符串 `D:P(A;;FA;;;SY)` 便是一套完整的安全声明：它宣告这是一份切断了继承的独立受保护 DACL，其中包含一条允许规则，将完全控制权限无保留地授予操作系统核心服务账户（LocalSystem）。
 
 ### 4.2 访问掩码
 
-ACE 里的权限是一个 32 位掩码，分成三段：
+ACE 中的权限字段本质上是一个 32 位的双字访问掩码（Access Mask）。系统将其划分为层层递进的三大区间：
 
 <BitField
   title="访问掩码的位分配"
@@ -350,11 +364,14 @@ ACE 里的权限是一个 32 位掩码，分成三段：
   ]"
 />
 
-高 4 位是通用权限（generic rights），只在请求访问时使用；打开对象时系统按对象类型把它们换成具体的位。中间 8 位是标准权限，所有对象通用。低 16 位由对象类型自己定义，文件对象里是 `FILE_READ_DATA`、`FILE_WRITE_DATA`、`FILE_APPEND_DATA`、`FILE_READ_ATTRIBUTES` 等等。
+这一划分体现了 Win32 接口对不同抽象层次的兼容：
+- **高 4 位（31-28）为通用权限（Generic Rights）**：包括 `GENERIC_READ`、`GENERIC_WRITE`、`GENERIC_EXECUTE` 与 `GENERIC_ALL`。这是应用程序在发起打开动作时最常申请的宽泛意图；内核在真正实施安全检查时，会依据具体的对象类型，自动将通用位展开映射到对应的具体权限位上。
+- **中间 8 位（23-16）为标准权限（Standard Rights）**：包括 `DELETE`、`READ_CONTROL`、`WRITE_DAC`、`WRITE_OWNER` 以及非常关键的 `SYNCHRONIZE`。这组权限与具体对象的种类无关，所有可保护内核对象均共享这套语义。
+- **低 16 位（15-0）为对象专用权限（Specific Rights）**：其含义完全交由具体子系统定义。在文件系统语境下，它被拆解为 `FILE_READ_DATA`、`FILE_WRITE_DATA`、`FILE_APPEND_DATA`、`FILE_EXECUTE` 等十余种细粒度操作。
 
-在 SDDL 的 ACE 里写通用缩写（例如 `GA`），存进对象时也会被映射成具体位：拿 `D:P(A;;GA;;;SY)` 建出来的文件，`sddl_show` 读回来是 `D:P(A;;FA;;;SY)`。所以读一个对象的安全描述符时看到的总是具体位，通用位不会留在 DACL 里。
+值得注意的是，在 SDDL 中书写通用缩写（例如 `GA` 代表 Generic All）时，内核在将其存入持久化对象之前就会完成展开映射。因此通过 `GetNamedSecurityInfoW` 读回的真实安全描述符中，永远只会存在明确展开后的具体权限位。
 
-`GENERIC_READ` 换成文件权限的结果是 `FILE_GENERIC_READ`。用 `MapGenericMask` 可以看到这次映射：
+借助 `MapGenericMask` API 可以清晰观察到这一映射过程：
 
 ::: terminal title="PowerShell - access_mask"
 
@@ -393,11 +410,11 @@ GENERIC_ALL           -> 0x001F01FF
 
 :::
 
-`FILE_GENERIC_READ` 的值是 `0x00120089`，拆开来看是 `FILE_READ_DATA`（1）、`FILE_READ_ATTRIBUTES`（0x80）、`FILE_READ_EA`（8）、`READ_CONTROL`（0x20000）与 `SYNCHRONIZE`（0x100000）。也就是说，请求「读文件」顺带要了「读安全信息」和「同步」，缺任何一位都不行。这解释了后面一个容易踩的坑：DACL 里只写 `READ_CONTROL` 时，文件打不开，因为 `CreateFileW` 至少要 `SYNCHRONIZE`。
+仔细分析 `FILE_GENERIC_READ` 映射得到的数值 `0x00120089`：它实际上是由 `FILE_READ_DATA`（0x1）、`FILE_READ_ATTRIBUTES`（0x80）、`FILE_READ_EA`（0x8）、`READ_CONTROL`（0x20000）以及 `SYNCHRONIZE`（0x100000）按位或聚合而成的。这揭示了一个在 Windows 系统编程中极易踩中的暗坑：当我们调用 `CreateFileW(..., GENERIC_READ, ...)` 时，底层请求的不仅是读取数据本身，还包括了读取对象安全属性以及等待该句柄的同步权。如果手写 DACL 时仅仅狭隘地开放了 `FILE_READ_DATA` 却漏掉了 `SYNCHRONIZE`，那么以常规方式调用 `CreateFileW` 依然会遭遇拒绝访问。
 
 ### 4.3 ACE 的顺序决定结果
 
-DACL 不是集合，是有序列表。系统从第一条开始检查，遇到能拒绝所请求权限中任何一项的拒绝 ACE 就立刻拒绝，遇到把请求权限补齐的允许 ACE 就立刻通过，走完全部 ACE 还有没被允许的权限也拒绝。
+自主访问控制列表不是无序的集合，而是一个严格遵循物理排布次序的链表。内核的安全判定算法遵循「首个匹配原则（First-Match Rule）」：当检查流水线沿着 DACL 逐项比对时，一旦某条拒绝型 ACE 命中了请求权限中的任意一位，整个请求当场被宣告失败；而一旦若干条允许型 ACE 累积的权限已经完全覆盖了调用方本次申请的所有位，判定流程立即提前宣告成功并退出。
 
 ::: concept win-ac-ace-order title="ACE 的检查顺序"
 
@@ -405,7 +422,7 @@ DACL 不是集合，是有序列表。系统从第一条开始检查，遇到能
 
 :::
 
-同样两条 ACE，换个顺序结果就相反：
+列表中的物理顺序直接主导了最终判定。下面两组文件配置仅仅对调了两条规则的位置，表现出的行为却截然相反：
 
 ```c
 make_file(L"order_allow_first.txt", L"D:P(A;;FR;;;BU)(D;;FR;;;BU)");
@@ -428,9 +445,7 @@ PS> .\order_demo.exe
 
 :::
 
-第一个文件的允许 ACE 排在前面，检查到它时请求的权限已经齐了，后面那条拒绝 ACE 根本不会被看到。第二个文件先碰到拒绝 ACE，直接结束。Windows 之所以规定拒绝在前，就是为了让「拒绝某人」这条规则不会被同一主体的允许规则盖掉。
-
-手工拼接 DACL 时顺序由调用者负责。用 `SetEntriesInAclW` 的好处之一就是它替你排好这个顺序。
+在第一个配置中，允许规则排在最前；当属于 `BUILTIN\Users` 的调用者发起只读请求时，第一条规则就已经完全满足了申请所需的位，判决立刻绿灯放行，排在后方的拒绝规则根本没有被执行到的机会。而在第二个配置中，检查首轮便命中了拒绝规则，流程直接被掐断。为了避免这种隐晦的顺序陷阱，Windows 定义了所谓的标准正规次序（Canonical Order）：显式拒绝必定置于显式允许之前，而本地显式项又必定先于所有从父级继承而来的项。使用高级 API `SetEntriesInAclW` 维护权限时，内核与工具库会自动按照正规次序重整链表。
 
 <Quiz
   type="single"
@@ -453,7 +468,7 @@ PS> .\order_demo.exe
 
 </Quiz>
 
-用 `AccessCheck` 可以在不真正打开对象的情况下预演一次访问检查。它需要令牌的副本（模拟令牌）和一份带所有者与主要组的安全描述符：
+借助 `AccessCheck` API，开发者甚至可以在不真正触发内核句柄创建的前提下，脱机预演并诊断一次完整的访问检查流程。该函数需要传入一份令牌的模拟副本（Impersonation Token）以及一份完整包含所有者与主组信息的安全描述符：
 
 ```c
 /* 用当前令牌的副本检查一份 SDDL。 */
@@ -479,13 +494,13 @@ PS> .\access_check.exe
 
 :::
 
-第三行请求的是 `MAXIMUM_ALLOWED`（`0x02000000`），返回的授予掩码是 DACL 允许的全部权限，用来做「这个对象我到底能做什么」的诊断最方便。后四行再次说明顺序的作用：全权 ACE 在前时，后加的拒绝写不起作用；拒绝写在前时，请求写立刻被拒。
+第三行测试申请了 `MAXIMUM_ALLOWED`（`0x02000000`），内核返回的授予掩码直接展示了当前调用者所能榨取的所有最大权能，这在安全故障排查中是极其实用的诊断技术。而后四行测试则再次以确凿的数据证实了物理次序的决定性：一旦全权允许规则居于首位，后续追加的局部拒绝规则将被彻底架空；唯有将拒绝规则置于前列，负向拦截才能切实奏效。
 
-`AccessCheck` 的调用本身有两个要求：安全描述符必须包含所有者与主要组，否则返回 `ERROR_INVALID_SECURITY_DESCR`（1338）；`DesiredAccess` 里的通用权限必须先用 `MapGenericMask` 换掉。这两条都在上面的程序里处理了。
+调用 `AccessCheck` 有两项不可忽视的前提约束：其一，输入的底层安全描述符必须完备绑定所有者与主要组 SID，若有缺失将返回 `ERROR_INVALID_SECURITY_DESCR`（错误码 1338）；其二，传入的目标掩码中不能残留未解析的高位通用权限位，必须先用 `MapGenericMask` 展开为特定类型的具体掩码。
 
 ### 4.4 读一个文件的安全描述符
 
-`GetNamedSecurityInfoW` 按名字取对象的安全描述符，`ConvertSecurityDescriptorToStringSecurityDescriptorW` 把它转成 SDDL。把两段拼起来的程序只有几十行：
+在实际排查中，最直接的手段是将现有对象上的二进制安全描述符提取出来，反序列化为易读的 SDDL 文本。通过 `GetNamedSecurityInfoW` 指定所需读取的安全信息类别（所有者、主组、DACL），再交由 `ConvertSecurityDescriptorToStringSecurityDescriptorW` 转换为标准字符串，整个流程非常简洁：
 
 ```c
 err = GetNamedSecurityInfoW(path, SE_FILE_OBJECT,
@@ -500,9 +515,9 @@ ConvertSecurityDescriptorToStringSecurityDescriptorW(
     &sddl, NULL);
 ```
 
-再往下用 `GetAce` 逐条取出 ACE，打印类型、掩码和 SID。完整程序在 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/sddl_show.c`。
+进一步利用 `GetAce` 可以顺次解开 ACL 链表中的每一个物理节点，打印出判定类型、掩码位以及关联的主体 SID。完整工具源码见 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/sddl_show.c`。
 
-先看一个普通文件的输出。这个文件是在用户目录下直接创建的，DACL 全部来自父目录的继承：
+我们以一个在标准用户目录下直接新建的普通文本文件为例，观察其原始的安全形态。此时该文件尚未经过特殊配置，其权限完全来自于其所在父级目录的树状继承：
 
 ::: terminal title="PowerShell - sddl_show sample.txt"
 
@@ -522,7 +537,7 @@ ACE 共 5 条（按检查顺序）:
 
 :::
 
-`icacls` 显示的是同一份东西，只是把 SID 换成了账户名：
+如果换用系统管理员熟悉的命令行工具 `icacls` 查看同一个文件，会发现两者所表达的内容毫厘不差，只是 `icacls` 贴心地将底层 SID 翻译成了域或本地账户名：
 
 ::: terminal title="PowerShell - icacls sample.txt"
 
@@ -539,22 +554,22 @@ Successfully processed 1 files; Failed processing 0 files
 
 :::
 
-两边逐项对得上：
+我们可以将 SDDL 标记与 `icacls` 选项逐条建立起精确映射：
 
-| SDDL | icacls | 含义 |
+| SDDL 文本段 | `icacls` 对应表现 | 底层工程含义 |
 | --- | --- | --- |
-| `D:AI` | 每行末尾的 `(I)` | 这些 ACE 是继承来的 |
-| `A;ID;…` | 与 `(I)` 同时出现 | `ID` 表示 ACE 继承自父容器 |
-| `0x1301ff` | `(M,DC)` | 修改权限加删除子项，`M` 是 `0x1301FF` |
-| `FA` | `(F)` | 完全控制 |
-| `S-1-5-18` | `NT AUTHORITY\SYSTEM` | LocalSystem |
-| `S-1-5-32-544` | `BUILTIN\Administrators` | 管理员组 |
+| `D:AI` | 列表每行结尾附带 `(I)` | 整个 DACL 处于自动继承状态 |
+| `(A;ID;…)` | 与 `(I)` 同时成对出现 | `ID` 显式标明该项 ACE 源自父容器派生继承 |
+| `0x1301ff` | `(M,DC)` | 修改权限（Modify，0x1301BF）加删除子对象（Delete Child，0x40） |
+| `FA` | `(F)` | 完全控制（Full Control，对应掩码 `0x1F01FF`） |
+| `S-1-5-18` | `NT AUTHORITY\SYSTEM` | 本机核心服务主体 LocalSystem |
+| `S-1-5-32-544` | `BUILTIN\Administrators` | 本机管理员别名组 |
 
-`icacls` 的权限缩写只有几个：`N` 无、`F` 完全控制、`M` 修改、`RX` 读和执行、`R` 只读、`W` 只写、`D` 删除。需要看具体位时用括号里的高级权限，例如 `(RD)`、`(WD)`、`(WDAC)`。
+在日常脚本中，`icacls` 提供了诸如 `F`（完全控制）、`M`（修改）、`RX`（读取与执行）、`R`（只读）与 `W`（只写）等宏观别名；而当需要洞悉更为严密的内核位定义时，则可以通过高级复合括号深入到位级别，例如 `(RD)` 代表读取数据、`(WDAC)` 代表写 DACL 等。
 
 ### 4.5 NULL DACL 与空 DACL
 
-DACL 有两种「空」，效果完全相反：
+在处理访问控制逻辑时，有一个极易引起致命误解的概念差异：NULL DACL 与空 DACL（Empty DACL）。尽管两者在字面上听起来都有「空」的意味，但它们在内核判定算法中引发的结果却走到了两个极端：
 
 ```c
 make_file(L"null_dacl.txt", L"D:NO_ACCESS_CONTROL");  /* NULL DACL */
@@ -574,7 +589,7 @@ PS> .\dacl_kinds.exe
 
 :::
 
-`icacls` 对两者的描述也很直接：
+系统内置的 `icacls` 在面对这两个文件时的提示更是耐人寻味：
 
 ::: terminal title="PowerShell - icacls 两个文件"
 
@@ -595,7 +610,9 @@ NULL DACL 表示「没有访问控制」，任何人对这个对象都有完全�
 
 :::
 
-两者都把权限交给了错误的一方，只是方向相反。一个追求安全的对象用空 DACL 会把自己锁在外面，用 NULL DACL 则等于没有锁。正确做法是列出需要访问的主体，别的都不写。
+在系统安全架构中，这两个极端无一例外都是危险的设计疏漏：空 DACL 意味着一块配置完备却没有任何规则的空容器，当任何线程申请访问时，判定算法遍历完整个列表也没有找到哪怕一条能够允许的规则，最终一律判定为拒绝，连对象所有者自己都会被死死关在门外；而 NULL DACL 则意味着安全描述符内部根本没有分配 DACL 结构体指针（指针为 NULL），内核将其直接解释为「该资源彻底免除访问控制」，任何未经验证的第三方程序均可随意读取甚至覆写它。
+
+在高质量的系统工程实践中，唯一的正道是**严密列举确有需要的主体与最小权限，除此以外一概不予授权**。
 
 <Quiz
   type="single"
@@ -622,7 +639,7 @@ NULL DACL 与空 DACL 的效果分别是什么？
 
 ### 5.1 把安全描述符交给创建函数
 
-`CreateFileW`、`CreateNamedPipeW`、`CreateEventW`、`CreateFileMappingW` 这些函数都接收一个 `SECURITY_ATTRIBUTES` 指针，其中的 `lpSecurityDescriptor` 就是新对象的安全描述符。传 `NULL` 时，对象使用创建者令牌里的默认 DACL，再加上父容器的继承。
+在 Win32 API 族系中，诸如 `CreateFileW`、`CreateNamedPipeW`、`CreateEventW` 以及 `CreateFileMappingW` 等几乎所有创建内核对象或文件系统对象的函数，其参数列表中都会包含一个可选的 `LPSECURITY_ATTRIBUTES` 结构指针。该结构中的核心成员 `lpSecurityDescriptor`，正是用来挂载开发者定制的安全描述符。若传入 NULL，内核便会按照创建者访问令牌中的默认 DACL 与父级目录的继承规则自动合成。
 
 ```c
 PSECURITY_DESCRIPTOR sd = NULL;
@@ -642,11 +659,13 @@ file = CreateFileW(path, GENERIC_WRITE, 0, &sa, CREATE_ALWAYS,
 LocalFree(sd);   /* 创建函数已经把内容复制进对象，这里可以释放 */
 ```
 
-SDDL 里的 `P` 要写上。显式给出的安全描述符在创建对象时不会被父目录的继承 ACE 合并进来，写不写 `P` 实测结果一样，但写上去能表明意图，也方便读代码的人一眼看出「这份 DACL 不打算继承」。受影响的是后面用 `SetNamedSecurityInfoW` 改 DACL 的场合：不带 `PROTECTED_DACL_SECURITY_INFORMATION` 时，写回操作会重新按继承规则计算，把父目录的 ACE 合进来。
+在此处显式书写 SDDL 中的 `P`（受保护）具有重要的工程规范价值。虽然在新建文件时如果显式给出了自定义的安全描述符，其本身就不会自动吸纳父目录的继承规则，但写上 `P` 能够向后续的代码维护者以及系统审计脚本清晰传达「切断继承链」的设计意图；更重要的是，如果未来有维护代码通过 `SetNamedSecurityInfoW` 动态刷新该对象的 DACL，带有 `P` 属性的对象将避免在写回时被错误地重新注入父容器的继承条目。
 
 ### 5.2 一个只有自己能访问的文件
 
-思路是：先查出当前用户的 SID 字符串，拼进 SDDL，再用它创建文件。除了当前用户，还要留一条给 `SYSTEM`，否则备份、杀毒、系统还原这类以 LocalSystem 身份运行的东西都碰不到这个文件。
+为了遵循最小权限设计，一种极其常见的需求是：创建一个高度私密的配置文件或凭据文件，除了当前用户进程与系统运维基座之外，杜绝任何外部主体的窥探。
+
+实现此需求的核心路径是：首先在运行时动态探查当前用户的主体 SID 字符串，将其嵌入预先构造的 SDDL 模板中，并在规则中额外加入针对 LocalSystem（`SY`）的授权——保留 SYSTEM 访问至关重要，否则本机的全盘备份守护进程、系统级杀毒扫描或还原任务在遍历到该文件时都将遭受权限阻塞而报错。
 
 ```c
 if (!ConvertSidToStringSidW(user->User.Sid, &user_text)) {
@@ -657,7 +676,7 @@ _snwprintf(sddl, 256, L"D:P(A;;FA;;;%ls)(A;;FA;;;SY)", user_text);
 ConvertStringSecurityDescriptorToSecurityDescriptorW(sddl, SDDL_REVISION_1, &sd, NULL);
 ```
 
-在任意一个允许继承的目录里创建这个文件，结果一样：显式给出的 DACL 不会合入父目录的继承 ACE。
+无论我们将这个文件建在权限多么宽松的公共目录下，显式指定的保护性 DACL 都能确保它是一座孤岛：
 
 ::: terminal title="PowerShell - private_file"
 
@@ -681,13 +700,11 @@ Successfully processed 1 files; Failed processing 0 files
 
 :::
 
-`icacls` 的输出里没有 `(I)`，也没有 `BUILTIN\Administrators` 或 `Everyone`，说明继承被切断、DACL 只有两条。这是本页推荐的新对象默认写法：**列出必须能访问的主体，其余一概不写**。
-
-完整程序在 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/private_file.c`。
+观察 `icacls` 的输出：没有出现继承标记 `(I)`，也没有出现宽泛的 `BUILTIN\Administrators` 或 `Everyone`。整份文件纯净地只受控于两条显式 ACE。这正是严谨系统编程所倡导的标准基线。完整范例可参阅 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/private_file.c`。
 
 ### 5.3 命名管道
 
-A.12 提到过，`CreateNamedPipeW` 不指定安全描述符时，管道的默认 DACL 允许 Everyone 与匿名账户读。把两份 DACL 并排打出来：
+在 A.12 中介绍命名管道通信时曾提及：如果调用 `CreateNamedPipeW` 时将安全属性指针置为 NULL，系统分发给该管道的默认安全描述符将异常宽松——不仅本机管理员和当前用户拥有完全控制权，连 `Everyone` 组与匿名访问账户（`AN`）都被赋予了只读权限（`FILE_GENERIC_READ`）。把系统默认生成的 DACL 与手工定制的私有 DACL 并排打印对比：
 
 ```c
 def_pipe = CreateNamedPipeW(L"\\\\.\\pipe\\mdr_default_demo", ...);
@@ -710,15 +727,16 @@ PS> .\private_pipe.exe
 
 :::
 
-默认的 DACL 里 `WD` 是 Everyone、`AN` 是匿名登录，都拿到了 `FR`（读）。私有版本只剩两条完全控制。管道对象用 `SE_KERNEL_OBJECT` 类型取安全描述符，管道名本身用 `FILE_GENERIC_READ` 之类的文件权限打开，两套权限名不一样，但语义都是「读这个管道」。
-
-完整的 `private_pipe.c` 在 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/` 下。它用 `GetSecurityInfo` 直接读句柄的安全描述符，比按名字取更直接，也顺便演示了内核对象的权限类型。
+在默认配置下，`WD`（Everyone）与 `AN`（Anonymous Logon）赫然在列；如果该管道被设计用于接收控制指令或分发私密密钥，未受保护的管道便极易遭受未授权窥探。而在显式注入了定制 DACL 的私有管道中，外部非授权账户在连接阶段就会被内核断然阻断。需要留意的是，命名管道自身作为内核同步对象，使用 `SE_KERNEL_OBJECT` 类别操作安全描述符，而客户端在以文件形式发起 `CreateFileW` 时请求的则是文件通用的读取位，两者在抽象层级上虽然位名不同，但内核的安全引用监视器会自动完成对齐。示例代码可参考 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/private_pipe.c`。
 
 ### 5.4 给已有对象加 ACE
 
-修改已有对象的 DACL 分三步：读出旧 DACL，用 `SetEntriesInAclW` 把新 ACE 合进去，用 `SetNamedSecurityInfoW` 写回。
+在动态软件生命周期中，往往需要调整已有文件或对象的访问控制列表。在 Win32 底层直接用指针拼凑二进制 ACL 结构不仅容易损坏内存布局，更极易破坏标准正规次序。微软推荐的工程标准流程是清晰的「读出—合并—写回」三部曲：
+1. 调用 `GetNamedSecurityInfoW` 读取对象当前的旧 DACL 与安全描述符指针；
+2. 构建 `EXPLICIT_ACCESS_W` 描述结构，调用 `SetEntriesInAclW` 自动将新规则以正规次序插入旧 ACL，生成新的复合 ACL；
+3. 调用 `SetNamedSecurityInfoW` 将合并后的 ACL 写回内核对象。
 
-`SetEntriesInAclW` 接收一个 `EXPLICIT_ACCESS_W` 数组，每个元素说明「给谁、什么权限、允许还是拒绝、是否继承」：
+`EXPLICIT_ACCESS_W` 结构精确描述了授权意图：授予还是拒绝、具体权限掩码、是否参与容器继承，以及通过 `TRUSTEE_W` 绑定的目标用户或组 SID：
 
 ```c
 ZeroMemory(&ea, sizeof ea);
@@ -736,7 +754,7 @@ SetNamedSecurityInfoW(path, SE_FILE_OBJECT, DACL_SECURITY_INFORMATION,
                       NULL, NULL, new_acl, NULL);
 ```
 
-给一个已有的文件加一条「Users 可读」。下面同时对比两种情况：一个创建时没指定安全描述符、DACL 全部继承自父目录的文件，和一个创建时就用 `D:P` 指定了 DACL 的文件：
+下面的实验同时比对了两类场景：一个是在普通可继承目录下自然创建的文件，另一个是创建时便显式附加了 `D:P` 受保护属性的文件。我们通过代码向两份文件分别追加一条「允许 Users 组读取」的规则：
 
 ```c
 printf("未保护的文件（继承自父目录）：\n");
@@ -774,13 +792,12 @@ PS> .\add_ace.exe
 
 :::
 
-三段输出各说明一件事。
+仔细对比这三段结果，能够透彻理解 Windows 的继承防线：
+- 在第一段普通文件中，新添加的 `(A;;FR;;;BU)` 被工整地放置在已有显式允许项的最前列，同时旧列表中的继承项 `(A;ID;…)` 被原样复制，因此输出依然带有 `D:AI`；
+- 在第二段受保护文件中，写回之后依然坚守 `D:PAI`，父级目录的规则丝毫未能混入。调用 `SetNamedSecurityInfoW` 时若仅传入 `DACL_SECURITY_INFORMATION`，系统会自动保全对象既有的保护状态；
+- 第三段则展示了显式解除保护的效果。若传入 `UNPROTECTED_DACL_SECURITY_INFORMATION`，原本筑起的护城河瞬间瓦解，输出重新退化为 `D:AI`，父级的所有继承规则被系统强制重新洗入。反之，如果想要锁定保护，则需显式传入 `PROTECTED_DACL_SECURITY_INFORMATION`。
 
-第一段里新 ACE 被插在已有允许 ACE 之前，这是 `SetEntriesInAclW` 的既定行为。旧 DACL 里的继承项被原样复制进新 ACL，所以写回之后 `D:AI` 和那些 `(A;ID;…)` 都还在。
-
-第二段的文件创建时就带 `P`，写回之后仍然是 `D:PAI`，继承的 ACE 一条也没混进来。`SetNamedSecurityInfoW` 只带 `DACL_SECURITY_INFORMATION` 时会保留对象原有的保护状态，所以这里不必额外指定。
-
-第三段显式要求解除保护，写回时带了 `UNPROTECTED_DACL_SECURITY_INFORMATION`，输出立刻变成 `D:AI`，父目录的继承 ACE 全部补了回来。反过来，写回时带 `PROTECTED_DACL_SECURITY_INFORMATION` 会把对象设成受保护，父目录的可继承 ACE 不再自动补进新的 DACL。两个控制位：
+两个核心控制位：
 
 ```c
 /* 保住受保护状态 */
@@ -795,15 +812,15 @@ SetNamedSecurityInfoW(path, SE_FILE_OBJECT,
                       NULL, NULL, new_acl, NULL);
 ```
 
-`OW` 是「所有者权利」（Owner Rights）SID。做访问检查时，如果发起请求的账户正是对象的所有者，系统把它当作请求者令牌里的一个组来匹配。给 `OW` 写的允许和拒绝因此只对所有者本人生效，用它做模板不必写死某个用户名，换一台机器、换一个账户都成立。
+`OW` 是「所有者权利」（Owner Rights）专用伪 SID。当发起请求的主体恰好是该对象的所有者时，该主体将被内核隐式划入 `OW` 所代表的虚拟组。借助 `OW`，我们可以写出与具体用户名完全解耦的通用安全模板，无论是拷到别的系统还是由不同账户执行，都能确保规则语义始终锚定在「资源所有者」身上。
 
-要加拒绝 ACE，把 `GRANT_ACCESS` 换成 `DENY_ACCESS` 即可。`SetEntriesInAclW` 会把新的拒绝 ACE 放到整个 DACL 的最前面，于是它一定先于所有允许 ACE 被看到。同一主体同时有允许和拒绝两条时，排在前面的那条决定结果，两者不会互相抵消。
-
-完整程序在 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/add_ace.c`。`SetEntriesInAclW` 分配的新 ACL 要用 `LocalFree` 释放，`GetNamedSecurityInfoW` 返回的安全描述符也一样。
+若需追加一条拒绝规则，只需将 `grfAccessMode` 设为 `DENY_ACCESS`。`SetEntriesInAclW` 会自动将拒绝项推至整张列表的最顶端，以确保其优先于所有允许规则被评估。完整范例位于 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/add_ace.c`。`SetEntriesInAclW` 分配的新 ACL 要用 `LocalFree` 释放，`GetNamedSecurityInfoW` 返回的安全描述符也一样。
 
 ### 5.5 权限只在打开时检查
 
-回到开头的规则。下面这个程序先开一个只读句柄和一个带 `WRITE_DAC` 的句柄，然后通过后者给自己的读取加一条拒绝 ACE：
+### 5.5 访问检查仅在打开时发生
+
+重温本页最初强调的原则：访问权限仅在句柄创建时评估一次。下面的程序清晰演示了这一时序特征：程序首先以只读方式打开一份文件，同时另外持有一个具备 `WRITE_DAC` 权限的管理句柄；随后，程序通过该管理句柄动态向文件的 DACL 中插入一条专门拒绝当前用户读取的 ACE：
 
 ```c
 reader = CreateFileW(PATH, GENERIC_READ, ...);
@@ -834,17 +851,19 @@ PS> .\check_once.exe
 
 :::
 
-三件事同时成立：DACL 已经拒绝自己，可旧的读句柄照读不误；新的读句柄被拒绝；而那个带 `WRITE_DAC` 的句柄仍然能改 DACL，因为它在 DACL 被改之前就把权限拿到手了。这就是「检查一次」的全部含义。
+三项事实并存且逻辑自洽：
+1. 虽然 DACL 已经在物理上加入了封杀当前用户读取的拒绝规则，但先前已经打开的只读句柄在后续调用 `ReadFile` 时依然畅通无阻；
+2. 如果此时尝试调用 `CreateFileW` 重新打开一个只读句柄，新请求会在内核判定流水线中立刻触礁，返回错误代码 5；
+3. 先前持有的 `WRITE_DAC` 句柄并未失效，依然可以从容将 DACL 还原。
 
-这也是一类真实的故障来源：服务在启动时以管理员身份打开了一个目录，之后管理员把自己的组禁用，服务手里的句柄还能写。排查这类问题时，看的是进程启动时的身份，而不是现在的身份。
+这揭示了真实生产环境中很多难以捉摸的「幽灵权限」故障根源：某些长期驻留的系统后台服务在初始化阶段以高权限打开了一批工作句柄，之后即使管理员在磁盘上收紧了目录权限甚至将服务账户移出了特权组，该服务依然能凭借手头持有的陈旧句柄长期执行写操作。排查此类异常时，不能仅仅静态观察磁盘当前的 ACL，更要追溯进程启动与获取句柄时的历史上下文。
 
-### 5.6 DACL 是从哪来的
+### 5.6 DACL 的溯源机制
 
-不指定安全描述符时，新对象的 DACL 从父容器来：父目录上标了 `OI`、`CI` 的 ACE 会以继承项的形式出现在新对象里。父目录一条可继承的 ACE 也没有时，才改用创建者令牌里的默认 DACL。
+如果在调用创建 API 时将安全描述符置空，系统究竟从何处合成一份新对象的 DACL？
+答案遵循明确的双层后备机制：内核首先向上追溯其父容器（例如所在的文件夹）；若父级安全描述符中包含带有 `OI`（对象继承）或 `CI`（容器继承）标记的规则，这些规则将以继承项的形式自动注入新对象。唯有当父容器未配置任何可继承项、或者创建的是无父容器的纯内核对象时，内核才会退而求其次，采用创建者访问令牌内部附带的「默认 DACL」（Default DACL）。
 
-令牌的默认 DACL 在这个环境里有三条，分别给当前用户、`BUILTIN\Administrators` 和 `SYSTEM` 完全控制，这是系统在登录时按账户类型生成的一份通用设置。用它建出来的文件因此会对本机管理员敞开，和 `private_file.c` 的结果不同。
-
-一个演示：
+在常规开发环境中，主令牌内嵌的默认 DACL 通常预置了三条完全控制规则，分别授予当前用户、`BUILTIN\Administrators` 与 `SYSTEM`。如果仅仅依赖令牌默认 DACL，创建出来的对象实际上天然对本地所有管理员敞开大门：
 
 ::: terminal title="PowerShell - default_dacl"
 
@@ -862,9 +881,9 @@ PS> .\default_dacl.exe
 
 :::
 
-第二种情况下父目录的 DACL 受保护、没有可继承的 ACE，文件只能拿到令牌默认的那三条，`BUILTIN\Administrators` 也在里面。想让新对象只对指定主体开放，唯一可靠的办法是创建时自己给出 DACL；敏感数据不要指望「默认设置应该够严」。
+由此可以得出一条严谨的工程定论：**对于包含敏感业务数据的文件、命名管道或共享内存，绝不能心存侥幸依赖系统的默认行为**。唯一能确保访问边界坚不可摧的做法，是在创建 API 中显式交付一份经过明确裁量、带有受保护标记的专属安全描述符。
 
-`default_dacl.c` 在 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/` 下。它先在当前目录建一个文件，再建一个 DACL 受保护、没有可继承 ACE 的 `isolated` 子目录，在里面建第二个文件，最后打印两者的 DACL 与令牌默认 DACL 的条数。
+`default_dacl.c` 演示了这一机制：源码位于 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/default_dacl.c`。
 
 ::: compare left-title="为了消除拒绝访问设 NULL DACL" right-title="只授予需要的主体"
 
@@ -894,25 +913,27 @@ CreateFileW(path, GENERIC_WRITE, 0, &sa, CREATE_ALWAYS, ...);
 
 :::
 
-左栏那种改法让本机任何一个账户都能完全控制这个文件，等于把数据交给了所有本机程序，其中也包括从浏览器里跑出来的低权限代码。看起来「问题解决了」，实际上是把锁换成了没有锁。
+对比左栏的做法：它虽然能够迅速消除 `ERROR_ACCESS_DENIED`，却等于卸掉了大门上的整把锁，任何沙箱内的低权限脚本均可对其执行篡改；而右栏的做法在清晰授予合法主体的同时，筑牢了防御边界。
 
 ## 6. 特权
 
-### 6.1 特权与对象权限不是一回事
+### 6.1 特权与对象权限的区别
 
-DACL 管的是「谁能访问这个对象」，特权（privilege）管的是「谁能执行这类系统操作」。前者按对象逐份设置，后者跟着账户走，在令牌里以 LUID 标识，登录时就确定了。
+在 Windows 安全模型中，必须严格区分对象权限（Object Rights / Permissions）与特权（Privileges）的概念界限：
+- **对象权限**：牢牢绑定在具体的资源对象（文件、管道、注册表键值）之上，由对象的安全描述符与 DACL 决定「谁有权对这个特定实体进行何种操作」；
+- **特权**：牢牢绑定在主体的访问令牌之上，用于向内核证明该安全主体是否被授权执行某些跨越常规对象边界的全局系统级操作（例如系统关机、调试其他进程、绕过读安全检查备份全盘等）。
 
-常见的几个：
+常见的关键系统特权包括：
 
-| 特权 | 常量 | 作用 |
+| 特权名称 | 系统常量宏 | 核心工程能力 |
 | --- | --- | --- |
-| 关闭系统 | `SeShutdownPrivilege` | 调用关机、重启相关的函数 |
-| 调试程序 | `SeDebugPrivilege` | 打开任意进程，包括别的用户的 |
-| 备份文件和目录 | `SeBackupPrivilege` | 绕过 DACL 读文件 |
-| 还原文件和目录 | `SeRestorePrivilege` | 绕过 DACL 写文件 |
-| 取得文件或其他对象的所有权 | `SeTakeOwnershipPrivilege` | 改任意对象的所有者 |
+| 关闭系统 | `SeShutdownPrivilege` | 调用触发操作系统关机、注销或重启的系统函数 |
+| 调试程序 | `SeDebugPrivilege` | 允许越权打开并附加到任意其他用户的进程上下文 |
+| 备份文件和目录 | `SeBackupPrivilege` | 以备份为目的调用特定 API 绕过 DACL 直接读取敏感文件 |
+| 还原文件和目录 | `SeRestorePrivilege` | 绕过 DACL 将备份数据写入受保护位置 |
+| 取得对象的所有权 | `SeTakeOwnershipPrivilege` | 强制接管任意内核对象的所有者身份 |
 
-每个特权都有两种状态：在令牌里但未启用，和根本不在令牌里。差别很大。默认情况下多数特权处于「已启用」之外的禁用状态，程序要用时自己启用，用完禁用。
+值得特别注意的是：令牌中拥有一项特权，并不等于该特权已处于激活状态。出于最小特权防御原则，绝大多数高危特权在令牌被创建时默认都处于「已禁用（Disabled）」状态。程序在真正执行关键系统动作前，必须在运行时显式将其激活；在操作完成后，应立即将其恢复至禁用状态。
 
 ::: concept win-ac-not-all-assigned title="AdjustTokenPrivileges 返回 TRUE 不等于成功"
 
@@ -921,6 +942,8 @@ DACL 管的是「谁能访问这个对象」，特权（privilege）管的是「
 :::
 
 ### 6.2 启用、使用、禁用
+
+调整自身令牌特权的标准操作手法如下：
 
 ```c
 LUID luid;
@@ -937,9 +960,9 @@ if (GetLastError() == ERROR_NOT_ALL_ASSIGNED) {
 }
 ```
 
-`OpenProcessToken` 时要带上 `TOKEN_ADJUST_PRIVILEGES`，只带 `TOKEN_QUERY` 会得到错误 5。
+在打开自身令牌时，必须在 `OpenProcessToken` 的访问掩码中显式包含 `TOKEN_ADJUST_PRIVILEGES`，若仅带有 `TOKEN_QUERY`，后续调用将遭遇拒绝访问。
 
-下面这个程序对自己的令牌做四件事：查初始状态、启用 `SeShutdownPrivilege`、再查、禁用。然后试着启用一个令牌里没有的 `SeDebugPrivilege`，把返回值和错误码都打出来。它只改令牌状态，不会关机。
+观察下面这个测试特权启闭生命周期的范例：它依次完成特权探测、激活、校验、还原，并在最后尝试强行开启一个普通令牌所根本不具备的调试特权（`SeDebugPrivilege`）：
 
 ::: terminal title="PowerShell - privilege"
 
@@ -957,7 +980,7 @@ SeDebugPrivilege: 令牌中没有这个特权，错误码 1300 (ERROR_NOT_ALL_AS
 
 :::
 
-专门验证一下最后一条：把最后错误码先设成一个无关的值，再调用 `AdjustTokenPrivileges`，看它的返回值与错误码分别是什么。
+单独用简短测试验证 `AdjustTokenPrivileges` 的返回值特性：
 
 ::: terminal title="PowerShell - adjust_ret"
 
@@ -969,17 +992,17 @@ AdjustTokenPrivileges -> 1, GetLastError -> 1300
 
 :::
 
-返回值是 1（TRUE），错误码是 1300。只判断返回值就会以为启用成功，接着去调用关机函数，再收到一个莫名其妙的错误。这是 Win32 里少数几个「成功也设错误码」的函数之一，和 A.5 讲的 `GetLastError` 一般规律不一样，只能记住。
+这个结果值得刻在每一位 Win32 程序员的脑海中：API 返回了布尔值 1（`TRUE`），但 `GetLastError` 却留下了 1300（`ERROR_NOT_ALL_ASSIGNED`）。若仅仅凭借传统的 `if (!AdjustTokenPrivileges(...))` 进行判空，逻辑将误以为特权已经成功就位，随即在后续调用系统级 API 时遭遇意料之外的失败。这种「函数调用本身虽未抛出底层异常、但请求未能完全满足」的设计，是 Win32 安全子系统的一大特异之处。
 
-两个程序都在 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/` 下：`privilege.c` 演示启用与禁用，`adjust_ret.c` 单独验证返回值与错误码。
+两个配套程序均存放在 `code/系统编程/拓展A_Win32系统编程/A_16_安全与访问控制_ACL与令牌/`：`privilege.c` 演示完整的特权启闭流程，`adjust_ret.c` 专注验证错误码特性。
 
 ### 6.3 对照 Linux capabilities
 
-Linux 的 capability 把 root 的特权拆成几十项，装在线程的凭证里，可以用 `capset` 增删，也可以在文件上打 `cap_*` 扩展属性。Windows 的特权机制在形状上很接近：同样细分成几十项，同样跟着令牌走，同样要显式启用。
+在 Linux 世界中，POSIX capabilities 将原本凌驾一切的 root 权力细分为数十项独立的能力位（如 `CAP_NET_ADMIN`、`CAP_SYS_ADMIN` 等），挂载在线程的安全凭据中，并支持文件级别的持久化赋权。Windows 的特权系统在形态划分上与其颇为神似：同样被切割为数十个具名特权，同样附着在进程安全令牌之上，同样要求在真正施展权力时显式激活。
 
-区别在于覆盖面。capability 管的是内核里那些「原本只有 root 能做」的操作；Windows 的特权覆盖范围更窄，主要是备份还原、调试、关机、改系统时间、取得所有权这类，绝大多数文件访问根本不经特权，只经 DACL。所以「给程序一个特权让它能写某个目录」在 Windows 上不成立，写目录要改 DACL 或换账户。
+但两者的覆盖边界与防守重心存在本质分歧：Linux 的 capability 旨在拆解超级用户的特权池；而 Windows 的特权机制主要聚焦在跨系统的基础设施管理动作（关机、审计、系统时钟同步、接管所有权）。日常绝大多数文件、管道与同步原语的访问，在 Windows 中完全由 DACL 统辖。在 Windows 上并不存在类似「给进程赋予某个特权即可随意读写私有业务目录」的旁路逻辑；即便需要实现系统全盘防灾备份，也必须先开启 `SeBackupPrivilege`，并在此基础上于调用 `CreateFileW` 时显式指定 `FILE_FLAG_BACKUP_SEMANTICS` 标志，才能令内核授权旁路读取。
 
-主线第 14 章的 `CAP_DAC_OVERRIDE` 在 Windows 上没有等价物。管理员能改任何 DACL，是因为他本来就在 DACL 里有一条允许 `WRITE_DAC`，或者能接管所有权，而不是因为有一个可以无视检查的能力。
+主线第 14 章的 `CAP_DAC_OVERRIDE` 在 Windows 上没有等价物。管理员能改任何 DACL，是因为他本来就在 DACL 里有一条允许 `WRITE_DAC`，或者能接管所有权。
 
 <Quiz
   type="single"
@@ -1004,17 +1027,13 @@ Linux 的 capability 把 root 的特权拆成几十项，装在线程的凭证�
 
 ## 7. 工程上的做法
 
-几条可以直接照做的规则。
+在大型工业级软件与系统组件的设计中，良好的安全架构并非依靠事后补丁，而是建立在遵循最小特权设计的一系列工程共识之上：
 
-**新对象一律显式指定 DACL。** 命名管道、共享内存、命名事件、命名互斥量都是全机器可见的名字，默认 DACL 往往允许 Everyone 读（第 5.3 节实测）。敏感对象用 `D:P` 加当前用户与 `SYSTEM` 两条，需要别的账户时再加。
-
-**不用 NULL DACL 解决拒绝访问。** 遇到错误 5 先弄清是哪条 ACE 挡住的：用 `sddl_show` 打出 DACL，用 `icacls` 看继承，必要时用 `AccessCheck` 预演请求的权限。改 DACL 时要写清楚给谁、给什么，别整份替换成 `Everyone:(F)`。
-
-**权限跟着账户走，最小权限从账户开始。** 服务用 `LocalService` 或虚拟账户（A.18），不要用 `LocalSystem`；桌面程序不要申请提权，需要写系统位置时把数据写到 `%LOCALAPPDATA%`。
-
-**需要以调用者身份做事时用模拟。** 命名管道服务器读完请求后，`ImpersonateNamedPipeClient` 把线程的令牌临时换成客户端的，此后打开文件、访问注册表都按客户端的权限检查，做完 `RevertToSelf`。这是本机服务做权限判断的标准做法，比服务自己猜「客户端有没有资格」可靠。
-
-**排查工具。** `whoami /all` 看自己的令牌，`icacls` 看对象的 DACL，Sysinternals 的 AccessChk 按账户查权限，Process Explorer 的 Security 页能直接看到进程令牌和句柄的权限。
+- **新建受保护对象时必须显式指定 DACL**：对于命名管道、文件映射、全局事件与互斥量等跨进程资源，它们的名字处于全局可见的命名空间中。若不指定安全描述符，极易让未经鉴权的本地主体连入。推荐的标准实践是采用 `D:P(A;;FA;;;<用户SID>)(A;;FA;;;SY)` 模式切断继承，仅放行必要主体。
+- **杜绝使用 NULL DACL 掩盖权限设计缺陷**：在遇到 `ERROR_ACCESS_DENIED` 时，应当通过 `sddl_show`、`icacls` 或 `AccessCheck` 仔细理清具体的阻断 ACE 与完整性级别冲突，精准补充所需最小位，而不是以 NULL DACL 弃守全部防线。
+- **从服务账户选型贯彻最小权限原则**：开发 Windows 后台服务时，除非确实需要深度介入底层内核状态，应优先选用 `NT AUTHORITY\LocalService`、`NetworkService` 或虚拟服务账户（Virtual Accounts，A.18），尽量避免盲目运行在无所不能的 `LocalSystem` 之下。
+- **在服务端跨安全边界时使用凭据模拟**：在处理命名管道或 RPC 客户端请求时，服务端应调用 `ImpersonateNamedPipeClient` 将当前处理线程的上下文切换为客户端的模拟令牌，借助内核自身的安全检查流水线代为核验文件或注册表访问权限，任务完成后立即执行 `RevertToSelf`，避免服务自身的高权限被利用成为提权跳板。
+- **构建熟练的诊断工具箱**：日常排查时，善用 `whoami /all` 剖析自身令牌结构，用 `icacls` 审查磁盘文件继承树，借助 Sysinternals 的 AccessChk 与 Process Explorer 深入透视进程与句柄的实际权限分配。
 
 ::: generate win-ac-vs-posix kind=comparison
 

@@ -1,6 +1,6 @@
 # A.1 Win32 API 概览与 POSIX 对照
 
-主线第 2 章写过一个文件复制程序：`open` 打开源文件，`read` 一页一页读进缓冲区，`write` 写到目标文件，`close` 收尾。把这份程序搬到 Windows 上，`<unistd.h>` 和 `<fcntl.h>` 都不存在，`open` 的返回值也不再是「非负整数是文件描述符，-1 是失败」那么简单。换一组函数名只是第一步，真正要弄清的是：Windows 的系统能力以什么形式提供，哪些类型和返回值约定会反复出现，以及主线里学过的每一个 POSIX 概念在 Windows 上对应哪一页。
+主线第 2 章写过一个文件复制程序：`open` 打开源文件，`read` 一页一页读进缓冲区，`write` 写到目标文件，`close` 收尾。把这份程序搬到 Windows 上，`<unistd.h>` 和 `<fcntl.h>` 都不存在，`open` 的返回值也不再是「非负整数是文件描述符，-1 是失败」那么简单。换一组函数名只是第一步。需要弄清的是：Windows 的系统能力以什么形式提供，哪些类型和返回值约定会反复出现，以及主线里学过的每一个 POSIX 概念在 Windows 上对应哪一页。
 
 这一页先给出一张全景图：应用代码下面依次是 C 运行库、子系统 DLL、`ntdll.dll` 和内核，稳定的是中间那层文档化的导出函数。然后写出第一个 Win32 程序，编译运行，用 `objdump` 看清它依赖了哪些 DLL，再逐条讲明白 Win32 的类型名、命名习惯、调用约定和返回值约定。最后一节是一张 POSIX 与 Win32 的对照表，本拓展后面每一页都可以从表里查到位置。本页程序在本机 MinGW-w64 GCC 13.2（UCRT 运行库）与 MSVC 14.51 上编译运行，输出照实粘贴。
 
@@ -30,7 +30,7 @@ flowchart TB
 
 **子系统 DLL（subsystem DLL）** 是 Win32 API 的实现，kernel32 与 kernelbase 提供文件、内存、进程、线程、同步，advapi32 提供注册表、安全与服务，ws2_32 提供 Winsock，user32 与 gdi32 提供窗口和图形。本拓展只讲前面几类，图形界面不在范围内。
 
-**`ntdll.dll`** 实现原生 API（native API），函数名以 `Nt` 开头，例如 `NtCreateFile`、`NtReadFile`。它包含真正执行 `syscall` 指令的系统服务分发桩。子系统 DLL 调用这些桩，桩切到内核态。
+**`ntdll.dll`** 实现原生 API（native API），函数名以 `Nt` 开头，例如 `NtCreateFile`、`NtReadFile`。它包含执行 `syscall` 指令的系统服务分发桩。子系统 DLL 调用这些桩，桩切到内核态。
 
 **内核** 是 `ntoskrnl.exe`：执行体（executive）管对象管理、内存管理、I/O 管理、进程与线程，下面的内核（kernel）管调度和中断，HAL 屏蔽硬件差异。
 
@@ -71,7 +71,7 @@ api-ms-win-core-file-l1-2-0.dll      -> C:\Windows\System32\KERNELBASE.dll
 
 :::
 
-两个 `api-ms-win-*` 名字在 `System32` 下没有同名文件（`dir` 的结果是「File Not Found」），加载器把它们解析到真正承载实现的 DLL：UCRT 的 API 集落到 `ucrtbase.dll`，内核的 API 集落到 `kernelbase.dll`。这就是 API 集的作用，名字表示一组接口约定，不表示一个文件；实现可以在不同 Windows 版本之间拆分、合并、改名，而引用这些名字的程序照常运行。Microsoft Learn 对 API 集的说明是：它在承载某个 Win32 API 实现的宿主 DLL 与这个 API 所属的功能约定之间提供架构上的分离。
+两个 `api-ms-win-*` 名字在 `System32` 下没有同名文件（`dir` 的结果是「File Not Found」），加载器把它们解析到承载实现的 DLL：UCRT 的 API 集落到 `ucrtbase.dll`，内核的 API 集落到 `kernelbase.dll`。这就是 API 集的作用，名字表示一组接口约定，不表示一个文件；实现可以在不同 Windows 版本之间拆分、合并、改名，而引用这些名字的程序照常运行。Microsoft Learn 对 API 集的说明是：它在承载某个 Win32 API 实现的宿主 DLL 与这个 API 所属的功能约定之间提供架构上的分离。
 
 ::: concept win-api-stable-interface title="Windows 上稳定的接口"
 
@@ -250,7 +250,15 @@ CloseHandle(in);
 
 :::
 
-差别集中在四处。访问方式和创建处置被拆成两个参数：`GENERIC_READ` 对应 `O_RDONLY` 的读权限，`OPEN_EXISTING` 表示只打开已有文件，`CREATE_ALWAYS` 对应 `O_CREAT | O_TRUNC`。中间的 `dwShareMode` 是 POSIX 没有的东西：它声明「我打开期间允许别人做什么」，源文件给了 `FILE_SHARE_READ`，目标文件给 0（独占）。字节数用输出参数返回，返回值只表示成功与否：`ReadFile` 的 `&got` 收实际读到的字节数，`WriteFile` 的 `&put` 收实际写出的字节数。第三个差别是失败的表示，它单独占了第 3 节。第四个差别是循环写法，Win32 的 `ReadFile` 在文件末尾返回成功且 `got` 为 0，所以结束条件写在返回值检查之后。
+粗略看去，两套代码的整体脉络基本一致，但在具体设计细节上体现了四处显著差异：
+
+第一，访问意图与创建处置方式被清晰拆解为独立参数。在 POSIX 中，`O_RDONLY`、`O_CREAT` 与 `O_TRUNC` 混杂在同一个掩码参数中；而在 `CreateFileW` 中，访问模式由 `GENERIC_READ` 或 `GENERIC_WRITE` 明确指示读写意图，创建处置则由独立参数指定——例如 `OPEN_EXISTING` 表示仅打开已存在的文件，而 `CREATE_ALWAYS` 则指示若文件已存在则截断覆写，若不存在则直接创建。
+
+第二，引入了 POSIX 标准所不具备的共享模式（`dwShareMode`）。POSIX 文件打开后，默认其他进程也可以随意打开与读写；而在 Windows 下，打开文件必须显式声明「在当前句柄保持打开的期间，允许外部其他进程执行哪些并发操作」。在示例中，输入文件传递了 `FILE_SHARE_READ`，允许其他程序并发读取该源文件；而输出目标文件则传入了 `0`，表明独占写入，防止在此期间其他进程读取或修改尚未写入完成的半成品文件。
+
+第三，数据传输量的反馈机制不同。POSIX 的 `read` 与 `write` 直接将成功传输的字节数作为有符号返回值（`ssize_t`），并以 `-1` 标识失败；而在 Win32 中，传输字节数统一通过专用的指针输出参数回传（如 `ReadFile` 中的 `&got` 与 `WriteFile` 中的 `&put`），函数的返回值本身只充当纯粹的布尔状态指示器（`BOOL`）。
+
+第四，流末尾判定与循环推进方式存在语义差异。Win32 下的 `ReadFile` 当读取到文件末尾时，API 依然会返回非零表示函数成功执行，只是传出的读入字节数 `got` 会变为 0。因此，文件读完的跳出分支必须放置在基础的 API 失败判定之后，而非将 0 视作出错。至于函数失败的具体表示与状态提取，我们在第 3 节专门展开分析。
 
 `wmain` 和 `wchar_t *argv[]` 是另一个话题：Win32 的 W 版函数接收 UTF-16 字符串，`L"..."` 是宽字符串字面量，为了从命令行原样拿到 Unicode 参数，入口点用 `wmain`，链接时加 `-municode`。不写 `-municode` 时链接器报 `undefined reference to 'WinMain'`，因为 `wmain` 的启动代码在 `libmingw32.a` 里由这个选项引入。字符集的完整讨论在 [A.2](/教程/正文/系统编程/拓展A_Win32系统编程/A_2_字符与文本_ANSI_Unicode与UTF16)。
 
@@ -442,7 +450,7 @@ GetFileAttributesW("no_such") -> 4294967295
 
 把 `CreateFileW` 的返回值拿去和 `NULL` 比较，失败时会通过检查，后面所有操作作用在一个无效句柄上，`ReadFile` 返回 `FALSE`、错误 6（`ERROR_INVALID_HANDLE`）。这类错误不会崩，只是让错误定位多绕几层。
 
-注意最后两行：`GetFileAttributesW` 的返回类型是 `DWORD` 不是 `BOOL`，成功时返回属性位（目录是 16，即 `FILE_ATTRIBUTE_DIRECTORY`），失败返回 `INVALID_FILE_ATTRIBUTES`（`0xFFFFFFFF`）。`0xFFFFFFFF` 非零，拿它当 `BOOL` 判断会把失败当成成功。
+注意最后两行：`GetFileAttributesW` 的返回类型是 `DWORD`，别把它当 `BOOL` 用，成功时返回属性位（目录是 16，即 `FILE_ATTRIBUTE_DIRECTORY`），失败返回 `INVALID_FILE_ATTRIBUTES`（`0xFFFFFFFF`）。`0xFFFFFFFF` 非零，拿它当 `BOOL` 判断会把失败当成成功。
 
 **返回 `HRESULT` 的函数**：最高位为 1 表示失败，用 `SUCCEEDED(hr)`/`FAILED(hr)` 宏判断，不要写 `hr == S_OK`。成功码不止 `S_OK` 一个，`S_FALSE` 也是成功，用 `== S_OK` 判断会把这类调用误判为失败。
 
@@ -587,7 +595,7 @@ use the ISO C and C++ conformant name: _close.
 
 程序只用了 `CreateFileW`、`ReadFile`、`WriteFile`、`CloseHandle`、`GetLastError` 五个 Win32 函数，它们都在 `KERNEL32.dll` 里；`printf` 来自 C 运行库；`wmain` 的启动代码和格式化输出把 UCRT 的一组模块带了进来。八个 `api-ms-win-crt-*` 名字在磁盘上也都没有对应文件，加载器把它们全部解析到 `ucrtbase.dll`（第 1 节的 `modules.exe` 已经演示过）。UCRT 从 Windows 10 起随系统提供，所以这份 exe 拷到任何一台 Windows 10 或 11 上都能直接运行，不用附带 DLL。
 
-`-lws2_32` 这类库如果写了但程序没用到，导入表里不会多出 `WS2_32.dll`，链接器只把真正被引用的导入项留在里面。实测给 `win32types.c` 加 `-lws2_32` 编译，导入表与不加时完全一样。
+`-lws2_32` 这类库如果写了但程序没用到，导入表里不会多出 `WS2_32.dll`，链接器只把被引用的导入项留在里面。实测给 `win32types.c` 加 `-lws2_32` 编译，导入表与不加时完全一样。
 
 MSVC 的对应工具是 `dumpbin`。同一份源码用 `/MD`（动态链接 CRT）编译，导入表里多出 `VCRUNTIME140.dll`：
 
@@ -640,7 +648,7 @@ cpw.c
 | 定时器 | `timerfd`、`setitimer`、`nanosleep` | 可等待计时器 A.10，`Sleep` |
 | 线程 | `pthread_create`，[第 8 章](/教程/正文/系统编程/8_操作系统线程与同步) | `CreateThread`/`_beginthreadex`，A.9 |
 | 线程私有数据 | `pthread_key_create`、`_Thread_local` | TLS 与 FLS，A.9 |
-| 互斥与条件 | `pthread_mutex_t`、`pthread_cond_t` | SRW 锁、临界区对象、条件变量，A.11 |
+| 互斥与条件 | `pthread_mutex_t`、`pthread_cond_t` | SRW 锁、临界区对象、条件量，A.11 |
 | 信号量 | `sem_t` | 信号量对象，A.10 |
 | 等待多个对象 | `poll`/`epoll`，[第 11 章](/教程/正文/系统编程/11_非阻塞IO与IO多路复用) | `WaitForMultipleObjects`，上限 64，A.10 |
 | 管道 | `pipe`、FIFO，[第 7 章](/教程/正文/系统编程/7_进程间通信) | 匿名管道、命名管道，A.12 |
@@ -651,13 +659,13 @@ cpw.c
 | 终端 | termios 与伪终端，[第 13 章](/教程/正文/系统编程/13_终端_伪终端与作业控制) | 控制台模式、虚拟终端序列、ConPTY，A.17 |
 | 守护进程、配置、日志 | `daemon`、`/etc`、syslog | 服务、注册表、事件日志，A.18 |
 
-下面三行值得展开，它们是两种系统在设计上的分歧，而不是简单的函数改名。
+在上述系统级对照中，有三处深层的架构分歧尤为值得深思：
 
-**没有 `fork`。** POSIX 创建进程分两步：`fork` 复制当前进程（地址空间、打开的文件描述符、信号处理方式全部继承），再在子进程里 `exec` 换成新程序。Windows 只有 `CreateProcessW`：给一个可执行文件路径和命令行，系统建一个全新的进程，没有父进程的地址空间，打开句柄要从头来。效果上 `CreateProcessW` 接近 `posix_spawn`，而不是 `fork`。这个差别影响的不只是启动进程的写法：靠 `fork` 复制父进程状态之后再做事的模式（比如在子进程里设置好重定向再 `exec`）在 Windows 上要换一种组织方式，重定向通过 `STARTUPINFOW` 结构在创建时指定。具体写法在 A.8 和 A.12。
+**其一，无 `fork` 机制。** POSIX 体系中创建新进程习惯于两步走范式：先调用 `fork` 完整复制当前调用者的地址空间、文件描述符表以及信号屏蔽掩码，随后在子进程上下文内调整环境，再通过 `exec` 族函数彻底替换进程映像。而在 Windows 体系中，操作系统自始至终未提供这种完整克隆进程空间的机制，而是直接提供 `CreateProcessW`：调用方必须显式传入目标可执行文件路径、完整的命令行参数、环境块以及启动配置结构，内核直接为该程序分配崭新的虚拟地址空间并初始化主线程。在实际行为上，`CreateProcessW` 与现代 POSIX 的 `posix_spawn` 具有更高的相似度。这一设计带来的工程影响深远：在 UNIX 下惯常依靠 `fork` 在父子进程间隐式继承配置与文件描述符、并在子进程 `exec` 前完成重定向的写法，在 Windows 下必须转为显式配置——所有句柄重定向必须提前写入 `STARTUPINFOW` 结构体并在生成进程时一并交由内核处理。关于进程生成的详细控制逻辑，我们在 A.8 与 A.12 会细致推演。
 
-**任何内核对象都可以等待。** POSIX 把「能等的东西」限制在文件描述符上，`poll` 和 `epoll` 等的是可读可写事件；事件、定时器、进程结束要靠 `eventfd`、`timerfd`、`pidfd` 这些后补的接口塞进描述符表。Windows 反过来：进程、线程、文件、事件、互斥量、信号量、计时器、管道都是内核对象，都有一套「有信号/无信号」的状态，`WaitForSingleObject` 和 `WaitForMultipleObjects` 能等其中任何一个。代价是这些对象都带内核对象的管理开销（句柄表项、安全描述符、引用计数），一次等待要进内核；进程内高频同步的场合因此有另一套用户态原语（A.11）。
+**其二，内核对象的统一可等待性。** POSIX 传统上将多路等待的范畴高度收束在文件描述符上，`poll` 与 `epoll` 监视的核心是文件或套接字的读写就绪事件；后续为了将定时器触发、信号送达乃至子进程退出纳入这套监视框架，Linux 陆续引入了 `timerfd`、`signalfd` 与 `pidfd` 等机制将其打包装入描述符表中。Windows 的设计哲学则从相反方向切入：无论是进程、线程、控制台输入、事件、互斥体、信号量还是可等待计时器，在内核中均被抽象为标准的「内核对象」，并在内部统一维护「有信号（Signaled）」与「无信号（Nonsignaled）」的状态位。调度器提供的 `WaitForSingleObject` 与 `WaitForMultipleObjects` 原生支持直接等待上述任意内核对象，或者等待多类对象的任意交集。这种高度统一的等待抽象极大简化了跨类事件聚合，但内核对象在创建、句柄索引、访问控制和上下文切换上均伴随不可忽视的系统开销；因此在仅涉及同一进程内部的高性能同步场景下，系统另行演化出了纯用户态的互锁与轻量同步原语（见 A.11）。
 
-**异步 I/O 是完成模型。** POSIX 的 `poll` 告诉你「现在读不会阻塞」，读不读、读多少由你决定，实际的数据搬运发生在 `read` 调用里。Windows 的重叠 I/O（overlapped I/O）反过来：调用 `ReadFile` 时就把缓冲区和偏移交出去，函数立刻返回，系统在后台读，读完之后通过事件、完成例程或 I/O 完成端口通知你「数据已经在缓冲区里了」。这就是就绪模型与完成模型的区别。它决定了服务器的结构：完成模型不需要为每个连接保存一个「当前读到了哪里」的状态机，但需要为每个未完成的操作准备独立的缓冲区和 `OVERLAPPED` 结构，并保证它们在操作完成前不被释放。Linux 的 `io_uring` 也是完成模型，两边可以对照着看。
+**其三，异步 I/O 的完成通知模型。** POSIX 经典的 `poll` 与 `epoll` 本质上属于「状态就绪通知（Readiness Model）」：系统负责告知应用程序某个通道何时可以无阻塞地进行 I/O，而真正将内核缓冲区数据拷贝到用户缓冲区的动作，依然必须由用户线程主动调用 `read` 来同步完成。Windows 的重叠 I/O（Overlapped I/O）则走向了彻底的「操作完成通知（Proactor / Completion Model）」：在发起 `ReadFile` 之初，应用程序就将承载数据的用户态缓冲区地址与预定操作偏移量直接递交给内核驱动，随后函数立即返回，由 I/O 子系统在后台完成实际的物理读写与内存拷贝。直到整批数据已完好写入缓冲区之后，内核才通过事件句柄、异步例程回调或 I/O 完成端口（IOCP）通知调用方「读取已毕，可直接消费」。这两种模型在服务器架构设计上引出了完全不同的思维路径：完成模型免去了为每个并发连接维护半读状态机的琐碎心智负担，但要求传入的每一个数据缓冲区和 `OVERLAPPED` 元数据在内核完成通知送达之前必须保持绝对稳定，不得提前释放或移作他用。Linux 后来演进出的 `io_uring` 亦吸收了此类完成模型的设计精髓。
 
 <Quiz
   type="multi"
@@ -694,11 +702,11 @@ Windows 上写程序，可选的层次不止一个，选错了会在后面付出
 
 **需要系统能力时直接调用 Win32。** 打开文件、创建进程、同步线程、建套接字，用本拓展讲的接口。它们是系统能力的原生形式，文档完整，行为在版本之间稳定。
 
-**不要用 CRT 的 `_open`/`_read` 一类函数模拟 POSIX。** 这套接口在 Windows 上只提供最小的描述符语义，`O_NONBLOCK` 不完全支持，没有 `poll`，没有 `fork`，没有 Unix 域套接字。用它写出来的程序在 Linux 上能编译，在 Windows 上会在某个具体功能上卡住，然后还是要回到 Win32。真正需要跨平台的代码用跨平台库（libuv、SDL、Boost.Asio 之类），那些库在 Windows 上内部调用的正是本拓展讲的接口——比如 libuv 的 Windows 后端就是 I/O 完成端口。
+**不要用 CRT 的 `_open`/`_read` 一类函数模拟 POSIX。** 这套接口在 Windows 上只提供最小的描述符语义，`O_NONBLOCK` 不完全支持，没有 `poll`，没有 `fork`，没有 Unix 域套接字。用它写出来的程序在 Linux 上能编译，在 Windows 上会在某个具体功能上卡住，然后还是要回到 Win32。需要跨平台的代码用跨平台库（libuv、SDL、Boost.Asio 之类），那些库在 Windows 上内部调用的正是本拓展讲的接口——比如 libuv 的 Windows 后端就是 I/O 完成端口。
 
-**MSYS2 和 Cygwin 是兼容层，不是 Windows。** 它们提供一个 POSIX 运行时，把 `fork`、信号、`/dev`、符号链接这些概念模拟出来。代价是程序依赖这一层运行时（msys-2.0.dll 或 cygwin1.dll），并且 `fork` 在 Windows 上只能靠复制整个进程状态来模拟，慢得多，与原生程序交互也有各种缝隙。用它们编译命令行工具很方便，写要分发的 Windows 程序不合适。
+**MSYS2 和 Cygwin 是兼容层。** 它们提供一个 POSIX 运行时，把 `fork`、信号、`/dev`、符号链接这些概念模拟出来。代价是程序依赖这一层运行时（msys-2.0.dll 或 cygwin1.dll），并且 `fork` 在 Windows 上只能靠复制整个进程状态来模拟，慢得多，与原生程序交互也有各种缝隙。用它们编译命令行工具很方便，写要分发的 Windows 程序不合适。
 
-**WSL 是真 Linux。** 在 Windows 里跑一个 Linux 内核，主线的内容在那里原样成立。它不是 Windows 编程，解决的是另一类问题。
+**WSL 是真 Linux。** 在 Windows 里跑一个 Linux 内核，主线的内容在那里原样成立。那是 Linux 编程，解决的是另一类问题。
 
 本拓展只讲原生 Win32：系统 DLL 的文档化接口，配合 MinGW 或 MSVC 编译。这条路上的程序不依赖额外的运行时层，分发给任何一台 Windows 10 及以上系统的机器都能直接跑。
 
@@ -853,7 +861,7 @@ int wmain(int argc, wchar_t *argv[]) {
 3. 用本页出现过的至少 8 个 Win32 函数和 8 个 POSIX 函数填表，缺的接口从 [A.2](/教程/正文/系统编程/拓展A_Win32系统编程/A_2_字符与文本_ANSI_Unicode与UTF16) 到 [A.18](/教程/正文/系统编程/拓展A_Win32系统编程/A_18_Windows服务_注册表与系统设施) 的标题里找；
 4. 验收：对表里每个 Win32 接口，`GetProcAddress` 的结果都不是 `NULL`；对故意写错的名字，结果为 `NULL` 且 `GetLastError()` 为 127。
 
-这个练习的目标是让对照表变成能自己核对的事实，而不是背下来的对应关系。
+这个练习的目标是让对照表变成能自己核对的事实，不再靠背下来的对应关系。
 
 </Exercise>
 

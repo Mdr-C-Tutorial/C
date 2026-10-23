@@ -1,20 +1,20 @@
 # 5.2 源码阅读：Redis SDS 与 dict
 
-SDS（Simple Dynamic String，简单动态字符串）和 dict（字典）是 Redis 最基础的两个数据结构。SDS 弥补了 C 字符串的三个不足：不能包含 `\0`、取长度要 O(n)、拼接时容易溢出。dict 是一个哈希表，它要解决的工程问题是扩容时不能阻塞服务。
+在 Redis 的系统构建中，简单动态字符串（SDS，Simple Dynamic String）与哈希字典（dict）构成了承载上层一切丰富类型的基石。从网络缓冲区的字节拼装，到键空间中成千上万个键值映射，几乎处处都能看到这两个基础设施的身影。C 语言原生的字符数组由于缺乏长度元数据且依赖空字符判定边界，在应对高性能网络协议与二进制数据时存在天然缺陷；而通用的哈希表若在扩容时粗暴搬迁，则会直接击穿单线程事件循环的延迟底线。理解 Redis 的性能特征，必须先沉入这两个数据结构的内部实现。
 
-> 源码来自 Redis 最新版本（RSALv2 / SSPLv1 / AGPLv3 三选一许可）。本文基于 `sds.h`、`sds.c`、`dict.h`、`dict.c` 四个文件。
+> 源码依据 Redis 稳定版本（提供 RSALv2 / SSPLv1 / AGPLv3 许可供选择）。本节核心讨论围绕 `sds.h`、`sds.c`、`dict.h` 与 `dict.c` 四个源码文件展开。
 
 ## 1. SDS
 
 ### 1.1 为什么需要自己的字符串
 
-C 标准库的字符串是以 `\0` 结尾的 `char` 数组。在 Redis 的使用场景下，它有三个问题：
+C 标准库中原生的字符串表现形式，本质上是末尾由空字符 `\0` 作为终止标记的连续字符数组。这种经典设计虽然轻便，但在 Redis 这种高并发内存服务器的高强度读写场景下，暴露出三处严重的工程痛点：
 
-1. **不是二进制安全的**。Redis 的值可以是任意字节序列，中间完全可能出现 `\0`。`strlen`、`strcat` 等函数遇到 `\0` 就停，会截断数据。
-2. **取长度是 O(n)**。`strlen` 要从头扫到 `\0`，而 Redis 频繁需要知道字符串长度。
-3. **拼接操作不安全**。`strcat` 假设目标缓冲区够大，调用者必须自己管理内存，容易溢出。
+1. **无法保证二进制安全**。Redis 需要存储的内容可能涵盖图片片段、序列化对象等任意字节序列，数据流正文中完全可能出现 `\0`。诸如 `strlen`、`strcat` 等标准库函数一旦读到首个 `\0` 便认定文本终止，从而发生数据被无故截断的情况。
+2. **获取长度操作具备 O(n) 开销**。标准库函数 `strlen` 必须从字符串首字符逐个扫描比对直至遇上终止符；而在高频执行的协议解析、内存审计与命令分发过程中，服务端需要以极高频度反复查询字符串长度，线性扫描的开销难以承受。
+3. **拼接修改容易诱发缓冲区溢出**。标准库提供的 `strcat` 默认假定目标缓冲区已预留足够充裕的内存，内存申请与边界判定的责任全由调用者承担；在高频更新场景下，稍有疏漏便可能触发内存越界。
 
-SDS 的做法是在字符串内容前面放一个 header，记录长度和已分配空间，同时保留末尾的 `\0`，因此 SDS 指针可以直接传给 `printf` 等接受 C 字符串的函数。
+针对这些痛点，Redis 设计了 SDS 数据结构：在真实的字符串载荷前面安置一个结构体头部（header），显式维护当前已使用的有效长度与分配的总空间；与此同时，为了最大程度兼顾 C 语言既有生态，SDS 依旧保留了末尾写入 `\0` 终止符的习惯，这使得内部的字符指针能够无缝传入 `printf`、`strcasecmp` 等标准 C 库函数。
 
 ### 1.2 内存布局：指针指向 header 之后
 
@@ -24,7 +24,7 @@ SDS 的做法是在字符串内容前面放一个 header，记录长度和已分
 typedef char *sds;
 ```
 
-`sds` 就是 `char *`。但它指向的不是分配块的起始地址，而是 header 之后、字符串内容的第一个字节。header 在它前面，通过负偏移 `s[-1]` 访问。
+`sds` 就是 `char *`。它指向 header 之后、字符串内容的第一个字节；header 在它前面，通过负偏移 `s[-1]` 访问。
 
 :::
 
@@ -43,18 +43,18 @@ struct __attribute__ ((__packed__)) sdshdr8 {
 
 `sdshdr16`、`sdshdr32`、`sdshdr64` 结构相同，只是 `len` 和 `alloc` 的类型分别是 `uint16_t`、`uint32_t`、`uint64_t`。`sdshdr5` 比较特殊：它没有 `len` 和 `alloc` 字段，把长度（最多 31）编码在 `flags` 字节的高 5 位里，不能追踪剩余空间。
 
-所有 header 都用 `__attribute__((__packed__))` 消除填充，使 header 紧贴字符串内容，负偏移计算精确。
+所有 header 都用 `__attribute__ ((__packed__))` 消除填充，使 header 紧贴字符串内容，负偏移计算精确。
 
 :::
 
-SDS 通过两个宏在 `sds` 指针和 header 指针之间转换：
+为了在公开的 `sds` 字符指针与隐蔽的头部结构体指针之间灵活来回转换，SDS 提供了基于宏展开的指针偏移运算：
 
 ```c
 #define SDS_HDR(T,s) ((struct sdshdr##T *)((s)-(sizeof(struct sdshdr##T))))
 #define SDS_HDR_VAR(T,s) struct sdshdr##T *sh = (void*)((s)-(sizeof(struct sdshdr##T)));
 ```
 
-`sdslen` 和 `sdsavail` 都是 inline 函数，先用 `s[-1] & 7` 判断类型，再用对应的宏取回 header 指针读取字段：
+inline 函数 `sdslen` 和 `sdsavail` 的实现十分简洁：先读取负偏移处 `s[-1] & 7` 提取低 3 位的类型标记，再根据对应类型调用宏向左跳过对应尺寸的头部，直接读取结构体中的字段：
 
 ```c
 static inline size_t sdslen(const sds s) {
@@ -71,13 +71,13 @@ static inline size_t sdslen(const sds s) {
 
 ::: generate sds-layout-explanation kind=explanation concepts=sds-type-alias,sds-header-family
 
-面向有一定 C 基础的读者，用图示化的方式解释 SDS 的内存布局：一次 malloc 分配的块中，最前面是 header（len, alloc, flags），紧接着是 buf 柔性数组（就是字符串内容），末尾有一个 `\0`。sds 指针指向 buf[0]，所以可以直接当 `char *` 用，而 `s[-1]` 就是 flags 字节。解释为什么这种"指针不指向分配起始"的设计是安全的（只要记住用 `sdsfree` 而不是 `free`）。解释 `__packed__` 在这里的作用——如果有填充字节，`s - sizeof(struct sdshdr8)` 算出的地址就会错。
+面向有一定 C 基础的读者，用图示化的方式解释 SDS 的内存布局：一次 malloc 分配的块中，最前面是 header（len, alloc, flags），紧接着是 buf 柔性数组（就是字符串内容），末尾有一个 `\0`。sds 指针指向 buf[0]，所以可以直接当 `char *` 用，而 `s[-1]` 就是 flags 字节。解释为什么这种"指针不指向分配起始"的设计是安全的（只要记住用 `sdsfree` 释放，不要用 `free`）。解释 `__packed__` 在这里的作用——如果有填充字节，`s - sizeof(struct sdshdr8)` 算出的地址就会错。
 
 :::
 
 ### 1.3 创建：sdsnewlen
 
-`sdsnewlen` 是 SDS 的核心构造函数，实际工作由 `_sdsnewlen` 完成。它的流程：
+外部接口调用 `sdsnewlen` 创建字符串时，底层核心逻辑统一汇聚在私有函数 `_sdsnewlen` 中：
 
 ```c
 sds _sdsnewlen(const void *init, size_t initlen, int trymalloc) {
@@ -92,17 +92,17 @@ sds _sdsnewlen(const void *init, size_t initlen, int trymalloc) {
 }
 ```
 
-这段代码有三处细节：
+在这段紧凑的构造逻辑中，包含三处体现工程考量的细节设计：
 
-- **空字符串升级为 TYPE_8**。空字符串通常是为了后续追加而创建的，TYPE_5 不记录 `alloc`，每次追加都必须重新分配，所以直接跳过它。
-- **`s_malloc_usable` 获取实际分配大小**。jemalloc 等分配器返回的块可能大于请求的大小。`bufsize` 拿到实际大小后，`adjustTypeIfNeeded` 会检查多出的空间是否超过了当前类型能记录的上限，超过就升级到更大的类型，以充分利用空间。
-- **返回值是 `buf` 的地址**，不是分配块的起始地址。
+- **空字符串跳过 TYPE_5 直接升级为 TYPE_8**：创建空字符串通常是为了后续持续向其中追加数据。由于 TYPE_5 结构不维护 `alloc` 字段，任何追加操作都无法原地利用预留空间，每次扩容都必须强制重新分配内存，因此系统在创建之初便直接将其规避。
+- **借助 `s_malloc_usable` 获取底层分配器的实际可用容量**：类似 jemalloc 这类内存分配器在实际划分内存块时，为了对齐往往会提供略大于请求字节数的物理空间。获取到实际可用容量 `bufsize` 之后，`adjustTypeIfNeeded` 会检测超额供给的空间是否已经越过当前头部类型的最大表达上限；一旦越界则相应升级为更高级别的头部，从而把分配器附赠的空闲内存全量纳入管理。
+- **对外返回的指针直接定位在有效载荷 `buf` 的首地址**：由于实际分配块的基准地址起始于头部之前，对外暴露的指针向后偏移了一个结构体头部大小，保证了与标准 C 语言字符串指针的直接兼容。
 
 ### 1.4 扩容：sdsMakeRoomFor 的预分配策略
 
 ::: concept sds-prealloc title="SDS 预分配策略"
 
-当 SDS 需要更多空间时，`sdsMakeRoomFor` 不会只分配刚好够用的大小，而是贪心地多分配：
+当 SDS 需要更多空间时，`sdsMakeRoomFor` 会贪心地多分配：
 
 - 新长度 < 1MB：按新长度的两倍分配（`newlen *= 2`）
 - 新长度 >= 1MB：多分配 1MB（`newlen += SDS_MAX_PREALLOC`）
@@ -145,9 +145,9 @@ sds _sdsMakeRoomFor(sds s, size_t addlen, int greedy) {
 }
 ```
 
-为什么类型变了不能 `realloc`？因为 header 大小变了。比如从 sdshdr8（3 字节 header）升级到 sdshdr16（5 字节 header），字符串内容需要向后移动 2 字节。`realloc` 只会在尾部扩展，不会在头部插入空间。
+为什么在头部类型发生跃迁时不能简单依靠 `realloc` 完成原地扩容？根源在于不同头部结构体的物理尺寸并不一致。例如当字符串从 `sdshdr8`（头部占用 3 字节）升级到 `sdshdr16`（头部占用 5 字节）时，正文内容相对于内存基地址的偏移需要向后推移 2 个字节；而标准的 `realloc` 系统接口只能在内存块尾部追加或收缩空间，无法在头部凭空插入新的空隙。因此类型变更时，必须通过 `s_malloc_usable` 申请整块全新空间，将数据内容整体搬迁后释放旧块。
 
-`sdsMakeRoomFor`（greedy=1）供内部追加操作使用；`sdsMakeRoomForNonGreedy`（greedy=0）供用户精确控制分配。
+`sdsMakeRoomFor`（附带 `greedy=1`）供内部追加操作使用，采用激进的预分配策略；而 `sdsMakeRoomForNonGreedy`（`greedy=0`）则按需精确分配，供上层进行细粒度的内存控制。
 
 ### 1.5 追加：sdscatlen
 
@@ -165,11 +165,11 @@ sds sdscatlen(sds s, const void *t, size_t len) {
 }
 ```
 
-注意返回值：SDS 的所有修改操作都可能触发 `realloc`，导致指针改变。调用者**必须**用返回值替换旧指针：`s = sdscatlen(s, "hello", 5)`。如果写成 `sdscatlen(s, "hello", 5)` 而不接返回值，旧的 `s` 可能变成悬空指针。
+调用约定与安全警示：SDS 的所有拼接与修改接口均可能因空间不足而触发重新分配，导致底层返回的指针地址发生变动。因此在 C 语言代码中调用此类函数时，**必须始终以函数返回值覆盖原有指针**（例如显式书写 `s = sdscatlen(s, "hello", 5);`）。若遗漏对返回值的接收并继续使用旧指针，一旦底层发生内存重新安置，旧指针就会退化为野指针并诱发未定义行为。
 
 ### 1.6 收缩：sdsRemoveFreeSpace
 
-SDS 在追加时会贪心预分配，但有些场景（比如长期存储的键）需要释放多余空间。`sdsRemoveFreeSpace` 把 SDS 收缩到刚好容纳当前内容：
+激进的预分配策略虽然平摊了频繁追加的系统开销，但在某些长周期静置或对内存极为敏感的场景下（例如持久化写入前的只读键），多余的空闲空间会造成常驻内存浪费。此时可以通过 `sdsRemoveFreeSpace` 将 SDS 的可用容量精准压缩至正好贴合当前有效长度：
 
 ```c
 sds sdsRemoveFreeSpace(sds s, int would_regrow) {
@@ -177,17 +177,17 @@ sds sdsRemoveFreeSpace(sds s, int would_regrow) {
 }
 ```
 
-`would_regrow` 参数控制收缩后的类型选择：如果字符串后续还可能增长，就避免降级到 TYPE_5（因为 TYPE_5 无法记录剩余空间，下次追加必定重新分配）。
+参数 `would_regrow` 用于指示该字符串在未来是否仍有再次增长的预期：若未来仍可能被追加，则收缩时会刻意避免降级为 TYPE_5，防止下次写入时再次陷入频繁重新申请内存的困境。
 
-`sdsResize` 内部还针对 jemalloc 做了优化：如果 `je_nallocx` 告诉我们 `realloc` 不会改变实际分配大小，就跳过这次调用——因为即使分配大小不变，jemalloc 的 `realloc` 本身也有开销。
+在调用 `sdsResize` 时，内部还专门融入了针对 jemalloc 分配器的优化：如果调用 `je_nallocx` 查询得知即将发起的 `realloc` 并不会改变分配器内部的实际划分规格，则直接略过该系统调用——在生产环境中，这能有效免除一次无意义的分配器锁竞争开销。
 
 ## 2. dict
 
-### 2.1 核心问题：不阻塞的 rehash
+### 2.1 核心挑战：非阻塞的渐进式迁移
 
-普通哈希表在扩容时需要一次性把所有键从旧表搬到新表。如果表里有几百万个键，这个操作会阻塞服务器几百毫秒甚至更久。Redis 是单线程事件驱动模型，任何操作阻塞主线程都意味着所有客户端挂起。
+在常规的哈希表实现中，一旦负载因子越过阈值，系统通常会申请一块两倍大小的连续内存，随后通过同步循环将旧表中的全部键值对一次性重新计算哈希并搬移到新表。如果哈希表中容纳了数百万乃至数千万个条目，这种全量搬迁将不可避免地导致整个进程出现数百毫秒甚至秒级的严重停顿。在 Redis 依靠单主线程驱动事件循环的体系下，任何长耗时的连续计算都会让所有并发客户端的请求陷入饥饿。
 
-dict 的解决方案：维护两张哈希表，把 rehash 分摊到每次查找/插入/删除操作中。
+为了化解这一工程矛盾，Redis 的哈希字典 `dict` 引入了渐进式哈希重构（incremental rehashing）：在数据结构内部常态化维护两张哈希表，将庞大的数据迁移工作拆解为无数个微小的操作单元，平摊到后续每一次常规的增删查改请求以及空闲周期的定时心跳中。
 
 ### 2.2 数据结构
 
@@ -206,7 +206,7 @@ struct dict {
 };
 ```
 
-表大小始终是 2 的幂，用指数存储。`DICTHT_SIZE(exp)` 还原为 `1 << exp`，`DICTHT_SIZE_MASK(exp)` 还原为 `(1 << exp) - 1`（取模掩码）。
+哈希表的桶数组容量始终严格约束为 2 的幂次方，在结构体中仅以指数形式存储（如指数 4 对应容量 16）。宏 `DICTHT_SIZE(exp)` 通过 `1 << exp` 快速还原真实容量，而 `DICTHT_SIZE_MASK(exp)` 则计算出 `(1 << exp) - 1` 作为按位取模的高速掩码。
 
 :::
 
@@ -225,9 +225,9 @@ struct dictEntry {
 };
 ```
 
-`dictEntry` 在头文件中是 opaque 的（只有前向声明），实际定义在 `dict.c` 中。这意味着外部代码不能直接访问字段，必须通过 `dictGetKey`、`dictGetVal` 等函数——这是 C 语言中实现封装的标准手法。
+在对外暴露的头文件中，结构体 `dictEntry` 被设计为不透明类型（Opaque Type，仅提供前向声明），其具体的字段排布收敛在 `dict.c` 内部。上层业务代码无法直接解引用其内部成员，必须经由 `dictGetKey`、`dictGetVal` 等访问器函数间接操作——这是在 C 语言中构建数据封装边界的惯用工程范式。
 
-值的 union 设计让 Redis 可以直接在 entry 内存储整数或浮点数，避免为简单数值额外分配内存。
+结构体内部的 union 联合体设计是一项典型的内存节省技巧：当键关联的值为 64 位整数或浮点数时，数据可以直接内联存储在联合体字段中，无须再单独向内存分配器申请额外的堆内存对象。
 
 :::
 
@@ -250,7 +250,7 @@ typedef struct dictType {
 } dictType;
 ```
 
-`dictType` 是 dict 的"虚函数表"。不同用途的 dict 提供不同的函数指针组合：集合类型的 dict 用 SDS 做 key，提供 SDS 的 hash/compare/free 函数；没有提供 compare 的 dict 直接比较两个指针。
+类型特化表 `dictType` 在功能上扮演了类似面向对象语言中“虚函数表”（vtable）的角色。根据使用场景的不同，上层调用者可以为 dict 挂配不同的函数指针集：例如用于存储业务数据的字典会以 SDS 字符串为键，并装配 SipHash 哈希算法以及基于 SDS 长度的深度对比函数；而在某些内部紧凑集合中，若调用者省略了 compare 函数，底层便直接退化为指针地址的直接比对。
 
 :::
 
@@ -292,9 +292,9 @@ int dictRehash(dict *d, int n) {
 }
 ```
 
-`empty_visits` 限制一次调用最多访问 `n * 10` 个空桶：如果旧表很稀疏（大量空桶），不加限制的话一次 rehash step 可能扫描整张表，违背"分摊"的初衷。
+计数值 `empty_visits` 为单次迁移循环设定了访问上限（最多允许跳过 `n * 10` 个连续空桶）：当旧哈希表在经历大量删除后变得极度稀疏时，若不对空桶扫描加以限制，单步单桶的搬移操作可能会演变成对整张巨型稀疏表的深长遍历，从而背离了将开销平摊在毫秒内的设计初衷。
 
-`rehashEntriesInBucketAtIndex` 在搬迁时有一个优化：如果是缩容（新表更小），不需要重新计算 hash，直接用旧索引与新掩码做 AND 即可：
+在执行桶内条目重分配时，`rehashEntriesInBucketAtIndex` 包含一项精妙的位运算优化：在缩容场景下（新表规模小于旧表），无需对每个节点的键重复运行高开销的哈希函数，直接将旧表中的桶下标与新表的尺寸掩码执行按位与运算，便能精确求出目标槽位：
 
 ```c
 if (d->ht_size_exp[1] > d->ht_size_exp[0]) {
@@ -304,7 +304,7 @@ if (d->ht_size_exp[1] > d->ht_size_exp[0]) {
 }
 ```
 
-除了"每次操作搬一步"，Redis 还在定时任务中调用 `dictRehashMicroseconds`，在给定的微秒预算内尽量多搬几轮（每轮搬 100 个桶），加速 rehash 进程。
+除了在每次客户端命令交互中“顺带搬迁一步”的被动策略外，Redis 还在周期性定时任务 `serverCron` 中调用 `dictRehashMicroseconds`：在给定的微秒时间预算内（默认 1 毫秒）执行主动轮询搬迁（每小轮迁移 100 个桶），从而在业务低峰期平滑加速哈希表的整体收敛。
 
 ### 2.4 查找与插入
 
@@ -335,9 +335,9 @@ for (table = 0; table < tables; table++) {
 }
 ```
 
-**插入**总是插到 `ht_table[1]`（如果正在 rehash）或 `ht_table[0]`（如果没有 rehash）。新元素插入链表头部——假设最近插入的键被访问的概率更高。
+关于**插入**位置的选取：若字典正处于 rehash 状态，新节点一律直接写入新表 `ht_table[1]`；若未处于迁移状态，则写入基准表 `ht_table[0]`。新增节点始终插入对应桶单链表的表头位置——基于典型的时间局部性假设，最新写入的数据通常拥有更高的被检索概率。
 
-`dictAdd` 的调用链：`dictAdd` -> `dictAddRaw` -> `dictFindLinkForInsert`（查找位置 + 触发扩容检查 + 执行一步 rehash）-> `dictInsertKeyAtLink`（真正插入）。
+完整的添加调用链为：`dictAdd` → `dictAddRaw` → `dictFindLinkForInsert`（负责定位冲突链插入点、评估扩容触发阈值，并顺带执行一次单桶搬迁）→ `dictInsertKeyAtLink`（完成节点装配与链接指针的原子回填）。
 
 ### 2.5 删除
 
@@ -374,13 +374,13 @@ static dictEntry *dictGenericDelete(dict *d, const void *key, int nofree) {
 }
 ```
 
-`nofree` 参数区分两种删除模式：`dictDelete`（删除并释放）和 `dictUnlink`（只从表中摘除，不释放，让调用者先用再释放）。
+函数参数中的 `nofree` 标志用于解耦物理删除与内存释放：标准的 `dictDelete` 会在脱链后立即销毁节点并释放键值内存；而 `dictUnlink` 仅将节点从冲突链表中摘除并递减使用计数，保留完整的节点指针交由调用者后续处理（例如在惰性释放场景中投递给后台 bio 工作线程异步销毁）。
 
 ### 2.6 扩容与缩容的触发条件
 
 ::: concept resize-policy title="扩缩容策略"
 
-dict 的扩缩容由全局变量 `dict_can_resize` 控制，有三个档位：
+dict 的扩缩容由全局状态 `dict_can_resize` 控制，有三个档位：
 
 - `DICT_RESIZE_ENABLE`：负载因子 >= 1 时扩容，<= 1/8 时缩容
 - `DICT_RESIZE_AVOID`：负载因子 >= 4 时才强制扩容，<= 1/32 时才缩容（fork 子进程期间使用）
@@ -434,7 +434,7 @@ unsigned long long dictFingerprint(dict *d) {
 }
 ```
 
-任何导致 dict 结构变化的操作（增删元素、rehash、扩缩容）都会改变这些值中的至少一个，从而改变指纹。
+任何触及字典拓扑结构的修改（包括新增节点、删除条目、推进 rehash 步进以及扩缩容重构），都会不可逆地引起这 6 个特征量中至少一项发生漂移，进而导致计算出的指纹哈希值发生突变。
 
 ### 2.8 dictScan：在 rehash 中存活的游标
 
@@ -442,7 +442,7 @@ unsigned long long dictFingerprint(dict *d) {
 
 `dictScan` 是为 Redis 的 `SCAN` 命令设计的。它的难点在于：调用者两次调用 `dictScan` 之间，dict 可能正在 rehash——表大小在变，键在搬迁。
 
-算法核心是**反转位递增**（reverse bit increment）：不是让游标 `v` 正常递增，而是先把 `v` 的位反转，加 1，再反转回来。这个由 Pieter Noordhuis 设计的算法保证：
+**反转位递增**（reverse bit increment）的做法是：先把游标 `v` 的位反转，加 1，再反转回来。这个由 Pieter Noordhuis 设计的算法保证：
 
 1. 所有桶最终都会被访问到
 2. 即使表在两次调用之间扩容或缩容，也不会遗漏元素（但可能重复返回）
@@ -488,9 +488,9 @@ unsigned long dictScanDefrag(dict *d, unsigned long v, ...) {
 
 ### 2.9 指针标记优化（no_value dict）
 
-当 dict 被用作集合（`no_value = 1`，没有值字段）时，Redis 做了一项空间优化：如果一个桶里只有一个键，就把键指针直接存在桶槽里，不分配 `dictEntry` 结构。
+当哈希字典被特化为纯集合（配置 `no_value = 1`，即仅有键、不设值）使用时，Redis 提供了一项极其极致的内存压缩机制：若某个哈希桶中仅存在唯一的单键且没有发生哈希冲突，系统会直接将键指针嵌入桶槽指针槽位中，完全省去分配 `dictEntry` 结构体包装节点的开销。
 
-区分"桶里存的是 dictEntry 指针还是直接的键指针"靠指针低位标记。`zmalloc` 保证 8 字节对齐，所以 `dictEntry` 指针的低 3 位始终为 0，可以用来编码元数据：
+为了在一个指针大小的槽位内无歧义地区分“当前存放的是指向 `dictEntry` 的节点指针，还是直存的键指针”，Redis 利用了现代操作系统的内存对齐约束。内部分配接口 `zmalloc` 严格保证返回的内存块按 8 字节边界对齐，这意味着任何合法分配的 `dictEntry` 结构体指针，其二进制最低 3 位必然全为 0。这闲置的低 3 位便成为了存储元数据标记的天然位图：
 
 ```c
 #define ENTRY_PTR_NORMAL      0 /* 000: dictEntry 指针 */
@@ -498,7 +498,7 @@ unsigned long dictScanDefrag(dict *d, unsigned long v, ...) {
 #define ENTRY_PTR_IS_EVEN_KEY 2 /* 010: 偶数地址的键 */
 ```
 
-SDS 字符串的地址天然是奇数（header 大小是奇数，buf 在奇数偏移处），所以可以直接存而不需要标记。偶数地址的键需要设置第 1 位来区分。`dictGetKey` 函数根据这些标记决定如何提取键：
+对于 SDS 字符串而言，其首地址在物理排布上往往呈现为奇数（因为紧随在奇数尺寸的头部之后），可以直接存入而无须额外修改。偶数基地址的键则通过将最低位置 1 进行掩码编码。访问函数 `dictGetKey` 在读取时会先审查低位标记，再分发至正确的指针解码或字段取值逻辑：
 
 ```c
 void *dictGetKey(const dictEntry *de) {
@@ -508,7 +508,7 @@ void *dictGetKey(const dictEntry *de) {
 }
 ```
 
-这个优化在 Redis 的集合（Set）数据类型中大量使用，能显著减少集合的内存开销。
+这一针对无值字典的位标记优化在 Redis 的 Set 集合实现中被重度依赖，为海量小集合削减了相当可观的节点结构开销。
 
 ## 3. 习题
 

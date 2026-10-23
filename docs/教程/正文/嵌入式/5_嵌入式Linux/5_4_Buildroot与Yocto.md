@@ -1,12 +1,12 @@
 # 5.4 Buildroot 与 Yocto
 
-[5.3](/教程/正文/嵌入式/5_嵌入式Linux/5_3_交叉工具链_sysroot与根文件系统) 手工做根文件系统的那一整套步骤，换一块板子、换一个内核版本，全都要重来一遍：下载 BusyBox、配交叉编译前缀、拷 C 库、写 inittab、打包。步骤本身不难，难在每次都要一致，难在半年后还能复现出同一份映像。
+在 [5.3](/教程/正文/嵌入式/5_嵌入式Linux/5_3_交叉工具链_sysroot与根文件系统) 中，我们通过手工执行的一整套步骤拼装出了一个可引导的根文件系统。然而，在实际工程生命周期中，一旦面临更换处理器硬件平台、升级 Linux 内核版本或变更 C 运行库，这套纯手工流程便需要完全重来一遍：重新下载解压 BusyBox 源码、校准交叉编译器前缀、从 sysroot 中提取共享库、编排 inittab 启动脚本并执行 cpio 归档打包。单纯的手工敲击命令并不深奥，真正的挑战在于如何在长时间跨度中保持构建过程的绝对确定性，确保数月乃至数年后整个研发团队依然能够精准复现出字节级一致的系统固件镜像。
 
-构建系统把这些步骤写成规则。一份配置文件描述了「用哪个架构、哪个 C 库、哪个内核版本、装哪些软件包」，`make` 一条命令跑完下载、打补丁、交叉编译、安装、打包。这一页讲两个最常用的：Buildroot 与 Yocto。读完能在 Buildroot 里从零构建一个 QEMU 系统，能给自己的程序和内核模块写软件包，能用外部树管理定制而不碰 Buildroot 源码；也能看懂 Yocto 的层与配方，写出最小配方，并按项目规模在两者之间做选择。
+自动化构建系统正是为了将这些离散的手工步骤沉淀为标准化、受版本控制的工程规则。只需维护一份简明的全局配置文件，声明目标 CPU 指令集架构、底层 C 运行库版本、内核基线分支以及所需装载的用户态组件列表，一条 `make` 构建指令便能全自动驱动从外网拉取源码、应用定制补丁、执行交叉编译、组装文件系统直至生成最终可烧录镜像的全流程。本节将深入剖析嵌入式领域最核心的两大构建框架：Buildroot 与 Yocto（Poky）。通过本节的实践，你将能够在 Buildroot 体系中从零构建出一套完整的 QEMU 仿真镜像，为自己的应用程序与底层内核模块编写规范的构建包定义，运用外部树（external tree）实现业务代码与开源框架的物理解耦；同时，还将掌握 Yocto 架构下的层（Layer）与配方（Recipe）组织哲学，并能根据项目研发规模、维护周期与团队资源在两者之间做出审慎的技术选型裁决。
 
 ## 1. 构建系统做什么
 
-手工流程里每一步都对应一个软件包，每个软件包都遵循同一个套路：
+在手工构建的流程中，系统镜像中的每一个功能组件在本质上都映射为一个独立的软件包，且每个软件包的生命周期均遵循高度一致的管线规律：
 
 ```mermaid
 flowchart LR
@@ -21,9 +21,9 @@ flowchart LR
     H --> D
 ```
 
-Buildroot 把这个流程写成 `generic-package` 基础设施：每个包一个 `.mk` 文件，声明版本、源码地址、依赖、配置与安装命令，剩下的事由框架按依赖图调度。几百个包共用一套规则，跨平台编译的细节被收进一处。
+Buildroot 将这种重复性的管线行为高度凝练为通用的基础包调度框架（如 `generic-package`、`cmake-package` 等）：每个软件包仅需收纳在一个独立的 `.mk` Makefile 片段中，清晰声明自身的软件版本、源码下载 URI、前置构建依赖以及具体的编译与安装规则。框架层则基于全局依赖拓扑图，全自动计算构建优先级并按序触发编译。数百个形态各异的开源包因此遵循同一套行为契约，繁复琐碎的跨平台交叉编译细节被统一收敛。
 
-不手工做的理由有三条，都比「省事」重要：
+在现代嵌入式研发中，采用自动化构建系统取代手工拼装的核心驱动力远不止于「操作省事」，而是依托三项关乎工程质量与合规性的硬性指标：
 
 | 理由 | 具体含义 |
 | --- | --- |
@@ -31,11 +31,11 @@ Buildroot 把这个流程写成 `generic-package` 基础设施：每个包一个
 | 版本可追溯 | 每个包的版本号写在 `.mk` 里，`make show-info` 能导出成机器可读的清单 |
 | 许可证清单 | `make legal-info` 收集所有包的许可证文本与源码，交付时直接给客户 |
 
-第三条在商业项目里往往是刚需。手工构建时，谁记得清镜像里那两百个软件包各自是什么许可证？Buildroot 在构建过程中就把这些信息记下来了。
+第三项合规要求在商业产品量产交付时往往构成不可妥协的法律红线。在全手工管理模式下，面对镜像中内嵌的数百个开源组件，几乎没有任何团队能够准确审计出每个程序对应的具体开源许可证类型及分发约束；而在标准构建系统中，元数据追踪机制在编译阶段便已全自动完成了许可证文本的汇聚与源码归档。
 
 ## 2. Buildroot 上手
 
-Buildroot 的用法只有三条命令。拿一份发布版解压，或者从 git 检出固定的 tag：
+Buildroot 的上手门槛极低，基础构建流程仅涉及三条核心命令。直接下载官方发布的稳定版本归档解包，或自官方 Git 仓库检出长期支持分支对应的发行标签：
 
 ::: terminal title="bash - 获取与配置 Buildroot"
 
@@ -49,9 +49,9 @@ $ make -j$(nproc)
 
 :::
 
-`qemu_arm_vexpress_defconfig` 是官方提供的板级配置，Cortex-A9、32 位 armhf、vexpress-a9 机器，与本教程的实验平台一致。`menuconfig` 用来改配置，不熟悉界面时可以先不改，直接 `make` 跑一遍。首次构建要下载内核、BusyBox、工具链并全部编译，视网络与机器性能在一小时上下，占用十几 GB 磁盘。
+`qemu_arm_vexpress_defconfig` 是 Buildroot 官方源码树中维护的标准板级基线，其预设了 Cortex-A9 处理器架构、32 位 armhf 硬浮点调用约定以及对 QEMU ARM Versatile Express 平台的完整支持，与本教程所使用的仿真环境高度对齐。当执行 `menuconfig` 时，终端将弹出典型的 ncurses 文本图形配置界面，支持直观调整内核、工具链与组件树；在初次探索时无需急于修改，直接触发全局 `make` 即可。初次完整构建需要经历从远端镜像拉取内核源码、BusyBox 源码、编译交叉工具链并逐项完成目标系统构建的全过程，根据宿主机 CPU 核心数与网络吞吐，耗时通常在数十分钟至一小时不等，并需占用十余吉字节（GB）的磁盘构建缓存。
 
-构建完成后，`output/` 下会分成几个目录：
+构建顺利收官后，`output/` 工作目录下将分门别类呈现五个层级的成果物：
 
 ```text
 output/
@@ -62,9 +62,9 @@ output/
 └── images/         # 最终映像：zImage、rootfs.ext4、vexpress-v2p-ca9.dtb
 ```
 
-`build/`、`host/`、`staging/`、`target/`、`images/` 这五层与 [5.3 第 3 节](/教程/正文/嵌入式/5_嵌入式Linux/5_3_交叉工具链_sysroot与根文件系统) 讲的分工一样：`host` 是给人用的工具，`staging` 是给编译器用的库，`target` 是给设备用的内容。`images/` 里通常是内核、设备树与根文件系统三样。
+这五处目录严格延续了前期所确立的系统分层契约：`host/` 存放宿主机运行的交叉构建工具链，`staging/` 专供交叉编译器在链接时解析符号，而 `target/` 则是经过裁剪与符号剥离（strip）后即将封装进硬件存储介质的物理根文件系统。`images/` 最终产出供仿真或烧写的内核镜像、设备树与文件系统镜像。
 
-日常用得最多的 `make` 目标有这么几个：
+在日常迭代与增量开发中，以下构建目标构成了最高频的操作入口：
 
 | 目标 | 作用 |
 | --- | --- |
@@ -77,7 +77,7 @@ output/
 | `make graph-size` | 生成各包占用空间的气泡图（需要 Python 与 `matplotlib`） |
 | `make show-info` | 以 JSON 输出所有包的版本、许可证、依赖 |
 
-`savedefconfig` 值得单独讲。`menuconfig` 改完之后 `.config` 里有上千行，直接提交进版本库既难读又难合并。`savedefconfig` 只保留与默认值不同的那些项，通常几十行，这份文件才是应该进版本库的东西：
+`savedefconfig` 这一操作目标在工程协作中极为关键。当开发者在 `menuconfig` 界面中仅微调了少数选项后，生成的 `.config` 文件由于展开了全量系统参数，通常会膨胀至数千行之巨。若将此类全量展开的文件直接纳入 Git 版本控制，不仅可读性极差，在多人并行开发或合并分支时更极易诱发海量冲突。执行 `make savedefconfig` 会自动对配置进行差异化提取，仅保留那些明确偏离系统默认值的关键选项，产出的精简 defconfig 文件通常只有数十行，这才是真正应当提交至代码仓库受版本管理的核心资产：
 
 ::: terminal title="bash - 保存精简配置（输出类似）"
 
@@ -89,7 +89,7 @@ $ wc -l configs/mdr_qemu_defconfig
 
 :::
 
-`BR2_DEFCONFIG` 指到哪，就写到哪。不加这个参数会写到 `output/defconfig`，还要自己拷回去。
+通过 `BR2_DEFCONFIG` 能够精确重定向精简配置的输出文件路径；若省略该参数，内容将默认输出至 `output/defconfig`，尚需开发者手动复制归档。
 
 ::: tip 构建失败的第一次排查
 
@@ -99,7 +99,7 @@ $ wc -l configs/mdr_qemu_defconfig
 
 ## 3. 定制根文件系统
 
-根文件系统里往往要放一些自己的文件：`/etc/hostname`、启动脚本、默认配置、授权文件。这些不是软件包，写成包太重。Buildroot 提供了两条路：覆盖层 (rootfs overlay) 与 post-build 脚本。
+根文件系统里往往要放一些自己的文件：`/etc/hostname`、启动脚本、默认配置、授权文件。这些文件各自写成一个软件包太重。Buildroot 提供了两条路：覆盖层 (rootfs overlay) 与 post-build 脚本。
 
 覆盖层是一个普通的目录树，内容原样拷进 `target/` 里：
 
@@ -232,16 +232,16 @@ SENSORD_POST_INSTALL_TARGET_HOOKS += SENSORD_INSTALL_CONF
 $(eval $(cmake-package))
 ```
 
-四个变量值得记：
+四组配置键值至关重要：
 
-- `_VERSION` 与 `_SITE` 一起决定源码在哪。`_SITE_METHOD = local` 表示不下载，直接从本地目录拷，开发阶段用它最方便，改完源码 `make sensord-rebuild` 就重新编译。
-- `_LICENSE` 是许可证标识，`make legal-info` 会汇总它。`_LICENSE_FILES` 指向源码里的许可证文本，`CLOSED` 表示不公开。
-- `_DEPENDENCIES` 列出构建期依赖，比如 `host-pkgconf`、`zlib`。运行期依赖不用写，Buildroot 会从链接关系里推断。
-- `_INSTALL_INIT_SYSV` 是一个约定名字，框架会在安装阶段调用它。这个名字不能改。
+- `_VERSION` 与 `_SITE`：共同锁定源码的来源与拉取方式。声明 `_SITE_METHOD = local` 意味着跳过网络拉取，直接拷贝本地路径下的源码，这在内部算法与业务守护进程的迭代期极为高效，源码修改后仅需执行 `make sensord-rebuild` 即可快速触发重新编译。
+- `_LICENSE`：声明许可证协议标识，`make legal-info` 在归集系统合规资产时将全量抓取该字段。配套的 `_LICENSE_FILES` 则指向源码目录内的许可证原文，若涉及专有商业闭源资产，通常标记为 `CLOSED`。
+- `_DEPENDENCIES`：显式声明该包在构建期依赖的前置软件包列表（如 `host-pkgconf`、`zlib` 等），框架将确保依赖项完成 staging 安装后才启动当前包的构建；运行期的动态依赖通常无需冗余声明，构建系统会根据 ELF 共享库的 NEEDED 字段自动分析。
+- `_INSTALL_INIT_SYSV`：遵循框架约定的初始化安装钩子，Buildroot 在组装 SysVinit 或 BusyBox 初始化环境时会自动回调该代码块，将预置的启动脚本精准安装至目标文件系统目录。
 
-`_POST_INSTALL_TARGET_HOOKS` 是另一种做法：把自定义的安装步骤挂到框架的标准安装之后。上面用它装配置文件，因为 `cmake-package` 的 `install` 规则只处理 `CMakeLists.txt` 里 `install()` 声明的东西，而 `sensord.conf` 不属于 CMake 的安装规则。
+`_POST_INSTALL_TARGET_HOOKS` 则是另一种极具弹性的机制：它允许开发者将定制的安装动作挂接在框架的标准安装流程之后。上文范例正是利用它补全配置文件的安装，因为 `cmake-package` 内置的 `install` 目标仅负责执行项目 `CMakeLists.txt` 中所声明的 `install()` 规则，而外部的独立配置文件 `sensord.conf` 往往独立于构建规则之外。
 
-内核模块的写法不一样。它在配置里依赖内核，在 `.mk` 里要 `eval` 两次：
+对于底层内核模块，其配置体系有着本质的不同：它在 Kconfig 逻辑上强依赖内核子系统，在 Makefile 中则需要通过连续两次 `eval` 嵌套注册：
 
 ```make
 MDR_FIFO_VERSION = 1.0
@@ -253,17 +253,17 @@ $(eval $(kernel-module))
 $(eval $(generic-package))
 ```
 
-`kernel-module` 必须先 `eval`，它提供模块的编译与安装规则；`generic-package` 后 `eval`，它负责下载与解包。顺序写反，`generic-package` 先接管整个包的构建，模块规则不会生效，编出来的不是内核模块。模块源码就是 [5.7](/教程/正文/嵌入式/5_嵌入式Linux/5_7_字符设备与用户空间接口) 的 `mdr_fifo.c`，它目录下的 `Makefile` 只有一行：
+这里 `kernel-module` 的求值必须严格置于 `generic-package` 之前：前者专职生成面向内核树的编译指令与模块签名安装规则；后者则负责顶层的目录解包与基础设施钩子。若次序颠倒，`generic-package` 会先行抢占包的构建生命周期，导致内核模块专有的交叉编译规则被架空，最终无法正确产出 `.ko` 目标文件。配套的驱动源码即为 [5.7](/教程/正文/嵌入式/5_嵌入式Linux/5_7_字符设备与用户空间接口) 中将实现的 `mdr_fifo.c`，其同级目录下的 `Makefile` 仅需精炼的一行声明：
 
 ```make
 obj-m += mdr_fifo.o
 ```
 
-模块编完自动装进 `target/lib/modules/<内核版本>/extra/`，`depmod` 由框架跑。要让它开机自动加载，在覆盖层里写 `/etc/modules`，或者在初始化脚本里执行 `modprobe mdr_fifo`。
+编译产出的驱动模块会自动安装至 `target/lib/modules/<内核版本>/extra/` 目录之下，模块依赖映射表（`modules.dep`）亦由构建框架自动调用 `depmod` 工具生成。若希望模块随系统自启动加载，只需在文件系统覆盖层的 `/etc/modules` 中声明模块名，或在开机启动脚本中追加显式的 `modprobe mdr_fifo` 指令。
 
-::: warning 包名与变量前缀要一致
+::: warning 包名与前缀标识要严格一致
 
-`.mk` 文件名、`Config.in` 里的 `BR2_PACKAGE_` 名、变量前缀三者必须对应：`mdr-fifo.mk` 里的变量前缀是 `MDR_FIFO_`，短横线变成下划线，大写。写错一个字母，Buildroot 不会报错，只会静默使用默认值，构建出来的东西不对。
+`.mk` 文件名、`Config.in` 内部声明的 `BR2_PACKAGE_` 符号以及 Makefile 中的宏前缀三者必须严格保持字符对齐：例如对于 `mdr-fifo.mk`，其内部全部配置项的前缀必须统一定义为 `MDR_FIFO_`（连字符需统一转换为下划线并全部转为大写）。若发生字符拼写偏差，Buildroot 并不会中断报错，而是会因无法在命名空间中匹配到定制声明而静默退化为使用框架默认值，导致构建出的目标产物与预期脱节。
 
 :::
 
@@ -273,7 +273,7 @@ obj-m += mdr_fifo.o
     { label: 'SENSORD_SITE_METHOD = local 让构建直接用本地源码', value: 'A' },
     { label: 'SENSORD_POST_INSTALL_TARGET_HOOKS 可以在标准安装后追加步骤', value: 'B' },
     { label: '内核模块包要先 eval kernel-module，再 eval generic-package', value: 'C' },
-    { label: '包的 .mk 文件名可以与变量前缀无关', value: 'D' }
+    { label: '包的 .mk 文件名可以与配置前缀无关', value: 'D' }
   ]"
   :answer="['A', 'B', 'C']"
 >
@@ -284,15 +284,15 @@ obj-m += mdr_fifo.o
 
 </template>
 
-正确答案是 **A、B、C**。D 错：`.mk` 文件名、`Config.in` 里的名字与变量前缀必须对应，短横线在下划线处转换，大小写也要对上，否则框架读不到你写的变量。
+正确答案是 **A、B、C**。D 选项错误：`.mk` 文件名、`Config.in` 中的配置项符号与 Makefile 内部的前缀标识必须严格保持映射一致（短横线转换为下划线且大写字母对齐），否则构建框架无法读取并解析对应的配置项定义。
 
 </Quiz>
 
 ## 5. BR2_EXTERNAL 外部树
 
-把定制直接改在 Buildroot 源码树里，升级时要么手工合并，要么全部丢失。Buildroot 提供的解法是外部树 (external tree)：一个独立的目录，在构建时用 `BR2_EXTERNAL=` 指过去。
+将项目专有的业务定制直接涂改在 Buildroot 官方源码树内，是嵌入式维护中的大忌：一旦后续面临上游安全漏洞修复或大版本升级，开发者将陷入要么手工合并冲突、要么改动全盘丢失的被动局面。为此，Buildroot 原生提供了外部树（external tree）隔离架构：允许将全部项目独有的配置、包定义与补丁隔绝在一个独立的外部代码仓库中，仅在构建时通过 `BR2_EXTERNAL=` 参数将其挂接至构建上下文中。
 
-外部树的骨架是固定的四样：
+外部树的标准骨架由四组核心资产构成：
 
 ```text
 br2-external/
@@ -304,16 +304,16 @@ br2-external/
 └── package/<包>/           # 自己的软件包
 ```
 
-`external.desc` 只有两行：
+`external.desc` 声明了该外部树的身份标识，仅包含两行纯文本：
 
 ```text
 name: MDR
 desc: MDR 板级定制：sensord 服务与 mdr_fifo 内核模块
 ```
 
-`name` 会被转成大写，作为变量前缀 `BR2_EXTERNAL_MDR_PATH`，所有路径都靠它拼。改名会让所有 `.mk` 里的路径失效，定下来就别动。
+其中声明的 `name` 会被构建系统自动转换为全大写形式，派生出全局定位宏 `BR2_EXTERNAL_MDR_PATH`，外部树内部所有的相对寻址均以此宏作为基准路径展开。标识一旦确立切忌随意更名，否则会导致所有引用它的 `.mk` 脚本路径集体失效。
 
-`external.mk` 与 `Config.in` 各一行引入语句，用 `wildcard` 自动收集：
+`external.mk` 与根目录下的 `Config.in` 则充当包定义的索引枢纽，通常借助通配符函数展开收集：
 
 ```make
 include $(sort $(wildcard $(BR2_EXTERNAL_MDR_PATH)/package/*/*.mk))
@@ -324,9 +324,9 @@ source "$BR2_EXTERNAL_MDR_PATH/package/sensord/Config.in"
 source "$BR2_EXTERNAL_MDR_PATH/package/mdr-fifo/Config.in"
 ```
 
-`Config.in` 的 `source` 要逐个写，因为 Kconfig 不支持通配。新增一个包时别忘了回来加一行。
+由于 Kconfig 语法解析器底层不支持直接通配加载，`Config.in` 内部必须显式为每一个新增包书写一条 `source` 引入语句。每当在树内新增自定义软件包时，切记同步补充该索引。
 
-用外部树构建时，命令行要带上路径，`defconfig` 也来自外部树的 `configs/`：
+借助外部树执行完整构建时，命令行需明确传递树的绝对路径，对应的板级精简配置亦直接自外部树的 `configs/` 目录中寻径：
 
 ::: terminal title="bash - 用外部树构建（输出类似）"
 
@@ -339,7 +339,7 @@ rootfs.ext2  rootfs.tar  vexpress-v2p-ca9.dtb  zImage
 
 :::
 
-每次 `make` 都要带 `BR2_EXTERNAL` 很啰嗦。Buildroot 支持把多个外部树记在一个文件里：`output/.br2-external.mk` 由上次的 `make` 自动生成，也可以手工维护 `BR2_EXTERNAL` 环境对象。实际工程里更常见的做法是写一个三行的 `build.sh`：
+在持续开发中，每次手工敲入 `BR2_EXTERNAL` 参数较为繁琐。Buildroot 会自动在工作区记录上次生效的路径映射并生成 `output/.br2-external.mk`，亦支持在终端环境中直接导出的环境配置。在实际工业工程中，最为推崇的做法是编写一个简洁自洽的根级调用脚本 `build.sh`：
 
 ```sh
 #!/bin/sh
@@ -352,9 +352,9 @@ make -C buildroot O=output mdr_qemu_defconfig
 make -C buildroot O=output "$@"
 ```
 
-`O=output` 把构建产物放到源码树外面，Buildroot 源码目录保持干净，升级时 `git checkout` 或直接换一份 tar 包都不会碰到自己的东西。
+通过传递 `O=output` 参数，构建产物被强制重定向至外部工作空间，Buildroot 自身的源码树始终维持原始洁净状态。当未来需要迁移至新版 Buildroot 时，只需更新基座源码或替换 Git 分支，完全不会对项目自身的业务代码构成任何侵入。
 
-版本固定有两条路：把 Buildroot 作为子模块 (submodule) 挂在项目仓库里，或者写脚本按 tag 下载并校验哈希。前者的优点是 `git submodule update` 一步到位，缺点是与主仓库的提交历史耦合；后者简单，CI 里也好用。都不选、直接 `git clone master` 是最糟的做法，某天上游改了一个包的版本，你的构建结果就变了，而且没人知道为什么。
+对于外部树与 Buildroot 基座的版本固化，主流方案包括将 Buildroot 作为 Git Submodule 挂接在主仓中，或通过持续集成脚本按确定标签进行离线解包校验。前者支持通过 `git submodule update` 实现单一工程全量闭环，后者则有助于降低主仓库的历史容量。无论采取何种方案，严禁在 CI 构建中直接追踪 `git clone master` 最新分支，上游不可预期的包升级可能随时破坏生产固件的复现能力。
 
 ## 6. Yocto 概览
 
@@ -389,9 +389,9 @@ LAYERDEPENDS_meta-mdr = "core"
 LAYERSERIES_COMPAT_meta-mdr = "scarthgap wrynose"
 ```
 
-`LAYERSERIES_COMPAT` 写的是这一段支持的发布代号。截至 2026 年 10 月，两个长期支持版本是 5.0 Scarthgap（维护到 2028 年 4 月）与 6.0 Wrynose（维护到 2030 年 4 月）。版本代号不匹配时 BitBake 直接拒绝构建，这是有意的：配方里用到的变量名在版本之间会变。
+`LAYERSERIES_COMPAT` 显式列出了该层当前所支持的 Poky 发行版本代号。截至 2026 年 10 月，两个主流的长期支持（LTS）分支分别为 5.0 Scarthgap（维护支持至 2028 年 4 月）与 6.0 Wrynose（维护支持至 2030 年 4 月）。一旦元数据中声明的版本代号与当前宿主 BitBake 执行环境不匹配，BitBake 将会直接拒绝执行构建。这一强制拦截设计具有明确意图：Yocto 各大版本在元数据语法、类继承机制与底层操作符上持续迭代演进，盲目跨版本混合引入极易诱发隐蔽的解析崩溃。
 
-配方是 `.bb` 文件，语法是 BitBake 的变量赋值加 shell 函数。最小的一条应用配方长这样：
+配方以 `.bb` 文件组织，其基础语法由 BitBake 规范的键值赋值语句与原生 shell 执行函数交织而成。一个典型的最小应用配方结构如下：
 
 ```text
 SUMMARY = "MDR 的传感器轮询服务"
@@ -421,14 +421,14 @@ do_install:append() {
 FILES:${PN} += "${sysconfdir}/sensord.conf"
 ```
 
-几条与 Buildroot 不同的规矩：
+这套配方规范体现了若干鲜明的 Yocto 语法契约：
 
-- `SRC_URI` 里每一条 `file://` 都相对于配方所在目录的 `files/` 子目录（或者 `FILESPATH`），不是相对当前目录。上面这版把所有文件放在配方的 `files/` 下，构建时拷进工作目录。
-- `S` 是解包后的源码目录。**Yocto 5.1 起不允许 `S = "${WORKDIR}"`**，必须写 `${UNPACKDIR}` 或更具体的子目录，老教程里的配方照抄会直接报错。
-- `do_install` 是标准任务，用 `:append` 追加而不是覆盖，否则会丢掉 `cmake` 已经做好的安装。
-- `FILES:${PN}` 声明最终包装进哪个子包。`${PN}` 是配方名，默认的打包规则只收 `bin`、`lib`、`share` 等几个标准位置，`/etc` 下的自定义文件要显式列出来。
+- `SRC_URI` 中通过 `file://` 引用的本地资产，其相对寻址基准严格锚定在配方同级目录的 `files/` 子目录（或由 `FILESPATH` 拓展的匹配路径）之下，与开发人员触发构建命令时的工作目录彻底解耦。
+- `S` 指向解包后的源码根目录。**自 Yocto 5.1 起，框架已全面废止 `S = "${WORKDIR}"` 这一历史用法**，强制要求显式指定 `${UNPACKDIR}` 或其下级专用子目录，直接套用旧版教程配方将触发致命构建中断。
+- `do_install` 是由 BitBake 标准执行流驱动的核心任务。若需为已有的构建流追加安装步骤，必须通过 `:append` 语法进行修饰；若直接重写赋值，将抹除由 `inherit cmake` 类所预先织入的自动化构建逻辑。
+- `FILES:${PN}` 显式声明了哪些文件最终归集并打包进 `${PN}`（即主软件包）中。BitBake 默认打包策略仅收敛诸如 `bin/`、`lib/`、`share/` 等常规系统路径，任何部署于 `/etc` 等非标目录下的独立配置文件必须在此明确声明，否则将被丢弃在打包阶段之外。
 
-内核模块配方更短，因为 `inherit module` 已经提供了一切：
+对于底层内核模块，得益于 `inherit module` 类的高度封装，配方写法甚至更为简练：
 
 ```text
 SUMMARY = "MDR 的纯软件 FIFO 字符设备"
@@ -444,9 +444,9 @@ inherit module
 RPROVIDES:${PN} += "kernel-module-mdr-fifo"
 ```
 
-`LIC_FILES_CHKSUM` 计算许可证文本的校验值，BitBake 在构建时验证它。`file://${COMMON_LICENSE_DIR}/...` 指向 Poky 自带的许可证文本，`md5` 用 `md5sum` 算。写错校验值时构建会停在 `do_populate_lic`，报「license file checksum mismatch」。
+`LIC_FILES_CHKSUM` 负责在构建初生期计算并校对许可证文本的散列校验和。`file://${COMMON_LICENSE_DIR}/...` 直接指向 Poky 源码树内置的开源许可文本池，校验散列通常使用标准的 `md5sum` 计算生成。若实际计算值与配方声明不符，任务将在 `do_populate_lic` 阶段被立即熔断并抛出 `license file checksum mismatch` 告警。
 
-快速构建的流程固定：
+标准的快速构建链路高度清晰：
 
 ::: terminal title="bash - Yocto 快速构建（输出类似）"
 
@@ -464,21 +464,21 @@ core-image-minimal-qemuarm.rootfs.ext4 ...
 
 :::
 
-`oe-init-build-env` 做三件事：建立构建目录 `conf/`、把 `poky/meta` 等层写进 `bblayers.conf`、把 `MACHINE`、`DISTRO`、`IMAGE_FEATURES` 写进 `local.conf`。要加自己的层，编辑 `conf/bblayers.conf`：
+`oe-init-build-env` 负责完成基础环境的自举：自动初始化构建目录结构，在 `conf/bblayers.conf` 中注册核心层依赖，并在 `conf/local.conf` 中为目标板型（`MACHINE`）、发行版特性（`DISTRO`）及功能特性集合设立基线。引入自定义业务层时，只需在 `conf/bblayers.conf` 中追加一行层路径声明：
 
 ```text
 BBLAYERS += "/home/mdr/meta-mdr"
 ```
 
-再在 `local.conf` 里把配方装进映像：
+随后在 `local.conf` 中将业务配方挂接至系统镜像清单：
 
 ```text
 IMAGE_INSTALL:append = " sensord mdr-fifo"
 ```
 
-`IMAGE_INSTALL:append` 追加到镜像的软件包列表。注意冒号与 `append` 之间没有空格，这是 BitBake 的覆盖语法 (override)，写错成 `IMAGE_INSTALL_append` 在旧版本能工作，新版本里会被当成一个全新的变量，不生效。
+注意冒号与 `append` 之间严禁出现空格，这是 BitBake 标准的覆写操作符（override）；若写成旧式的 `IMAGE_INSTALL_append`，新版解析器将无法识别操作语义，而是将其视为一个全新的配置标识，导致依赖注入静默失效。
 
-`devtool` 是 Yocto 里改配方源码的工具。它把配方指向一个本地工作目录，改完之后 `devtool update-recipe` 把改动写回 `.bbappend`，不用手工改 SRC_URI：
+在日常交互开发中，`devtool` 命令行套件是改动配方源码的高效利器。它能将远程或打包的配方源码瞬时映射至本地临时工作区，改动完成后通过一条 `devtool update-recipe` 即可自动将补丁集回写至层内的 `.bbappend` 文件中，免去了反复重算校验和的手工痛点：
 
 ::: terminal title="bash - devtool 的典型用法"
 
@@ -493,21 +493,21 @@ $ devtool finish sensord ../meta-mdr
 
 :::
 
-`deploy-target` 通过 ssh 把编好的程序拷到目标板的对应位置，比重新打包整个镜像快得多。这是开发阶段最常用的循环。
+`deploy-target` 会直接利用 SSH 协议将交叉编译出的单个更新二进制精准热推至测试板卡的目标路径中，省去了重新编译与刷写整块文件系统镜像的漫长等待，是板级现场迭代最高效的工程闭环。
 
 ::: tip 构建时间与磁盘
 
-Yocto 的首次构建比 Buildroot 慢得多：`core-image-minimal` 在 8 核机器上约半小时到一小时，磁盘占用 50 GB 起步；加 `core-image-sato`（带图形）会到一两百 GB。Buildroot 的同类构建十几分钟、十几 GB。这不是配置没调好，是两者规模不同。
+Yocto 的首次构建比 Buildroot 慢得多：`core-image-minimal` 在 8 核机器上约半小时到一小时，磁盘占用 50 GB 起步；加 `core-image-sato`（带图形）会到一两百 GB。Buildroot 的同类构建十几分钟、十几 GB。两者的构建规模本来就不同。
 
 :::
 
 ## 7. 怎么选
 
-两个系统都能做出可用的产品，选择的依据是团队规模、产品线数量与维护周期，而不是「哪个更先进」。
+两个系统都能做出可用的产品，选择依据是团队规模、产品线数量与维护周期。
 
 | 维度 | Buildroot | Yocto |
 | --- | --- | --- |
-| 学习成本 | 一个下午能跑通 | 一两周才摸清变量与任务 |
+| 学习成本 | 一个下午能跑通 | 一两周才摸清语法配置与任务流 |
 | 构建时间（QEMU 最小系统） | 十几分钟 | 半小时到一小时 |
 | 磁盘占用 | 十几 GB | 50 GB 起 |
 | 配方/包的粒度 | 一个 `.mk`，语法简单 | `.bb` 加任务、覆盖、类，可扩展 |
@@ -516,9 +516,9 @@ Yocto 的首次构建比 Buildroot 慢得多：`core-image-minimal` 在 8 核机
 | 芯片厂支持 | 部分有 | ST 的 OpenSTLinux、NXP 的 i.MX BSP 都基于它 |
 | 长期维护 | 版本间变化小，升级容易 | 分层与版本策略明确，适合多产品复用 |
 
-作者的建议分两种情况。单一产品、小团队、构建机资源有限，用 Buildroot：一份 defconfig 加一个外部树，全组都能看懂，CI 里十几分钟出一份镜像，出了问题就在 `output/build/` 里查。多产品线、需要长期维护、需要增量更新或复用芯片厂 BSP，用 Yocto：层能按产品组合，`bbappend` 能让不同产品改同一份配方而不冲突，ST 与 NXP 的官方 BSP 本身就在这个体系里。
+在团队进行工程技术选型时，通常依据两类典型场景做出取舍：面对单款硬件产品、规模较小的研发团队或持续集成算力与存储预算有限的场景，Buildroot 凭借极低的认知负荷与清爽的体系结构展现出压倒性优势——一份精简 defconfig 配合一个外部树即可实现全员看懂、分钟级出包；而面对拥有多条产品线衍生、需要支撑现场增量升级包（OTA）、或必须深度整合芯片原厂（如 ST OpenSTLinux、NXP i.MX BSP）分层资产的复杂工业项目，Yocto 的层分治哲学与 `bbappend` 差异化继承能力则构成了不可替代的技术壁垒。
 
-两者都别在源码树里改东西。Buildroot 用 `BR2_EXTERNAL`，Yocto 用独立的层，这是它们各自的设计意图，绕过去以后升级一定会痛。
+无论最终选定哪一条技术路线，工程底线始终如一：坚决杜绝在开源框架本体源码树中直接涂改项目定制逻辑。Buildroot 依托 `BR2_EXTERNAL` 实现外部树隔离，Yocto 依托独立的 `meta-` 层实施分层扩展，遵循这种解耦契约，未来的系统大版本升级与底层安全演进方能从容落地。
 
 ## 8. 习题
 
@@ -530,7 +530,7 @@ Yocto 的首次构建比 Buildroot 慢得多：`core-image-minimal` 在 8 核机
 
 (1) 哪几行决定 CPU 架构、C 库与工具链？文件里没有出现任何 `BR2_INIT_*` 选项，说明 init 用的是默认值。这个默认值是什么？构建完成后怎样在 `output/target/sbin/` 下确认？
 
-(2) `BR2_ROOTFS_OVERLAY` 里的 `$(BR2_EXTERNAL_MDR_PATH)` 是从 `external.desc` 的 `name:` 变出来的变量，由 Buildroot 在解析外部树时定义。按你机器上的路径把它展开，写出展开后的完整值，并说明为什么 `external.desc` 改名会让这个变量失效。
+(2) `BR2_ROOTFS_OVERLAY` 里的 `$(BR2_EXTERNAL_MDR_PATH)` 是从 `external.desc` 的 `name:` 派生出来的宏路径，由 Buildroot 在解析外部树时定义。按你机器上的路径把它展开，写出展开后的完整值，并说明为什么 `external.desc` 改名会让这个宏路径失效。
 
 (3) `BR2_LINUX_KERNEL_INTREE_DTS_NAME="arm/vexpress-v2p-ca9"` 指向 [5.5](/教程/正文/嵌入式/5_嵌入式Linux/5_5_设备树) 里的哪个文件？`BR2_LINUX_KERNEL_CUSTOM_VERSION_VALUE` 与 `BR2_LINUX_KERNEL_USE_DEFCONFIG` 一起决定了哪两件事？
 
@@ -562,7 +562,7 @@ Yocto 的首次构建比 Buildroot 慢得多：`core-image-minimal` 在 8 核机
 
 (2) 写 `package/mdr-hello/src/` 下的 `hello.c` 与 `Makefile`（`CC ?= cc`、`CFLAGS ?= -O2 -Wall -Wextra`），程序打印一行版本信息；在包目录下再放一份 `mdr-hello.conf`，内容自定，用来练安装配置文件的写法。
 
-(3) 写 `mdr-hello.mk`，用 `generic-package`，`SITE_METHOD = local`，自己实现 `_BUILD_CMDS` 与 `_INSTALL_TARGET_CMDS`：把程序装到 `/usr/bin/mdr-hello`，把 `mdr-hello.conf` 装到 `/etc/`。可能用到的变量有 `$(TARGET_MAKE_ENV)`、`$(TARGET_CONFIGURE_OPTS)`、`$(@D)`、`$(TARGET_DIR)`、`$(INSTALL)`、`$(MDR_HELLO_PKGDIR)`。
+(3) 写 `mdr-hello.mk`，用 `generic-package`，`SITE_METHOD = local`，自己实现 `_BUILD_CMDS` 与 `_INSTALL_TARGET_CMDS`：把程序装到 `/usr/bin/mdr-hello`，把 `mdr-hello.conf` 装到 `/etc/`。可能用到的内置宏有 `$(TARGET_MAKE_ENV)`、`$(TARGET_CONFIGURE_OPTS)`、`$(@D)`、`$(TARGET_DIR)`、`$(INSTALL)`、`$(MDR_HELLO_PKGDIR)`。
 
 (4) 把它登记到 `external.mk` 与顶层 `Config.in`，构建后确认 `output/target/usr/bin/mdr-hello` 与 `output/target/etc/mdr-hello.conf` 都存在。
 
@@ -574,11 +574,11 @@ Yocto 的首次构建比 Buildroot 慢得多：`core-image-minimal` 在 8 核机
 
 <Exercise id="65538" :d="3" :w="3">
 
-包名、配置符号与变量前缀三者不一致时，Buildroot 不会报错，只会静默用默认值。写一个静态检查脚本把这类问题提前找出来。
+包名、配置符号与宏前缀三者不一致时，Buildroot 不会报错，只会静默用默认值。写一个静态检查脚本把这类问题提前找出来。
 
 (1) 写 `check-external.sh <external 树>`，检查四件事：
 
-- 每个 `package/NAME/NAME.mk` 里出现的 `<PREFIX>_VERSION` 一类变量，其前缀等于文件名去掉 `.mk`、短横线换下划线、转大写；
+- 每个 `package/NAME/NAME.mk` 里出现的 `<PREFIX>_VERSION` 一类配置项，其前缀等于文件名去掉 `.mk`、短横线换下划线、转大写；
 - 每个包目录下都有 `Config.in`，其中定义的符号是 `BR2_PACKAGE_` 加同样转换后的大写名；
 - 顶层 `Config.in` 里 `source` 了每个包的 `Config.in`；
 - `external.mk` 的 `wildcard` 能匹配到每个 `.mk`。
@@ -688,7 +688,7 @@ $(eval $(generic-package))
 $(eval $(kernel-module))
 ```
 
-(1) 这七处问题互相遮蔽：第一处不修，后面的症状根本看不到。先按「修一处、构建一次、记录新症状」的顺序走一遍，逐处说明它属于哪一类：`external.desc` 解析失败、`menuconfig` 里看不到包选项、覆盖层路径解析成相对源码树的路径、`post-build` 脚本找不到、`post-build` 报权限错误、变量被静默忽略、内核模块编不成。
+(1) 这七处问题互相遮蔽：第一处不修，后面的症状根本看不到。先按「修一处、构建一次、记录新症状」的顺序走一遍，逐处说明它属于哪一类：`external.desc` 解析失败、`menuconfig` 里看不到包选项、覆盖层路径解析成相对源码树的路径、`post-build` 脚本找不到、`post-build` 报权限错误、配置项被静默忽略、内核模块编不成。
 
 (2) 为每一处给出修复后的内容，只改必要的那几行。
 
@@ -700,7 +700,7 @@ $(eval $(kernel-module))
 
 <Exercise id="65543" :d="6" :w="5" scope="*">
 
-Buildroot 的 `generic-package` 本质上是一套模板加依赖调度。写一个 `mini-build`（Makefile 或 shell 脚本），用三个小包演示这套机制：
+Buildroot 的 `generic-package` 是一套模板加依赖调度。写一个 `mini-build`（Makefile 或 shell 脚本），用三个小包演示这套机制：
 
 - `libfoo`：一个静态库；
 - `app`：依赖 `libfoo`，链接它；
@@ -718,7 +718,7 @@ Buildroot 的 `generic-package` 本质上是一套模板加依赖调度。写一
 
 (5) `make show-info` 输出三个包的版本、依赖与许可证的 JSON。
 
-(6) 最后写一份对照表，把你实现的每一步映射到 Buildroot 的哪个变量或目录（`output/build`、`output/host`、`output/staging`、`output/target`）。
+(6) 最后写一份对照表，把你实现的每一步映射到 Buildroot 的哪个配置宏或目录（`output/build`、`output/host`、`output/staging`、`output/target`）。
 
 </Exercise>
 
@@ -731,5 +731,5 @@ Buildroot 的 `generic-package` 本质上是一套模板加依赖调度。写一
 - Yocto Project，*Quick Build*：<https://docs.yoctoproject.org/brief-yoctoprojectqs/index.html>
 - Yocto Project，*Releases* 与各版本的维护周期：<https://wiki.yoctoproject.org/wiki/Releases>
 - Yocto Project，*Migration guide 5.1*，`UNPACKDIR` 与 `S` 的变化：<https://docs.yoctoproject.org/migration-guides/migration-5.1.html>
-- BitBake User Manual，变量语法、覆盖与任务：<https://docs.yoctoproject.org/bitbake/>
+- BitBake User Manual，语法语义、覆盖与任务：<https://docs.yoctoproject.org/bitbake/>
 - Bootlin，*Embedded Linux system development* 培训幻灯片，Build systems 一章：<https://bootlin.com/doc/training/embedded-linux/embedded-linux-slides.pdf>

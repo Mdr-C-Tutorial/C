@@ -1,10 +1,10 @@
 # A.7 动态链接库（DLL）
 
-两个命令行程序都要做同一批计算：做加法，把用户名拼进一句问候语。把这份代码各复制一份，将来改一处就要改两处；做成一个动态链接库（dynamic-link library，DLL），两个程序都链接它，只有一份实现。另一件事：程序启动时扫描 `plugins` 目录，把其中的每个 DLL 当插件加载进来，调用它们约定的入口，宿主不需要在编译时知道插件叫什么名字。前者是加载时动态链接，后者是运行时动态链接，这一页把两者都做到能跑，再讲清楚 DLL 最容易出错的三个地方：`DllMain` 与加载器锁、DLL 的搜索顺序、跨模块的内存所有权。
+在大型软件架构与模块化工程中，共享公用逻辑与解耦组件是不可或缺的诉求：若多个独立的可执行文件都需要执行相同的数学算法或文本格式化操作，简单的源码级复制不仅会造成物理存储与内存页面的双重浪费，更为长期的版本升级和补丁维护埋下巨大的维护隐患；将公共逻辑提炼为动态链接库（Dynamic-Link Library，DLL），则能实现一份二进制映像在多个进程间的共享复用。与此同时，现代应用还广泛依托插件架构实现动态扩展：宿主程序在启动时扫描扩展目录，动态载入第三方 DLL 并定位约定的接口入口，无需在编译时硬编码任何具体实现细节。
 
-“分别编译与统一链接”在[第二部分第 5 章](/教程/正文/开发与工程基础/5_分别编译与统一链接)讲过静态库和 ELF 的共享对象，[第 10 章](/教程/正文/开发与工程基础/10_库与第三方依赖)讲过库的依赖关系。这一页把同样的思路搬到 PE 上，差别比想象中大：ELF 的 `.so` 默认把全局符号全部导出，PE 的 DLL 默认一个都不导出；Linux 上 `dlopen` 找不到库是运行时返回 `NULL`，Windows 上加载时链接的 DLL 找不到，进程在 `main` 之前就被结束。
+前者对应于加载时动态链接（Load-time Dynamic Linking），后者则体现了运行时显式加载（Run-time Dynamic Linking）的灵活性。我们在前置课程中深入探讨过 ELF 共享对象（`.so`）的组织机制与依赖拓扑；然而当我们将目光投向 Windows PE 格式时，底层的链接与加载哲学展现出了鲜明的差异：ELF 默认倾向于全量导出所有全局符号，而 PE 规范下的 DLL 默认严格封闭、不导出任何未显式声明的函数条目；在 Linux 下调用 `dlopen` 缺失依赖仅会导致函数返回 `NULL` 错误，而在 Windows 下，静态导入表中若存在哪怕一个无法解析的依赖 DLL，进程在推进至 `main` 入口之前便会被操作系统加载器强制就地终止。
 
-本页的程序在 `code/系统编程/拓展A_Win32系统编程/A_7_动态链接库_DLL/` 下，用一个 `Makefile` 构建。终端里显示的临时目录已换成 `C:\work\a7`。
+我们将循序渐进地构建一个兼顾跨编译器可移植性的规范 DLL，掌握导出表、导入库（Import Library）与导入地址表（IAT）的二进制链接机理；深入剖析 `DllMain` 在系统加载器锁（Loader Lock）严苛约束下的行为红线，规避极易引发死锁的深层隐患；推演 Windows 默认的 DLL 目录检索拓扑与劫持防御策略，并确立跨模块边界传递动态内存时的所有权法则。本页的程序在 `code/系统编程/拓展A_Win32系统编程/A_7_动态链接库_DLL/` 下，用一个 `Makefile` 构建。终端里显示的临时目录已换成 `C:\work\a7`。
 
 ## 1. DLL 是什么
 
@@ -36,7 +36,7 @@ pid 27192: bumps 1 2 3
 
 :::
 
-第二个进程看到的计数仍然从 1 开始，两个进程的 `g_count` 各是各的。跨进程共享数据要用[内存映射文件](/教程/正文/系统编程/拓展A_Win32系统编程/A_6_内存管理与内存映射文件)，不是 DLL 的全局对象。
+第二个进程看到的计数仍然从 1 开始，两个进程的 `g_count` 各是各的。跨进程共享数据要用[内存映射文件](/教程/正文/系统编程/拓展A_Win32系统编程/A_6_内存管理与内存映射文件)，DLL 的全局对象做不到。
 
 ### 1.1 导出表与导入表
 
@@ -73,7 +73,7 @@ MDR_API char *mdr_greet(const char *name);
 MDR_API void mdr_buffer_free(void *block);
 ```
 
-`__declspec(dllexport)` 告诉链接器把这个函数放进导出表。`__declspec(dllimport)` 告诉编译器这个函数不在本模块里，调用时应当通过 IAT 间接跳转，而不是生成一条直接调用。省掉 `dllimport` 也能链接成功：链接器会在 exe 里生成一个同名的小跳板，它做一次 `jmp *IAT 槽`，所有调用先跳到这个跳板再跳到 DLL。用 `objdump -d` 看得到这个跳板，一条 `jmp *0x...(%rip)` 加几个填充字节。用不用它不影响正确性，但用了才少一次跳转。
+`__declspec(dllexport)` 告诉链接器把这个函数放进导出表。`__declspec(dllimport)` 告诉编译器这个函数不在本模块里，调用时通过 IAT 间接跳转，不生成直接调用。省掉 `dllimport` 也能链接成功：链接器会在 exe 里生成一个同名的小跳板，它做一次 `jmp *IAT 槽`，所有调用先跳到这个跳板再跳到 DLL。用 `objdump -d` 看得到这个跳板，一条 `jmp *0x...(%rip)` 加几个填充字节。用不用它不影响正确性，但用了才少一次跳转。
 
 宏名没有统一规定，`MDR_API`、`MYLIB_EXPORTS`、`BUILDING_DLL` 都有人用，关键是构建 DLL 的那条命令行要定义它。头文件里加 `extern "C"` 的包裹是为了 C++ 调用方，见第 7 节。
 
@@ -83,9 +83,9 @@ MDR_API void mdr_buffer_free(void *block);
 gcc -std=c17 -Wall -Wextra -shared -DMDRMATH_BUILD -o mdrmath.dll mdrmath.c -Wl,--out-implib,libmdrmath.dll.a
 ```
 
-`-shared` 让链接器生成 DLL 而不是 exe。`-DMDRMATH_BUILD` 定义上面那个宏。`-Wl,--out-implib,...` 让链接器同时生成一个导入库（import library），文件名照 Windows 的习惯用 `libfoo.dll.a`（MinGW 传统）或 `foo.lib`（MSVC 传统），扩展名不影响使用。
+`-shared` 让链接器生成 DLL，没有它生成的是 exe。`-DMDRMATH_BUILD` 定义上面那个宏。`-Wl,--out-implib,...` 让链接器同时生成一个导入库（import library），文件名照 Windows 的习惯用 `libfoo.dll.a`（MinGW 传统）或 `foo.lib`（MSVC 传统），扩展名不影响使用。
 
-导入库不是 DLL 的拷贝，它只有几十字节到几 KB，里面是每个导出函数的桩：一个 `__imp_mdr_add` 指针槽，加一小段跳转。链接时链接器把这些桩写进 exe 的导入表，加载时由加载器填上真实地址。
+导入库文件里不含 DLL 的代码，只有几十字节到几 KB，内容是每个导出函数的桩：一个 `__imp_mdr_add` 指针槽，加一小段跳转。链接时链接器把这些桩写进 exe 的导入表，加载时由加载器填上真实地址。
 
 构建完先看导出表：
 
@@ -106,7 +106,7 @@ PS> objdump -p mdrmath.dll | findstr /c:"mdr_"
 
 ::: tip 不要依赖 MinGW 的自动导出
 
-MinGW 的链接器有一项自动导出（auto-export）功能：整个 DLL 里一个 `__declspec(dllexport)` 都没有时，它会把所有全局符号都放进导出表。这一条能让人少写一个宏，也让“为什么我的内部函数被外部调到了”变成可能。MSVC 没有这个行为，两条工具链都要能构建的 DLL 永远显式标注。`-Wl,--export-all-symbols` 可以显式打开自动导出，`-Wl,--exclude-all-symbols` 关掉它。只要源文件里出现任何一处 `__declspec(dllexport)`，自动导出就整体关闭，没标的函数一个也不会导出——不是“标了的和没标的一起导出”；写了 `.def` 时同理，导出表只由 `.def` 决定。
+MinGW 的链接器有一项自动导出（auto-export）功能：整个 DLL 里一个 `__declspec(dllexport)` 都没有时，它会把所有全局符号都放进导出表。这一条能让人少写一个宏，也让“为什么我的内部函数被外部调到了”变成可能。MSVC 没有这个行为，两条工具链都要能构建的 DLL 永远显式标注。`-Wl,--export-all-symbols` 可以显式打开自动导出，`-Wl,--exclude-all-symbols` 关掉它。只要源文件里出现任何一处 `__declspec(dllexport)`，自动导出就整体关闭，没标的函数一个也不会导出；写了 `.def` 时同理，导出表只由 `.def` 决定。
 
 :::
 
@@ -127,7 +127,7 @@ PS> objdump -p noexp.dll | findstr /c:"noexp_"
 
 :::
 
-`noexp.c` 里有三个非 `static` 函数和一个 `static` 函数，导出表里恰好是前三个。自动导出不做任何筛选，只要名字在符号表里且不是本地的，就导出去。这意味着一个 DLL 的每个内部辅助函数都会变成对外接口，将来想改名、想删掉都要顾及外面的使用者。
+`noexp.c` 里有三个非 `static` 函数和一个 `static` 函数，导出表里恰好是前三个。自动导出不做任何筛选，只要名字在符号表里且不是本地的，就导出去。结果是一个 DLL 的每个内部辅助函数都变成对外接口，将来想改名、想删掉都要顾及外面的使用者。
 
 `noexp_uses_static` 调用了一个 `static` 的 `helper`，后者没有进导出表，因为 `static` 符号在链接时是局部的。
 
@@ -168,7 +168,7 @@ MSVC 构建 DLL 用 `/LD`，导出表用 `dumpbin /exports` 看。同一份 `mdr
 
 :::
 
-同样三个导出。再看一个没有任何 `__declspec(dllexport)` 也没有 `.def` 的源文件，`dumpbin /exports` 只打印文件类型和各节的大小，没有 “Section contains the following exports” 这一段，导出表是空的。这正是上一节那句话的依据：MinGW 的自动导出是它自己的便利，不是 PE 的规则。
+同样三个导出。再看一个没有任何 `__declspec(dllexport)` 也没有 `.def` 的源文件，`dumpbin /exports` 只打印文件类型和各节的大小，没有 “Section contains the following exports” 这一段，导出表是空的。这正是上一节那句话的依据：MinGW 的自动导出是它自己的便利，PE 本身没有这条规则。
 
 两份导入库是两种链接器各自生成的导入桩归档，能不能互换取决于链接器如何解析归档里的成员。本机实测两个方向都通：MSVC 的 `link.exe` 直接链接 MinGW 的 `libmdrmath.dll.a`，得到的 exe 导入表与用 `.lib` 时一样，运行输出相同；GCC 链接 MSVC 生成的 `libmdrmath.lib` 也能正常构建和运行。能互换的前提是导出名本身没有修饰——这里全是 `extern "C"` 的裸名字。换一套工具链未必还成立，链接器报错时就用 `gendef mdrmath.dll` 从 DLL 本身生成 `.def`，再 `dlltool -d mdrmath.def -l mdrmath_msvc.lib` 生成一份标准的 MSVC 导入库；用这份 `.lib` 编译的 MSVC 程序调用 MinGW 编的 DLL，输出与 MinGW 版本相同。
 
@@ -210,7 +210,7 @@ PS> objdump -p use_load.exe | findstr /c:"mdrmath.dll" /c:"mdr_add" /c:"mdr_gree
 
 :::
 
-左边那列是 RVA 不是文件偏移，中间的数字是序号，右边是导入名。加载器在进程启动时读这张表，逐个找到 DLL，再按名字或序号在导出表里查出地址，填进 IAT。
+左边那列是 RVA，与文件偏移不同；中间的数字是序号，右边是导入名。加载器在进程启动时读这张表，逐个找到 DLL，再按名字或序号在导出表里查出地址，填进 IAT。
 
 ### 3.1 漏掉导入库会怎样
 
@@ -222,7 +222,7 @@ PS> objdump -p use_load.exe | findstr /c:"mdrmath.dll" /c:"mdr_add" /c:"mdr_gree
 ...o:use_load.c:(.text+0x6c): undefined reference to `__imp_mdr_buffer_free'
 ```
 
-名字前面的 `__imp_` 是线索：`dllimport` 让编译器把 `mdr_add(2, 3)` 编译成“取 `__imp_mdr_add` 里的指针再调用”，那个指针槽由导入库提供。没有导入库，指针槽无处可取。看到 `__imp_` 开头的未定义引用，缺的一定是导入库，不是 DLL 里的实现。
+名字前面的 `__imp_` 是线索：`dllimport` 让编译器把 `mdr_add(2, 3)` 编译成“取 `__imp_mdr_add` 里的指针再调用”，那个指针槽由导入库提供。没有导入库，指针槽无处可取。看到 `__imp_` 开头的未定义引用，缺的一定是导入库，DLL 里的实现没有问题。
 
 ### 3.2 找不到 DLL 时
 
@@ -263,7 +263,7 @@ exit code: -1073741515
 正确答案是 **B**。`0xC0000135` 是 `STATUS_DLL_NOT_FOUND`，进程在 `main` 之前就被结束。
 
 - `0xC0000005` 是访问违例，见[第 A.5 页](/教程/正文/系统编程/拓展A_Win32系统编程/A_5_错误处理与结构化异常处理)。
-- 126 和 127 是 `LoadLibraryW`、`GetProcAddress` 失败时 `GetLastError` 的值，不是进程退出码。
+- 126 和 127 是 `LoadLibraryW`、`GetProcAddress` 失败时 `GetLastError` 的值；进程退出码另有一套编号。
 
 </Quiz>
 
@@ -297,7 +297,7 @@ typedef void (*free_fn)(void *);
 add_fn add = (add_fn)(void (*)(void))GetProcAddress(math, "mdr_add");
 ```
 
-中间多转一次 `void (*)(void)` 不是多余。直接写 `(add_fn)GetProcAddress(...)` 会触发 `-Wcast-function-type`：
+中间多转一次 `void (*)(void)` 有实际用处。直接写 `(add_fn)GetProcAddress(...)` 会触发 `-Wcast-function-type`：
 
 ```text
 cast_warn.c:14:18: warning: cast between incompatible function types from
@@ -351,7 +351,7 @@ after two FreeLibrary: 0000000000000000
 
 两次 `FreeLibrary` 之后 `GetModuleHandleW` 才返回 `NULL`，这时 DLL 才从地址空间里卸掉，`DLL_PROCESS_DETACH` 也在此时发生。每调用一次 `LoadLibraryW` 就要配一次 `FreeLibrary`，成对的规则和 `malloc`/`free` 一样。少了会泄漏映射，多了会提前卸载正在被调用的代码，后者通常会以访问违例结束。
 
-“同一个 DLL”指的是同一个文件，不是同一个文件名。两个目录里各放一份同名 `mdrmath.dll`，先后加载，得到的是两个不同的模块，基址不同，全局对象也是两份。工程上不要出现这种情况：同一份代码被加载两次，两边看到的静态状态互相独立，排错时极难发现。
+“同一个 DLL”指的是同一个文件。两个目录里各放一份同名 `mdrmath.dll`，先后加载，得到的是两个不同的模块，基址不同，全局对象也是两份。工程上不要出现这种情况：同一份代码被加载两次，两边看到的静态状态互相独立，排错时极难发现。
 
 `LoadLibraryW` 的返回值 `HMODULE` 和 `HINSTANCE` 是同一个东西，都表示模块基址。句柄不要用 `INVALID_HANDLE_VALUE` 比较，失败值是 `NULL`。
 
@@ -472,7 +472,7 @@ host: after FreeLibrary
 
 不关心线程通知的 DLL 可以在 `DLL_PROCESS_ATTACH` 里调用 `DisableThreadLibraryCalls(hinstDLL)`，省掉每次建线程和退线程时的两次回调。实测有一个反直觉的结果：MinGW 编译的 DLL 调用了它，线程通知照样到达；用 MSVC 编译同一份代码，通知就消失了。
 
-原因是静态线程本地存储（thread local storage，TLS）。MinGW 的 GCC 默认给 DLL 生成一个 TLS 目录，即使源码里没有 `_Thread_local` 对象，CRT 的初始化也需要它。`objdump -p` 里 `Thread Storage Directory` 一项非零就是有静态 TLS。微软的文档写明：DLL 有活动的静态 TLS 时，这个函数不起作用。用 `-nostdlib -Wl,--entry,DllMain -lkernel32` 编一个不含 CRT 的 DLL，TLS 目录变成全零，再跑 `trace_host.exe`，线程通知就不再出现，`DisableThreadLibraryCalls` 也返回非零。所以它不是“调用了一定生效”的开关，而是“没有静态 TLS 时能省一点”的优化。判断办法就是看 `objdump -p` 的这一项，或者干脆不调用它。
+原因是静态线程本地存储（thread local storage，TLS）。MinGW 的 GCC 默认给 DLL 生成一个 TLS 目录，即使源码里没有 `_Thread_local` 对象，CRT 的初始化也需要它。`objdump -p` 里 `Thread Storage Directory` 一项非零就是有静态 TLS。微软的文档写明：DLL 有活动的静态 TLS 时，这个函数不起作用。用 `-nostdlib -Wl,--entry,DllMain -lkernel32` 编一个不含 CRT 的 DLL，TLS 目录变成全零，再跑 `trace_host.exe`，线程通知就不再出现，`DisableThreadLibraryCalls` 也返回非零。所以它省下的只是没有静态 TLS 的 DLL 的两次回调。判断办法就是看 `objdump -p` 的这一项，或者干脆不调用它。
 
 ### 5.2 加载器锁
 
@@ -544,7 +544,7 @@ PS> $p.Kill(); $p.WaitForExit()
 
 ::: details 延迟加载与并行程序集
 
-延迟加载（delay load）让加载时链接的 DLL 推迟到第一次调用它的函数时才加载，缺 DLL 时由用户写的钩子处理。MSVC 用 `/DELAYLOAD:foo.dll` 加 `delayimp.lib` 打开它。MinGW 没有这样一个链接选项（试 `-Wl,--enable-delay-load` 会报 `unrecognized option`），办法是先用 `dlltool -y libfoo_delay.a -d foo.def` 生成延迟导入库，链接时再带上 `-ldelayimp`：本机这样编出的程序在 DLL 缺席时能先执行到第一次调用，然后才以 127 结束，而不是在 `main` 之前就被结束。它适合“程序的大部分功能用不到这个 DLL”的场合，代价是多一层跳板，钩子函数本身也在很受限的环境里运行。并行程序集（side-by-side assembly）是另一套机制，用清单文件指定 DLL 的精确版本，避免“装了新版本把旧程序弄坏”。两者都不属于日常写 DLL 要处理的问题，知道名字即可。
+延迟加载（delay load）让加载时链接的 DLL 推迟到第一次调用它的函数时才加载，缺 DLL 时由用户写的钩子处理。MSVC 用 `/DELAYLOAD:foo.dll` 加 `delayimp.lib` 打开它。MinGW 没有这样一个链接选项（试 `-Wl,--enable-delay-load` 会报 `unrecognized option`），办法是先用 `dlltool -y libfoo_delay.a -d foo.def` 生成延迟导入库，链接时再带上 `-ldelayimp`：本机这样编出的程序在 DLL 缺席时能先执行到第一次调用，然后才以 127 结束；加载时链接的程序遇到同样的情况，在 `main` 之前就被结束了。它适合“程序的大部分功能用不到这个 DLL”的场合，代价是多一层跳板，钩子函数本身也在很受限的环境里运行。并行程序集（side-by-side assembly）是另一套机制，用清单文件指定 DLL 的精确版本，避免“装了新版本把旧程序弄坏”。两者都不属于日常写 DLL 要处理的问题，知道名字即可。
 
 :::
 
@@ -569,13 +569,13 @@ MDR_API int mdrmath_init(void);   /* 返回 0 表示成功 */
 3. 16 位系统目录；
 4. Windows 目录；
 5. 当前目录；
-6. `PATH` 环境变量里的目录。
+6. 系统 `PATH` 路径列表中所登记的目录。
 
 排在前面的先命中。应用程序目录排在系统目录之前，这条规则让“把 DLL 放在 exe 旁边”能覆盖系统同名文件；当前目录排在系统目录之后，是“安全 DLL 搜索模式”（safe DLL search mode，默认开启）的结果，关掉它当前目录会提到第 2 位。
 
 ### 6.1 当前目录参与搜索
 
-当前目录在这一串里，意味着程序的行为会随“从哪里启动”而变。`search_demo.exe` 放在一个没有 DLL 的目录里，DLL 只放在当前目录，从当前目录启动它：
+当前目录在这一串里，程序的行为就会随“从哪里启动”而变。`search_demo.exe` 放在一个没有 DLL 的目录里，DLL 只放在当前目录，从当前目录启动它：
 
 ::: terminal title="PowerShell - search_demo"
 
@@ -680,7 +680,7 @@ _snwprintf(full, MAX_PATH, L"%ls\\plugins\\%ls", dir, fd.cFileName);
 
 DLL 里用 `malloc` 或 `HeapAlloc` 分配一块内存交给调用方，这块内存该由谁释放？规则是：分配它的模块提供释放函数，调用方调用那个函数，不自己 `free`。
 
-道理在运行库。`malloc` 不是系统调用，它是 CRT 在进程堆上实现的一个分配器。DLL 和 exe 可能链接不同的 CRT：一个用 UCRT 的 DLL 版本，一个静态链接 CRT，或者一个是 MSVC 编的、一个是 MinGW 编的。两个分配器各自维护自己的空闲链表，A 分配的块交给 B 释放，轻则链表损坏，重则当场崩溃。
+道理在运行库。`malloc` 由 CRT 在进程堆上实现，每个 CRT 自带一份分配器。DLL 和 exe 可能链接不同的 CRT：一个用 UCRT 的 DLL 版本，一个静态链接 CRT，或者一个是 MSVC 编的、一个是 MinGW 编的。两个分配器各自维护自己的空闲链表，A 分配的块交给 B 释放，轻则链表损坏，重则当场崩溃。
 
 `arena_dll.c` 把这件事做成必然失败：DLL 自己 `HeapCreate` 一个私有堆，`make_message` 从这个堆上分配，`release_message` 释放。宿主如果用自己的 `free` 去放：
 

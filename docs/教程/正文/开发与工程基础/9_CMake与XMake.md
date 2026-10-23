@@ -1,18 +1,18 @@
 # 9. CMake 与 XMake
 
-第 8 章的 Makefile 在 Linux 上工作得很好。把它交给一个用 Visual Studio 的同事，得为 MSBuild 再写一份工程文件；在 CLion 里打开这个项目，CLion 会先要一份 `CMakeLists.txt`；接到持续集成上，Linux 的作业跑 `make`，Windows 的作业跑 `mingw32-make`，两套脚本都要维护。文件越写越多，项目本身的代码一行没改。
+在第 8 章中编写的 Makefile 在类 Unix 终端下表现出色，能够高效且精确地驱动增量构建。然而当工程接入真实的团队协作环境时，单一的 Makefile 往往会遇到跨环境适配的瓶颈：使用 Visual Studio 的开发者习惯于通过 MSBuild 或解决方案（.sln）管理项目；在 CLion 等现代 IDE 中导入工程时，环境首先期待一份标准的 `CMakeLists.txt`；持续集成流水线中，Linux 容器运行 `make`，而 Windows 构建节点则依赖 `mingw32-make`。倘若针对每套工具与环境分别维护独立的构建脚本，不仅工程维护成本倍增，不同环境之间的编译选项也极易发生隐蔽的配置漂移。
 
-CMake 把这件事收成一份描述：只维护 `CMakeLists.txt`，配置时按当前平台生成 Ninja、make 或 Visual Studio 的构建文件，构建时再调用那个工具。XMake 不需要指定生成器，也不依赖系统里装的 make 或 ninja，自己按 `xmake.lua` 执行构建。本章把 wordfreq 的构建从手写 Makefile 改成 CMake，写一份等价的 `xmake.lua`，最后说明这两个工具各自适合什么场合。读完之后，应当能看懂常见 C 项目里的 `CMakeLists.txt`，能为自己的多目录项目写出目标描述，并用一条命令完成配置和构建。
+为了从根本上解耦工程结构描述与底层编译动作，现代工程广泛采用了“元构建系统（Meta-build System）”。CMake 通过一份中心化的 `CMakeLists.txt` 文件抽象工程结构，在配置阶段依据目标系统与开发者偏好，自动生成对应平台的原生构建文件（如 Ninja 的 `build.ninja`、GNU Make 的 `Makefile` 或 Visual Studio 工程文件），并在构建阶段驱动相应的原生工具完成编译。XMake 则提供了另一种敏捷思路：它基于轻量直观的 `xmake.lua` 描述工程，内置了跨平台的依赖解析与编译器调度引擎，无需额外生成中间构建脚本即可直接执行构建。我们将 wordfreq 项目从手写 Makefile 迁移至 CMake 目标体系，并给出等价的 `xmake.lua` 描述，梳理两种构建范式的核心概念与选型考量。
 
-本章的大部分命令和输出取自 Debian 13 上的 CMake 3.31.6、GCC 14.2 与 Unix Makefiles；涉及多配置生成器、`option()` 和生成器对照的几段取自 Windows 上的 CMake 3.29.2、Ninja 1.12 与 MinGW-w64 GCC 13.2，用到时分别注明。教程使用的两台机器都没有安装 XMake，涉及它的部分只给文件和命令，不贴运行输出。项目代码在 `code/开发与工程基础/9_CMake与XMake/wordfreq/`，是第 8 章那份源码再加上 `CMakeLists.txt` 与 `xmake.lua`。
+本章大部分终端命令与执行反馈基于 Debian 13 环境下的 CMake 3.31.6、GCC 14.2 与 Unix Makefiles 生成器；涉及多配置生成器、`option()` 开关及生成器对比的实验环节，则基于 Windows 环境下的 CMake 3.29.2、Ninja 1.12 与 MinGW-w64 GCC 13.2 实测，文内均会明确标注上下文。由于教程使用的两台基准主机未全局预装 XMake，涉及 XMake 的小节以配置语法规则与标准命令解析为主。配套的项目源码位于 `code/开发与工程基础/9_CMake与XMake/wordfreq/`，在第 8 章项目代码的基础上补充了完整的 `CMakeLists.txt` 与 `xmake.lua`。
 
 ## 1. 构建系统生成器
 
-CMake 不编译任何文件。它做两件事，分成两个阶段。
+CMake 本身并不充当编译器，它也不直接读取源码去生成机器码，而是将软件的构建工作流清晰地划分为两个阶段：
 
-配置阶段 (configure)：读入 `CMakeLists.txt`，探测系统里可用的编译器、构建工具和库，把这些结果写进一个构建目录，同时按生成器 (generator) 写出该平台的原生构建文件。生成器是「生成哪种构建文件」的选择：Ninja 生成 `build.ninja`，Unix Makefiles 生成 `Makefile`，MinGW Makefiles 生成给 `mingw32-make` 用的 `Makefile`，Visual Studio 生成 `.sln` 与 `.vcxproj`。
+**配置阶段（Configure Step）**：CMake 解析工程根目录及子目录下的 `CMakeLists.txt` 文件，自动探测宿主环境中可用的 C 编译器、链接器特性以及系统库依赖。完成环境探测后，CMake 会在指定的构建输出目录中记录这些环境特征，并依据所选的生成器（Generator）输出对应平台的原生构建描述文件。生成器决定了底层构建由谁接管：`Ninja` 生成器产出 `build.ninja`，`Unix Makefiles` 生成用于 GNU Make 的 `Makefile`，`MinGW Makefiles` 生成适用于 Windows 下 `mingw32-make` 的构建脚本，而 `Visual Studio` 生成器则产出 `.sln` 解决方案与 `.vcxproj` 工程文件。
 
-构建阶段 (build)：`cmake --build build` 读出构建目录里记录的生成器，调用对应的工具，由它按依赖关系执行 `gcc` 和 `ar`。第 8 章手写的构建图仍然存在，只是这回由 CMake 生成。
+**构建阶段（Build Step）**：通过在终端执行 `cmake --build build`，CMake 会读取构建目录中记载的生成器类型，代理拉起对应的底层构建工具（如 `make` 或 `ninja`）。底层工具依据生成的依赖图谱，有序调度 `gcc` 和 `ar` 完成编译与打包。第 8 章中所探讨的由源码、目标文件和静态库组成的拓扑结构依然完整存在，只是其具体的拓扑计算与时序调度全部交由 CMake 自动推演。
 
 ```mermaid
 flowchart LR
@@ -21,7 +21,7 @@ flowchart LR
     C -->|"调用 gcc、ar"| D["build/wordfreq"]
 ```
 
-配置的结果记在构建目录的 `CMakeCache.txt` 里。文件是纯文本，键值成对，看一眼就知道这次构建用了什么：
+在配置阶段推演出的各项环境参数，会被固化在构建目录下的 `CMakeCache.txt` 缓存文件中。该文件为标准键值对文本，直观展现了当前构建环境的固定状态：
 
 ```text
 CMAKE_BUILD_TYPE:STRING=
@@ -30,9 +30,9 @@ CMAKE_MAKE_PROGRAM:FILEPATH=D:/Software/Strawberry/c/bin/ninja.exe
 CMAKE_GENERATOR:INTERNAL=Ninja
 ```
 
-这是 Windows 上一份用 Ninja 配置的缓存。编译器的完整路径、构建工具、生成器都在里面，所以换 PATH 不会改变已经配置好的构建目录；要换编译器，得删掉构建目录重新配置，或者配置时用 `-DCMAKE_C_COMPILER=...` 指定。第 1 章在排查「IDE 里能运行、终端里报错」时正是靠这一点。
+这份片段展示了在 Windows 环境下选用 Ninja 生成器配置后的缓存内容。其中记录了 C 编译器与构建程序的绝对物理路径。一旦配置完成，即便后续在控制台修改了系统的 `PATH` 环境变量，当前构建目录依然会忠实调用缓存中锁定的工具链。如果需要更换编译器版本，规范的做法是彻底清理原构建目录并重新配置，或在配置命令中显式传入 `-DCMAKE_C_COMPILER=...` 覆盖设定。在第 1 章中分析 IDE 内部运行正常而外部终端调用失败的案例时，这一缓存机制正是核心原因所在。
 
-生成器在第一次配置时写进缓存，之后不能改。同一个目录先按 Ninja 配置，再想换成 MinGW Makefiles，CMake 直接拒绝：
+生成器的选择在首轮配置写入缓存后即被锁定，无法在已有目录中直接更改。若试图在一个已经按照 Ninja 生成器配置的输出目录中指定生成 MinGW Makefiles，CMake 会立刻报错拦截：
 
 ::: terminal title="zsh - 换生成器"
 
@@ -45,13 +45,13 @@ Either remove the CMakeCache.txt file and CMakeFiles directory or choose a diffe
 
 :::
 
-用哪个生成器由 `-G` 指定，不写时用 CMake 自己选的默认值，`cmake --help` 里带星号的那个就是：Debian 上是 Unix Makefiles，本机 Windows 上是 Ninja，装了 Visual Studio 的机器上通常是某一版 Visual Studio。一个配置一个构建目录，换生成器或换构建类型就换目录，后面第 4 节会反复用到这条。
+目标生成器可以通过命令行参数 `-G` 显式指定；若省略该参数，CMake 会回退至当前平台预设的默认生成器（在 `cmake --help` 输出的列表末尾标注星号）。例如在 Debian 环境下默认匹配 `Unix Makefiles`，而在未显式配置的 Windows 环境中则倾向于匹配 Ninja 或当前安装的 Visual Studio。在现代工程实践中，保持“一份配置对应一个独立的构建输出目录”是核心原则：切换生成器或切换构建类型时，直接创建新的构建目录即可。
 
-第 0 部分 [6.1 CLion](/教程/正文/导读与学习指南/6_工具与环境导航/6_1_CLion) 新建项目时生成的 `CMakeLists.txt`，就是给这套流程准备的：CLion 在项目下建一个 `cmake-build-debug/` 作为构建目录，点「运行」时先让 CMake 配置，再调用 Ninja 或它自带的 make 构建。第 1 章第 1 节走过同样的两步，那时看的是输出，现在能说清每一步在做什么。
+在第 0 部分 [6.1 CLion](/教程/正文/导读与学习指南/6_工具与环境导航/6_1_CLion) 中新建项目时自动生成的 `CMakeLists.txt`，正是依托这套元构建机制运转：CLion 会在工程内部建立名为 `cmake-build-debug/` 的专属构建输出目录，点击“运行”或“构建”按钮时，IDE 内部依次驱动 CMake 完成配置，再拉起集成在工具链中的 Ninja 或 Make 展开增量构建。第 1 章第 1 节走过同样的两步，彼时侧重于观察输出现象，如今则能清晰洞察每一步背后的系统行为。
 
 ## 2. 第一个 CMakeLists.txt
 
-第 8 章的 `hello/` 有三个源文件：`main.c`、`greet.c` 和一个共用的 `greet.h`。给它加一份 `CMakeLists.txt`，全文三行：
+回顾第 8 章引入的最小多文件项目 `hello/`，该目录包含 `main.c`、`greet.c` 以及公共接口头文件 `greet.h`。我们为该项目编写一份最为精简的 `CMakeLists.txt`，全文仅需三行指令：
 
 ```cmake [CMakeLists.txt]
 cmake_minimum_required(VERSION 3.20)
@@ -59,7 +59,7 @@ project(hello LANGUAGES C)
 add_executable(hello main.c greet.c)
 ```
 
-第一行要求 CMake 版本不低于 3.20，低版本会直接报错退出。第二行声明工程名和语言，`LANGUAGES C` 告诉 CMake 只启用 C 编译器，不去找 C++ 和 Fortran。第三行定义一个可执行文件目标：名字 `hello`，源文件 `main.c` 和 `greet.c`。头文件不列进去，编译器在预处理时自己找。
+首行 `cmake_minimum_required(VERSION 3.20)` 确立了当前工程能够向下兼容的 CMake 最低版本约束。若开发者宿主环境中的 CMake 版本低于 3.20，解析过程将直接中断报错并提示升级，以此避免因构建系统版本陈旧而产生不可预期的语法或策略不一致。第二行 `project(hello LANGUAGES C)` 声明了工程名称，其中明确指定 `LANGUAGES C`，指示 CMake 仅初始化 C 语言工具链，跳过不必要的 C++ 或 Fortran 编译器探测流程。第三行 `add_executable(hello main.c greet.c)` 声明了一个名为 `hello` 的可执行文件构建目标，并传入构成该产物的源文件列表。接口头文件 `greet.h` 无需显式列入参数列表，编译器在执行预处理阶段时，会依据源文件内部的包含指令自行定位并展开。
 
 在项目根目录配置并构建：
 
@@ -85,11 +85,11 @@ $ ./build/hello
 Hello, world!
 ```
 
-`-S .` 是源码目录，`-B build` 是构建目录，两个都可以写相对路径。配置阶段的输出报告了它找到的编译器：Debian 上是 `/usr/bin/cc`，Windows 上是 `D:/Software/Strawberry/c/bin/gcc.exe`，还顺带测了它能不能正常工作。之后每次构建都复用这个结果，不再重新探测。
+在执行命令中，`-S .` 显式指示源码根目录所在路径，`-B build` 则指定本次构建产物的专属输出目录，二者均支持相对路径书写。在配置阶段，CMake 自动完成了 C 编译器版本标识识别、ABI 兼容性验证以及基础编译特性探测，并将这些关键结论固化于构建目录的缓存中。后续的多次增量构建均会直接复用该探测成果，无需反复进行耗时的环境嗅探。
 
-`build/` 里除了可执行文件，还有 `CMakeCache.txt`、`CMakeFiles/`、`cmake_install.cmake` 和原生构建文件。源码目录里一个文件都没多出来，这种构建方式叫源码外构建 (out-of-source build)。它带来的直接好处是清理简单：删掉 `build/` 就回到刚放完源码的状态，源码目录里也不会混进 `.o` 文件和可执行文件。wordfreq 的 `.gitignore` 里只有一行 `build/`，原因就在这里。
+构建完成后，所有的目标文件、依赖映射表、原生构建图以及最终的二进制可执行产物均整洁地汇聚在 `build/` 目录下，源码树本身未受到任何附带修改。这种设计被称为“源码外构建（Out-of-source build）”。相较于传统手写脚本常常将 `.o`、`.d` 与源文件混杂存放的凌乱做法，源码外构建赋予了工程极具确定性的清理与隔离边界：只需整体移除 `build/` 目录，就能立刻将代码库彻底复原为纯净初始状态。在 wordfreq 工程的 `.gitignore` 规则中仅需写入 `build/` 一行，根源便在于此。
 
-加 `--verbose` 能看到构建阶段真正执行的命令：
+通过在构建指令中追加 `--verbose` 参数，可以直观审查 CMake 代理底层工具真正派发的完整命令行：
 
 ::: terminal title="zsh - cmake --build build --verbose"
 
@@ -110,7 +110,7 @@ Run Build Command(s): /home/minsecrus/tutorial/tools/cmake-3.31.6-linux-x86_64/b
 
 :::
 
-实际调用的就是两条 `cc -c` 加一条链接，和手写的一样。`-MD -MT -MF` 那一组选项让编译器顺带写出依赖文件，记录每个目标文件包含过哪些头文件。第 8 章为了这件事手写了 `-MMD -MP` 并 `-include` 依赖文件，CMake 默认就做了。
+终端展现的真实调用指令一目了然：两次编译器调用 `cc -c` 分别将 `main.c` 与 `greet.c` 编译为目标文件，随后由一条链接指令将它们拼接为可执行文件，与手写 Makefile 的核心意图别无二致。值得关注的是命令行中携带的 `-MD -MT -MF` 一组编译器选项：这组参数命令 GCC 在编译源文件的同时，自动向对应目录输出详细的依赖关系清单（`.d`），精确记录该目标文件展开过的所有头文件路径。在第 8 章中，为了实现精准的头文件增量重编，我们不得不手动拼装 `-MMD -MP` 编译参数并显式维护 `-include $(DEPS)` 规则；而在现代 CMake 体系下，这一系列复杂的依赖追踪逻辑已被封装为开箱即用的默认行为。
 
 构建也是增量的。改一个源文件，只重编它再重新链接：
 
@@ -126,7 +126,7 @@ $ cmake --build build
 
 :::
 
-`-G` 后面跟生成器名字，名字里有空格时要加引号：
+参数 `-G` 允许我们显式指定目标生成器的类型，当生成器名称包含空格时需使用双引号包裹：
 
 | 生成器 | 构建目录里的构建文件 | 调用的构建工具 |
 | --- | --- | --- |
@@ -135,7 +135,7 @@ $ cmake --build build
 | `MinGW Makefiles` | `Makefile` | `mingw32-make` |
 | `Visual Studio 17 2022` | `.sln` 与 `.vcxproj` | MSBuild |
 
-同一份 `CMakeLists.txt`，用两个生成器各配置一个目录，编译出的程序相同。在本机 Windows 上试一遍（两个目录早已配好，这里只看构建这一步）：
+对于同一份声明清晰的 `CMakeLists.txt`，分别采用不同生成器指向各自独立的构建目录，所编译出的最终二进制程序具备完全一致的功能语义。我们在 Windows 环境下分别利用 Ninja 与 MinGW Makefiles 验证这一特性：
 
 ::: terminal title="zsh - 两个生成器并行"
 
@@ -157,11 +157,11 @@ Hello, world!
 
 :::
 
-Ninja 的进度行只数步骤，不报百分比；Makefile 的百分比来自 make 自己的进度显示，`Built target` 那一行也是 make 加的。缓存里与编译无关的项目一致，差别集中在构建目录路径、生成器和构建工具这几项，两个 `hello.exe` 大小相同、输出相同（PE 文件头里带着链接时间，逐字节比较会有差异）。生成器只影响「谁来执行编译命令」，不影响编译命令本身。
+两类生成器的终端输出风格呈现出细微差异：Ninja 采用步骤计数形式打印构建进度（如 `[1/3]`），而 Makefiles 体系则展示按总体百分比折算的进度（如 `[ 33%]`），并在目标完成时追加特定的 `Built target` 提示行。检查两者的缓存文件，差异仅集中于构建路径、生成器标识与底层驱动程序等环境元数据上，生成的两个 `hello.exe` 产物大小一致、功能完全相同（PE 格式文件头中记录了各自的链接时间戳，因此逐字节比对会存在元数据差异）。这一实验充分印证了元构建系统的核心抽象：生成器仅决定“由哪款工具负责排布与派发指令”，而底层的编译链接指令及其逻辑结果完全由 CMake 的目标模型统筹约束。
 
 ## 3. 目标与使用要求
 
-wordfreq 的 `CMakeLists.txt` 全文如下，比 hello 多了一个库目标：
+wordfreq 项目的 `CMakeLists.txt` 在基础可执行文件之上，引入了独立的静态库目标以实现模块化解耦：
 
 ```cmake [CMakeLists.txt]
 cmake_minimum_required(VERSION 3.20)
@@ -190,15 +190,15 @@ target_link_libraries(wordfreq PRIVATE wf)
 target_compile_options(wordfreq PRIVATE -Wall -Wextra)
 ```
 
-`project(wordfreq VERSION 0.1.0 LANGUAGES C)` 里的版本号不是摆设：后面第 19 章用它生成 `version.h`，打包时也用它填版本。三行 `CMAKE_C_STANDARD` 让编译器使用 C17：`REQUIRED ON` 表示编译器不支持时直接报错，而不是悄悄退回旧标准；`C_EXTENSIONS OFF` 关掉 GNU 扩展，命令行上得到 `-std=c17` 而不是默认的 `-std=gnu17`。关掉扩展的代价是 `strdup` 这类 POSIX 函数可能不再声明，第 16 章会拿这个差别做例子，讲清楚什么时候该开、什么时候该在源文件里加功能测试宏。
+在工程根节点的声明中，`project(wordfreq VERSION 0.1.0 LANGUAGES C)` 显式给出了语义化版本号。这一版本信息并非形式化的占位符：在后续第 19 章中，CMake 将借助该变量自动生成工程头文件 `version.h`，并在打包发布阶段作为安装包的基准版本。紧随其后的三项 C 语言标准配置构成了严谨的编译基线：`set(CMAKE_C_STANDARD 17)` 规定基准语言标准为 C17；`CMAKE_C_STANDARD_REQUIRED ON` 命令 CMake 在当前编译器无法提供 C17 支持时直接中断报错，坚决杜绝构建系统悄悄回退至老旧标准；`CMAKE_C_EXTENSIONS OFF` 则禁用 GCC/Clang 默认附带的 GNU 编译器方言扩展，强制在命令行中派发纯净的 `-std=c17` 而非宽容的 `-std=gnu17`。关闭方言扩展虽然可能导致诸如 `strdup` 等非标准 POSIX 函数的原型声明被标准头文件隐藏，但能强迫源码保持纯粹的标准兼容性；在第 16 章中我们将针对这一现象展开深入讨论，展示如何借助特性测试宏（Feature Test Macros）进行跨平台适配。
 
-`add_library(wf STATIC ...)` 把三个模块编成静态库 `libwf.a`，`STATIC` 写明了库的类型。不写这个关键字时，库的类型由 `BUILD_SHARED_LIBS` 决定；共享库和导出符号是第 16 章的内容。把模块编成独立的库而不是把所有源文件塞进可执行文件，是为了让第 11 章的测试程序也能链接同一份实现。
+`add_library(wf STATIC ...)` 将分词、计数与报表三个模块打包为静态库目标 `libwf.a`，其中的 `STATIC` 关键字明确指定了库类型。若省略该关键字，CMake 会根据全局变量 `BUILD_SHARED_LIBS` 的取值决定生成静态库还是动态共享库；动态库的导出符号与跨平台适配规则将在第 16 章系统介绍。将核心功能沉淀为独立静态库，而非直接将全部 `.c` 塞进单一可执行文件，为第 11 章中让独立单元测试套件复用相同实现打下了干净的基础。
 
-`target_include_directories(wf PUBLIC include)` 告诉 CMake：编译 wf 自己的源文件需要 `-Iinclude`，并且这个要求要传给链接 wf 的目标。`target_compile_options(wf PRIVATE -Wall -Wextra)` 则只作用于 wf 自己的三个源文件。`-Wall -Wextra` 是 GCC 与 Clang 的选项，MSVC 不认；这里先这样写，第 16 章改成按编译器分支。
+`target_include_directories(wf PUBLIC include)` 向 CMake 声明了关键的依赖路径规则：编译 `wf` 自身的三个源文件需要附加 `-Iinclude` 参数，并且这一路径需求必须沿依赖链路透明传递给所有链接了 `wf` 的目标。与此相对，`target_compile_options(wf PRIVATE -Wall -Wextra)` 指定的告警参数则被限制为仅对 `wf` 自身的源文件生效。需要说明的是，`-Wall -Wextra` 属于 GCC 与 Clang 工具链的专属参数，MSVC 并不识别；当前阶段我们先采用通用选项，在第 16 章中再演进为按编译器分支适配。
 
-`if(MINGW)` 那一段用的是第 3 章第 7 节讲过的现象：MinGW-w64 GCC 13.2 对 `%zu` 报格式警告，而运行结果正确。`__USE_MINGW_ANSI_STDIO=1` 让格式化改走 MinGW 自己的实现，警告消失。这个宏改变的是 `<stdio.h>` 里 `printf` 系列绑定到哪一套实现，所以写成 PUBLIC 而不是 PRIVATE：同一个程序里的每个翻译单元都按同一种方式包含头文件，库和程序用到的才是同一套格式化。
+针对 MinGW 环境的条件分支 `if(MINGW)`，复现了我们在第 3 章第 7 节分析过的标准流格式化缺陷：MinGW-w64 附带的 GCC 13.2 在检查 `%zu` 占位符时会产生误报告警，而实际运行时解析完全正确。通过注入预定义宏 `__USE_MINGW_ANSI_STDIO=1`，可以强制 MinGW 运行时切换至遵循 C99/C11 规范的 ANSI 格式化实现，从而消除该误报警。这一宏定义决定了 `<stdio.h>` 中声明的 `printf` 系列函数在预处理阶段绑定至哪一套实现符号，因此必须声明为 `PUBLIC` 而非 `PRIVATE`：确保主程序与静态库的所有翻译单元在包含标准头文件时遵循完全一致的函数原型签名与 ABI 约定。
 
-最后三行定义可执行文件：源文件只有 `app/main.c`，链接 wf，警告选项同样只作用于自己。这里用 `PRIVATE` 链接 wf，意思是「wordfreq 需要 wf，但将来谁链接 wordfreq 都不需要知道 wf」。
+脚本末尾的三行指令完成主程序目标的组装：`add_executable` 声明源文件仅包含 `app/main.c`；`target_link_libraries(wordfreq PRIVATE wf)` 建立起主程序对静态库的链接依赖；随后同样为其私有赋予告警参数。此处的 `PRIVATE` 关键字精准表达了所有权边界：可执行程序 `wordfreq` 内部依赖 `wf` 的实现，但作为一个终端可执行文件产物，它并不需要向外部任何下游实体暴露 `wf` 的接口特性。
 
 配置、构建、运行：
 
@@ -230,7 +230,7 @@ $ ./build/wordfreq -n 3 tests/data/sample.txt
       2 sat
 ```
 
-构建阶段的进度百分比按构建步骤计算，`wf` 到 66% 就完成了，剩下的给 `wordfreq`。`--verbose` 里三条编译命令都带 `-I.../include` 和 `-std=c17 -Wall -Wextra`，链接那一步把 `libwf.a` 放在目标文件后面：
+构建阶段的进度百分比按拓扑任务步骤递增计算，`wf` 静态库目标在达到 66% 时便已完成归档，随后的进度推进留给最终的主程序 `wordfreq`。通过 `--verbose` 审查实际编译指令，可以看到所有源文件编译时均整齐带上了 `-I.../include` 与 `-std=c17 -Wall -Wextra`，而在最后的可执行文件链接步骤中，CMake 自动将依赖的静态库 `libwf.a` 严谨排布在主程序目标文件之后，完全规避了第 8 章中手写参数次序错误所导致的未定义符号隐患：
 
 ::: terminal title="zsh - wordfreq 的实际命令（节选）"
 
@@ -248,9 +248,9 @@ $ cmake --build build --verbose
 
 :::
 
-`app/main.c` 的编译命令里也有 `-Iinclude`。`wordfreq` 目标自己没写过任何 `target_include_directories`，这个选项是 `target_link_libraries(wordfreq PRIVATE wf)` 把 wf 的接口要求带过来的。CMake 把这类随目标传递的编译要求称为使用要求 (usage requirements)。
+仔细观察 `app/main.c` 实际被派发的编译命令，可以发现参数中同样出现了 `-Iinclude`。然而审视 `wordfreq` 目标的构建描述，我们从未为其显式调用过任何 `target_include_directories`。这一包含路径完全是由 `target_link_libraries(wordfreq PRIVATE wf)` 从静态库 `wf` 的接口属性中自动继承而来的。CMake 将这种随着目标依赖链条自动向外流转的编译配置，定义为使用要求（Usage Requirements）。
 
-一个 `target_` 命令里的三个关键字决定哪些要求传出去：
+在各类 `target_*` 命令中，`PRIVATE`、`PUBLIC` 与 `INTERFACE` 三个修饰关键字精确调控着属性的生效范围与对外可见性：
 
 | 关键字 | 编译本目标时使用 | 写进 `INTERFACE_*`，传给链接它的目标 |
 | --- | --- | --- |
@@ -258,9 +258,9 @@ $ cmake --build build --verbose
 | `PUBLIC` | 是 | 是 |
 | `INTERFACE` | 否 | 是 |
 
-这张表对包含目录、编译定义、编译选项、链接库都成立。`PRIVATE` 的典型例子是 `-Wall -Wextra`：编译器警告是写代码的人自己的事，没有必要强加给调用方。`PUBLIC` 的典型例子是库的公开头文件目录：库自己的源文件要包含它们，使用这个库的程序也要。`INTERFACE` 用在只属于调用方的东西上，比如一个只有使用方才会引用的头文件目录，或者一个「用这个库就必须定义」的宏。
+这套修饰体系统一适用于头文件搜索路径（`target_include_directories`）、预编译宏（`target_compile_definitions`）、编译参数（`target_compile_options`）以及链接依赖（`target_link_libraries`）。`PRIVATE` 的代表性场景是 `-Wall -Wextra`：编译告警等级是模块自身的工程质量要求，没有必要强加给使用该模块的外部调用方。`PUBLIC` 的典型场景则是库对外暴露的接口头文件目录：不仅静态库自身的实现源码需要包含这些头文件，调用该库的可执行程序同样必须能找到这些接口声明。`INTERFACE` 则适用于仅供调用方消费而模块自身无感的属性，例如纯头文件库（Header-only library）的接口目录，或是要求调用方必须开启的特定兼容性宏定义。
 
-传播是沿链接方向逐级的。A 链接 B、B 链接 C，C 的 PUBLIC 与 INTERFACE 要求会经 B 到达 A：
+使用要求的传播在整个依赖拓扑中沿着链接依赖关系逐级向前级联传递：若目标 A 链接目标 B，且目标 B 链接目标 C，则目标 C 声明的 `PUBLIC` 与 `INTERFACE` 要求会沿着链接链条自然抵达目标 A：
 
 ```mermaid
 flowchart LR
@@ -280,9 +280,9 @@ flowchart LR
 
 :::
 
-这条规则解释了一个常见现象：`app/main.c` 的编译命令里没有写过 `-Iinclude`，`main.c` 却能用 `#include "wf/counter.h"` 找到头文件。这个选项是 `target_link_libraries(wordfreq PRIVATE wf)` 这一行带来的。漏掉这一行，`main.c` 的编译就会因为找不到头文件而失败，头文件和库是一起传的。
+这一传播模型解释了我们在编写大型工程时最常见的一处疑问：在 `wordfreq` 目标的声明中并未显式包含 `-Iinclude`，`main.c` 源码内部却能顺畅通过 `#include "wf/counter.h"` 索引到头文件。这正是由于 `target_link_libraries(wordfreq PRIVATE wf)` 在建立链接拓扑的同时，自动将静态库 `wf` 挂载在 `INTERFACE_INCLUDE_DIRECTORIES` 上的路径需求合并进了主程序的编译上下文中。如果遗漏了这一行依赖声明，`main.c` 的编译过程便会在预处理阶段由于无法解析头文件而直接报错中止——在现代 CMake 设计中，接口头文件与编译库依赖被绑定为不可分割的整体。
 
-写目标属性有一个更省事的替代品 `include_directories()`，它把目录加到当前目录及其子目录的所有目标上。两种写法都能让代码编过，差别在一个新加的目标会不会沾上不相干的路径。给 wordfreq 加一个只需要标准库的 `tools/linecount.c`，两种写法下它的编译命令不同：
+在早期 CMake 教程或陈旧项目中，经常能看到一种更为省事的全局配置命令 `include_directories()`。该命令会将指定的搜索路径粗暴地注入当前作用域及其后续声明的所有构建目标中。尽管两种写法在小型实验工程里都能将代码顺利编译通过，但在工程规模扩大后，全局命令会彻底摧毁目标之间的抽象边界。假设我们在 wordfreq 工程中增添一个仅依赖 C 标准库的独立辅助工具 `tools/linecount.c`，对比两套配置策略对其编译环境的影响：
 
 ::: compare left-title="全局 include_directories()" right-title="挂在目标上的 target_include_directories()"
 
@@ -308,7 +308,7 @@ add_executable(linecount tools/linecount.c)
 
 :::
 
-`linecount.c` 只包含 `<stdio.h>`，与 `include/` 毫无关系。左边那版给它的编译命令多了一个 `-I`（下面两条取自本机 Windows 的 Ninja 构建，路径里的 `scope-global` 与 `scope-target` 是两份只差这一行的工程）：
+源文件 `linecount.c` 仅仅调用了 `<stdio.h>`，逻辑上与分词工程的核心头文件目录 `include/` 毫无牵扯。审视两组工程在 Windows 下通过 Ninja 派发的真实编译指令：
 
 ::: terminal title="zsh - 同一个 linecount.c 的两条编译命令"
 
@@ -319,9 +319,11 @@ add_executable(linecount tools/linecount.c)
 
 :::
 
-第一行来自左边的写法，第二行来自右边。目录一多、目标一多，全局设置会让每个目标都带着别人的包含路径，改一个目录会影响一大片，还容易掩盖「这个文件其实漏了链接某个库」的问题。本书一律用 `target_` 开头的写法。
+第一行指令由左侧的全局指令生成，`linecount` 无辜地背负了与其无关的 `-I.../include` 路径；第二行指令则展现了右侧目标化属性的严密隔离。在复杂的工业级工程中，全局路径污染往往会埋下极深的设计隐患：它不仅会使每个模块被动引入大量不相关的头文件命名空间，还会严重掩盖“某个实现文件实际漏写了模块依赖”的拓扑漏洞。因此，本书遵循现代 CMake 的工程规范，一律使用以 `target_` 开头的精确目标作用域指令。
 
-把头文件目录从 `PUBLIC` 改成 `PRIVATE`，wf 自己还能编，但 `wordfreq` 编译 `app/main.c` 时找不到头文件：
+为了直观体会使用要求修饰词的控制边界，我们不妨刻意制造两起属性配置错误：
+
+若将 `target_include_directories(wf PUBLIC include)` 中的 `PUBLIC` 误写为 `PRIVATE`，静态库 `wf` 自身在编译时依然能够找到头文件，但下游可执行文件 `wordfreq` 在编译 `app/main.c` 时便会立刻中断：
 
 ::: terminal title="zsh - PUBLIC 改成 PRIVATE"
 
@@ -341,7 +343,7 @@ compilation terminated.
 
 :::
 
-改成 `INTERFACE` 则反过来：wf 自己的源文件编不过，`wordfreq` 还没轮到：
+反之，若将其误改写为 `INTERFACE`，结果则刚好调转：头文件路径完全暴露给了外部调用方，库自身的内部实现源文件却得不到该配置支持，导致库构建阶段率先夭折：
 
 ::: terminal title="zsh - PUBLIC 改成 INTERFACE"
 
@@ -363,7 +365,7 @@ gmake[2]: *** Waiting for unfinished jobs....
 
 :::
 
-两条错误分别对应表格里的两列：PRIVATE 不给别人，INTERFACE 不给自己。看到「库的源文件找不到自己的头文件」，先查 `INTERFACE`；看到「使用方的源文件找不到库的头文件」，先查 `PRIVATE`。
+这两起实测现象精准对应了属性传递的判定准则：`PRIVATE` 阻断向外传播，`INTERFACE` 豁免自身使用。在日常开发排查中，这一规律非常清晰：当发现“库自身的源码无法识别本模块头文件”时，应当优先排查是否误写了 `INTERFACE`；当遇到“调用方的源文件报头文件缺失”时，则应当优先检查被依赖库是否错误配置了 `PRIVATE`。
 
 <Quiz
   :options="[
@@ -387,7 +389,7 @@ gmake[2]: *** Waiting for unfinished jobs....
 
 ## 4. 构建类型与选项
 
-第 3 节的构建命令里没有 `-O` 也没有 `-g`。CMake 单配置生成器的优化与调试信息由 `CMAKE_BUILD_TYPE` 决定，这个缓存变量默认是空的，于是编译器按自己的默认值走（GCC 是 `-O0`、没有调试信息）。常用的四个取值对应的选项如下，取自 `--verbose` 的实际输出：
+在第 3 节的构建输出中，我们并未在编译参数中见到优化选项 `-O` 或调试符号参数 `-g`。在采用单配置生成器（如 Ninja 或 Unix Makefiles）时，二进制产物的优化级别与调试信息由内置缓存变量 `CMAKE_BUILD_TYPE` 决定。若未在配置阶段显式赋予该变量取值，CMake 会保持其为空，此时编译器将退回到自身内置的默认行为（以 GCC 为例，默认为 `-O0` 且不生成调试符号）。CMake 标准预设了四种常用的构建类型，其向 GCC 派发的标志选项如下表所示：
 
 | `CMAKE_BUILD_TYPE` | 传给 GCC 的选项 | 用途 |
 | --- | --- | --- |
@@ -397,7 +399,7 @@ gmake[2]: *** Waiting for unfinished jobs....
 | `RelWithDebInfo` | `-O2 -g -DNDEBUG` | 优化过但保留调试信息，排查发布版问题时用 |
 | `MinSizeRel` | `-Os -DNDEBUG` | 优先减小体积 |
 
-这些值是 CMake 为 GCC 准备的默认规则，换编译器时由 CMake 自己的规则替换，不用手写。拿 wordfreq 分别配置 Debug 和 Release，编译 `token.c` 的命令只差中间几个选项：
+这些编译标志是 CMake 针对 GCC 预设的最佳实践规则；当切换至 MSVC 或 Clang 时，CMake 会自动无缝替换为对应工具链的对等参数（如 `/MD /O2` 或 `/MDd /Zi`），无需开发者在工程脚本中手动编写繁复的平台分支。我们为 wordfreq 分别建立 Debug 与 Release 两个输出目录，通过 `--verbose` 提取编译 `token.c` 的真实指令，可以直观看到标志的差异：
 
 ::: terminal title="zsh - Debug 与 Release 的编译命令"
 
@@ -412,7 +414,7 @@ $ cmake --build build-rel --verbose | grep "token\.c\.o -c"
 
 :::
 
-`-DNDEBUG` 的作用在第 11 章讲过一次：它让 `assert` 宏展开成什么也不做。用构建类型来演示，比手工加 `-D` 更贴近实际。一个小程序算两个数的平均值，负数输入在 Debug 构建里会触发断言：
+在发布构建中，`-DNDEBUG` 发挥着极为关键的作用：它使得标准头文件 `<assert.h>` 中定义的 `assert()` 断言宏在预处理阶段被直接置空。借助构建类型的切换观察断言行为，能直观展现其与发布版错误处理的本质差异。以下面的均值计算小程序为例，函数显式断言入参不得为负数：
 
 ```c [main.c]
 #include <assert.h>
@@ -429,7 +431,7 @@ int main(void) {
 }
 ```
 
-同样的源码，两个构建目录。`assert_demo/CMakeLists.txt` 与 hello 那份一样只有三行，只需把目标名换成 `assertdemo`，源文件写成 `main.c`：
+为该程序配置一份极简的 `CMakeLists.txt`，分别在两个独立的构建目录中以 Debug 与 Release 模式进行构建并传入负数验证：
 
 ::: terminal title="zsh - 同一份源码的 Debug 与 Release"
 
@@ -448,9 +450,9 @@ status=0
 
 :::
 
-Debug 版本被 SIGABRT 终止，退出状态 134；Release 版本里断言整条消失，程序带着错误的输入算出 `-1` 并正常退出。这就是发布构建里不该依赖 `assert` 检查输入的原因：它是给开发者自己看的，不是错误处理。
+实测反馈非常鲜明：Debug 构建下的程序在断言失败处被内核派发的 `SIGABRT` 信号强行终止，进程异常退出并返回状态码 134，向开发者精确指明了断言违背的文件与行号；而在 Release 构建中，断言逻辑在编译期便被彻底剥离，程序带着非法输入继续运算并输出了荒谬的结果 `-1`，最终以状态码 0 正常退出。这一对比给出了明确的工程警示：断言纯粹是开发阶段用于验证程序内部不变式（Invariants）与前置条件的防御手段，绝不能将其替代为针对外部非预期输入或运行时异常的常规错误处理逻辑。
 
-Windows 上的 CMake 默认生成器是 Ninja，同样是单配置，用法一致。Visual Studio 的生成器和 `Ninja Multi-Config` 是多配置生成器 (multi-config generator)：一次配置同时生成 Debug 和 Release 两套规则，构建时用 `--config` 选择。用 `Ninja Multi-Config` 试一遍：
+在 Windows 下默认调用的 Ninja 生成器与 Linux 下的 Unix Makefiles 一样，均属于单配置生成器。而 Visual Studio 解决方案生成器以及 `Ninja Multi-Config` 则归属于多配置生成器（Multi-Config Generator）。它们的显著特征是：仅需经历一次前置配置阶段，便能在同一个构建目录内同时输出涵盖 Debug 与 Release 等多种模式的原生构建规则。在实际构建阶段，开发者通过在命令行传递 `--config <Type>` 参数直接指定构建目标：
 
 ::: terminal title="zsh - 多配置生成器"
 
@@ -474,15 +476,15 @@ $ cmake --build build --config Release
 
 :::
 
-产物分别落在 `build/Debug/` 和 `build/Release/` 下，两个配置互不覆盖。多配置生成器不需要 `CMAKE_BUILD_TYPE`，配置时给了也不影响生成的规则；单配置生成器没有「配置」这个概念，`--config` 给了也不起作用。项目要同时支持两种生成器时，构建命令写成 `cmake --build build --config Release`，在单配置上多出来的参数会被忽略，两种生成器都能用同一条命令。
+多配置模式下的产物分别规整存放在 `build/Debug/` 与 `build/Release/` 子目录中，两套配置的中间目标文件与二进制输出完全隔离、互不覆盖。多配置生成器会完全忽略全局的 `CMAKE_BUILD_TYPE` 缓存变量；而单配置生成器由于缺少内部多配置分支机制，传入 `--config` 参数时会被静默忽略。在编写跨平台持续集成流水线时，统一采用 `cmake --build build --config Release` 是经典的行业最佳实践，它能保证同一条构建指令在 Visual Studio 与 Ninja 环境下均按预期工作。
 
-第三类配置是布尔开关，用 `option()` 声明：
+除了构建类型外，工程中还广泛存在控制模块启停的布尔特性开关。CMake 使用 `option()` 语句声明此类开关变量：
 
 ```cmake
 option(WF_BUILD_TOOLS "Build helper tools" OFF)
 ```
 
-第一个参数是名字，第二个是显示在 CMake 图形界面里的说明，第三个是默认值。开关打开时才定义的目标放进 `if()` 里：
+该命令的第一个参数为选项变量名，第二个参数为在 CMake 交互界面中展现的帮助说明，第三个参数则为默认布尔初值。在脚本中，借助 `if()` 条件块将可选目标的声明包裹起来：
 
 ```cmake
 if(WF_BUILD_TOOLS)
@@ -491,7 +493,7 @@ if(WF_BUILD_TOOLS)
 endif()
 ```
 
-配置时用 `-D` 打开，值写进缓存。下面仍在本机的 Windows 环境上演示：
+开发者在配置阶段可以通过 `-D` 参数动态重写该开关状态。以下继续在 Windows 的 Ninja 环境下进行实测验证：
 
 ::: terminal title="zsh - 用 option 控制目标"
 
@@ -520,16 +522,16 @@ $ ./build-on/linecount.exe tests/data/sample.txt
 
 :::
 
-`build/CMakeCache.txt` 里与它有关的两行是：
+打开默认构建目录下的 `build/CMakeCache.txt`，可以看到与该开关对应的持久化记录：
 
 ```text
 //Build helper tools
 WF_BUILD_TOOLS:BOOL=OFF
 ```
 
-注释行是 `option()` 的说明文字，下一行是缓存的类型和值。`-D` 只影响配置这一遍；之后直接删掉 `-D` 再配置，缓存里的值仍然保留，因为缓存变量一旦写进去就以缓存为准。要改回来，再给一次 `-DWF_BUILD_TOOLS=OFF`，或者删掉构建目录重新配置。这是缓存变量与普通 CMake 变量最容易混淆的一点：普通变量每次配置都从头算，缓存变量会活到构建目录被删掉为止。
+首行是 `option()` 提供的注释说明，次行则是变量的数据类型与当前锁定的布尔值。此处涉及 CMake 变量模型中最易产生混淆的机制：普通局部变量在每次 CMake 读取执行脚本时均从头初始化并计算；而缓存变量（Cache Variables）一经写入磁盘，其生命周期将持续存在直至构建目录被彻底销毁。这意味着，一旦某个开关通过 `-DWF_BUILD_TOOLS=ON` 写入了缓存，后续在相同目录下重新执行 `cmake` 时，即便命令中漏掉了 `-D` 参数，CMake 依然会优先沿用缓存中已固化的 `ON` 状态。若希望将其重置回默认的关闭状态，必须在命令行显式传入 `-DWF_BUILD_TOOLS=OFF`、使用 `-U WF_BUILD_TOOLS` 从缓存中注销该键，或者直接清空整个构建目录。
 
-一个配置一个构建目录，是这一节所有例子的共同前提。Debug、Release、带 Sanitizer 的构建、打开可选目标的构建，各占一个目录，互不干扰。第 13 章会把 `build-asan/` 和 `build/` 并排放在一起，第 18 章的持续集成则为每个作业准备一个干净的构建目录。
+坚持“一个特定配置独占一个专属构建目录”是避免配置相互污染的核心工程规范。无论面对 Debug、Release 还是后续第 13 章探讨的带有 AddressSanitizer 的诊断构建，将它们分别指派给 `build-debug/`、`build-release/` 与 `build-asan/` 独立目录，不仅能确保增量编译的严谨性，也极大简化了持续集成流水线中各个构建任务的环境清理工作。
 
 <Quiz
   :options="[
@@ -553,13 +555,13 @@ WF_BUILD_TOOLS:BOOL=OFF
 
 ## 5. compile_commands.json
 
-编辑器做补全和跳转的语言服务器、做静态检查的 clang-tidy，都需要知道每个源文件的编译选项。这些选项由 CMake 拼出来，手工再抄一遍既费事又容易过期。让 CMake 把每条编译命令原样导出成一份 JSON：
+现代编辑器中的语言服务器（如 clangd）、智能补全插件以及静态代码分析工具（如 clang-tidy），都需要准确获知工程中每个 C 源文件在编译时所采用的包含路径（`-I`）、宏定义（`-D`）以及语言标准开关（`-std`）。若依赖开发者在编辑器配置中手动重复录入这些选项，不仅繁琐低效，而且极易随着项目结构演进而产生隐蔽的配置漂移。CMake 提供了直接导出标准编译数据库的能力：
 
 ```cmake
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 ```
 
-这行已经在 wordfreq 的 `CMakeLists.txt` 里。配置完成后，构建目录里多出 `compile_commands.json`，内容是一个数组，每个源文件一项：
+这行配置已经写入了 wordfreq 的 `CMakeLists.txt` 中。配置阶段完成后，构建目录下便会自动生成一份结构严谨的 `compile_commands.json` 文件。其内部为一个标准 JSON 数组，每个编译单元占据一个条目：
 
 ```json
 [
@@ -572,21 +574,21 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 ]
 ```
 
-`directory` 是编译时的工作目录，`command` 是完整命令行，`file` 是被编译的源文件，`output` 是目标文件。wordfreq 有四个源文件，文件里就有四项。编辑器读 `command` 里的 `-I`、`-std`、`-D`，补全时就能找到 `wf/counter.h`，诊断也与命令行构建一致。
+条目中的 `directory` 记录了编译派发时的工作基准路径，`command` 为派发至底层的完整编译命令行，`file` 为当前源文件的磁盘位置，`output` 则标明了编译出的目标文件。wordfreq 包含四个源文件，文件中便对应生成四个描述对象。代码分析工具读取 `command` 中的编译参数后，便能完全站在与真实编译器相同的视野下解析代码，符号跳转、上下文自动补全以及静态语法诊断均能与终端构建保持高度一致。
 
-第 1 章第 5 节配置 VS Code 时用 `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON` 临时打开过这个选项，写在 `CMakeLists.txt` 里之后，每个配置这个构建目录的人都会得到这份文件，不必记得加参数。clangd 从源文件所在目录向上查找这份文件，找不到时用 `--compile-commands-dir=<构建目录>` 直接指明位置；VS Code 的 C/C++ 扩展则在设置里填同样的路径。第 13 章的 clang-tidy 用 `-p build` 指定同一个目录。
+在第 1 章第 5 节配置 VS Code 环境时，我们曾在命令行通过 `-DCMAKE_EXPORT_COMPILE_COMMANDS=ON` 临时启用过该特性；将该设置固化在 `CMakeLists.txt` 中之后，任何克隆并配置该仓库的开发者都会默认获得这一数据库。clangd 会自动从源码目录逐级向上检索该文件，未命中时可通过 `--compile-commands-dir=<构建目录>` 显式指定；VS Code 的 C/C++ 扩展同样支持在设置中直接填入该路径；后续第 13 章探讨 clang-tidy 静态代码分析时，同样直接复用该文件。
 
 ::: tip 只有 Makefile 与 Ninja 生成器支持
 
-CMake 文档写明，`compile_commands.json` 只由 Makefile 生成器和 Ninja 生成器输出，Visual Studio 生成器会忽略这个选项。用 VS 生成器时，clangd 一类的工具需要另外的配置方式，或者另建一个 Ninja 构建目录专门给编辑器用。
+CMake 官方文档明确指出，`compile_commands.json` 仅在选用 Makefile 或 Ninja 系列生成器时才会被生成，Visual Studio 解决方案生成器会忽略该选项。若团队深度依赖 VS 生成器，代码分析工具通常需要借助额外插件转换，或单独建立一个专属的 Ninja 构建目录供分析工具检索。
 
 :::
 
 ## 6. 引入外部代码的三种方式
 
-自己的代码写完了，下一步往往是用别人写的库。CMake 提供了三种接入方式，适用的场合不同。
+随着软件模块化的深入，现代 C 项目不可避免地需要集成外部第三方库或公共工具代码。CMake 提供了三种标准集成范式，分别对应不同的工程场景与协作约定。
 
-**源码就在附近**：把对方的整个源码目录放进项目，比如 `external/greet/`，然后在顶层 `CMakeLists.txt` 里 `add_subdirectory`。下面用 hello 的例子改造：把 `greet.c` 和 `greet.h` 移进 `external/greet/`，让子目录自己带一份 `CMakeLists.txt`：
+**源码内嵌与子目录集成（In-tree Source via `add_subdirectory`）**：将第三方库的完整源码树以子目录或 Git Submodule 形式纳入工程仓库中（例如置于 `external/greet/`），随后在工程顶层 `CMakeLists.txt` 中通过 `add_subdirectory` 命令引入。我们以改造后的 `hello` 工程为例说明：将 `greet.c` 与 `greet.h` 迁移至 `external/greet/` 下，并由子目录维护独立的 `CMakeLists.txt`：
 
 ```text:no-line-numbers
 hello_ext/
@@ -619,7 +621,7 @@ target_include_directories(greet PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 :::
 
-子目录里的 `add_library` 与主工程里写的完全一样，`add_subdirectory` 只是把它的目标并进同一张构建图。`${CMAKE_CURRENT_SOURCE_DIR}` 是当前处理的 `CMakeLists.txt` 所在目录，在子目录里展开成 `external/greet`。父工程链接 `greet` 时，子目录里声明的 PUBLIC 包含目录照样传过去。实际构建：
+子目录中的 `add_library` 指令与顶级项目里的目标声明完全对等，`add_subdirectory` 负责将子目录中声明的目标与依赖关系并入全局构建拓扑。内置变量 `${CMAKE_CURRENT_SOURCE_DIR}` 始终指向当前正在被解析的 `CMakeLists.txt` 所在路径，在子目录中精准展开为 `external/greet`。父工程在链接 `greet` 目标时，子目录对外公开的 `PUBLIC` 包含路径便会沿着依赖关系自动传递。实际构建过程如下：
 
 ::: terminal title="zsh - add_subdirectory"
 
@@ -641,9 +643,9 @@ Hello, world!
 
 :::
 
-这种方式要求对方也提供了 `CMakeLists.txt`，并且你愿意把它的源码放进自己的仓库。第 10 章评估的 `c_exception` 用的是 Autotools，只提供了 `configure.ac` 与 `Makefile.am`，没有 CMake 支持，接进来时得自己写一份目标定义。
+这种子目录集成模式的前提条件是该第三方项目自身提供了规范的 `CMakeLists.txt`，并且团队倾向于将第三方源码纳入本工程版本控制进行严格的版本锚定。在第 10 章评估外部开源库时，诸如 `c_exception` 等传统 C 库采用的是 Autotools 体系（仅包含 `configure.ac` 与 `Makefile.am`），并未提供现代 CMake 配置，接入此类库时就需要开发者在父工程中手动为其编写目标定义。
 
-**库已经装在系统里**：用 `find_package` 找它，链接它提供的导入目标 (imported target)。标准库之外的例子是线程：
+**系统预装库与导入目标（System Package via `find_package`）**：若外部库已经由宿主系统的包管理器（如 Debian 的 APT 或 Homebrew）安装至系统的标准搜索路径下，现代 CMake 的标准做法是通过 `find_package` 指令定位该模块，并直接链接其生成的导入目标（Imported Target）。以操作系统自带的多线程支持为例：
 
 ```cmake
 find_package(Threads REQUIRED)
@@ -676,9 +678,9 @@ worker: hello
 
 :::
 
-`Threads::Threads` 是 CMake 自带的 FindThreads 模块定义的导入目标，它按平台决定要加什么：glibc 2.34 之后 pthread 的函数已经在 libc 里，链接行上不需要额外选项；换一个平台，模块会加对应的库。调用方只写目标名，不写 `-lpthread` 这类与平台相关的选项。`REQUIRED` 表示找不到就让配置失败，而不是留下一个链接时才暴露的问题。第三方库装好后通常会提供 `<包名>::<目标名>` 形式的导入目标，比如 `ZLIB::ZLIB`。
+在上述指令中，`Threads::Threads` 是 CMake 内置的 `FindThreads` 模块抽象出的标准导入目标。它彻底隔绝了不同平台之间的链接差异：在现代 Linux（glibc 2.34 及以上）环境中，POSIX 线程函数已被直接整合进底层 libc，命令行无需追加额外参数；而在其他操作系统或老旧发行版中，该模块会自动为链接行附加 `-lpthread`。调用方只需在自己的目标中声明链接 `Threads::Threads`，而无需硬编码任何平台相关的编译选项。关键字 `REQUIRED` 确保当系统环境缺失该依赖时直接在配置期报错中断，坚决防止将环境缺失问题拖延至链接阶段。绝大多数现代开源 C 库在安装后均会向系统注册类似的导入目标（通常遵循 `<包名>::<目标名>` 的命名范式，如 `ZLIB::ZLIB`）。
 
-**源码在网上，配置时下载**：`FetchContent` 在配置阶段拉取源码并把它当作子目录处理：
+**配置期动态拉取（Remote Source via `FetchContent`）**：在 CMake 3.11 之后引入的官方 `FetchContent` 模块，允许构建系统在前置配置阶段自动从远程 Git 仓库拉取依赖源码，并将其无缝转化为当前工程的子目录目标：
 
 ```cmake
 include(FetchContent)
@@ -694,15 +696,15 @@ add_executable(app main.c)
 target_link_libraries(app PRIVATE cjson)
 ```
 
-`GIT_TAG` 写具体版本而不是默认分支，配置结果才能重复。下载发生在配置阶段，第一次配置要联网，之后源码缓存在构建目录里。这个例子只列写法，本教程的示例不联网下载依赖，也没有把 cJSON 编进任何程序。选哪一种方式，取决于库的规模、许可证、是否需要打补丁，以及团队能不能接受配置时联网，这些是第 10 章评估第三方依赖时要回答的问题。
+在配置参数中，`GIT_TAG` 务必显式锁定为具体的发布 Tag 或 Commit Hash，避免使用浮动的默认分支，以保障全团队构建结果的可重现性（Reproducibility）。拉取与检出动作发生在 CMake 配置阶段，因此首次配置时宿主环境必须具备网络访问能力，随后拉取的源码将被持久缓存在构建目录的 `_deps/` 路径下。在实际工程架构中，选择哪一种依赖接入策略，需要综合权衡第三方库的代码规模、开源许可证、是否需要定制补丁以及持续集成环境的网络访问限制等因素，这一工程权衡体系将在第 10 章深入展开。
 
-其他构建系统也遵循同样的分工：Autotools 用 `./configure && make` 先探测环境再生成 Makefile，Meson 用 `meson setup build` 生成 Ninja 构建。名字不同，都是「先描述、再生成、最后执行」。
+纵观软件构建的发展脉络，其它主流现代构建系统同样贯彻了类似的架构分工：Autotools 依靠 `./configure && make` 先完成探测生成再展开构建，Meson 则通过 `meson setup build` 先行探测并生成 Ninja 构建图。各工具的语法描述虽各具特色，但“前置环境探测并生成拓扑图，后置并发调度执行编译”的双阶段设计已成为系统级工程的共同共识。
 
 ## 7. XMake
 
-XMake 不生成 Makefile 或 `build.ninja`，读 `xmake.lua` 后自己算依赖、直接调编译器，系统里不必先装 make 或 Ninja。配置这一步仍然存在，只是藏在 `xmake f` 里，结果存进项目下的 `.xmake/` 和 `build/`。
+与 CMake 生成中间构建文件的元构建路径不同，XMake 采取了更加紧凑一体的设计路线：它直接读取基于 Lua 语法的 `xmake.lua` 工程描述，在工具内部完成依赖拓扑计算，并直接派发编译器和归档命令，宿主环境中无需预装 GNU Make 或 Ninja。前置的环境探测与配置步骤同样存在，但被高度收敛在 `xmake f`（`xmake config`）命令内部，探测到的参数自动记录在工程根目录的 `.xmake/` 与 `build/` 缓存中。
 
-wordfreq 的 `xmake.lua` 全文如下，另一个标签页是等价的 CMake 目标定义，对照着看：
+wordfreq 项目的 `xmake.lua` 完整描述如下，右侧标签页展示了与之等价的 CMake 目标声明，两者形成了清晰的语义镜像：
 
 ::: code-group
 
@@ -740,21 +742,21 @@ target_link_libraries(wordfreq PRIVATE wf)
 
 :::
 
-`add_rules("mode.debug", "mode.release")` 引入两组构建模式，用 `xmake f -m debug` 或 `-m release` 切换，作用相当于 `CMAKE_BUILD_TYPE`。`set_languages("c17")` 定标准，`set_warnings("allextra")` 打开 `-Wall -Wextra` 一级的警告。两个 `target` 对应 CMake 的两个目标：`wf` 是静态库，源文件用通配符 `src/*.c` 一次收进来；`add_includedirs("include", {public = true})` 的 `public` 就是 CMake 的 `PUBLIC`，包含目录既给自己用也传给使用方。`wordfreq` 是 `binary`，`add_deps("wf")` 声明依赖，XMake 自动处理链接顺序和包含目录。
+两套描述体现出直观的语法映射关系：`add_rules("mode.debug", "mode.release")` 为工程注入了 Debug 与 Release 两种构建模式，通过 `xmake f -m debug` 或 `-m release` 即可平滑切换，作用完全等价于 CMake 的 `CMAKE_BUILD_TYPE`。`set_languages("c17")` 锁定语言标准，`set_warnings("allextra")` 统一开启对应 `-Wall -Wextra` 等级的严格警告。在目标定义块中，`target("wf")` 声明静态库产物（`set_kind("static")`），其源文件支持使用 `src/*.c` 通配符批量收纳；`add_includedirs("include", {public = true})` 明确将公共头文件目录标记为公开，不仅供自身编译使用，还会透明传递给依赖它的下游目标。下游目标 `target("wordfreq")` 声明为可执行文件（`set_kind("binary")`），并通过 `add_deps("wf")` 显式关联库依赖，XMake 在底层会自动排布正确的链接次序与包含路径。
 
-同样的意思，XMake 少写了几行。常用的命令：
+在完成等价工程建模的前提下，XMake 的描述明显更为紧凑平实。日常开发中最核心的高频指令包括：
 
 | 命令 | 作用 |
 | --- | --- |
 | `xmake` | 按当前配置构建所有目标 |
-| `xmake run wordfreq -n 3 tests/data/sample.txt` | 构建并运行 `wordfreq`，后面的参数交给程序 |
-| `xmake f -m debug` | 切换构建模式，下次构建按新模式重编 |
-| `xmake -v` | 显示实际执行的编译和链接命令 |
-| `xmake project -k compile_commands` | 生成编辑器用的 `compile_commands.json` |
+| `xmake run wordfreq -n 3 tests/data/sample.txt` | 触发增量构建并运行 `wordfreq`，后续参数直接传给可执行程序 |
+| `xmake f -m debug` | 切换当前工程的构建模式，下次构建自动按新参数重编 |
+| `xmake -v` | 在终端回显底层实际派发的编译与链接指令 |
+| `xmake project -k compile_commands` | 导出代码补全与语言服务器所需的 `compile_commands.json` |
 
-`xmake -v` 的输出与 CMake 加 `--verbose` 的作用相同，都是看清工具到底执行了什么。`xmake project -k compile_commands` 补上编辑器支持这一环，语言服务器读到的选项与 `xmake` 实际使用的一致。
+命令 `xmake -v` 与 CMake 追加 `--verbose` 参数的作用完全相同，用于审查底层调用的编译器参数细节；而 `xmake project -k compile_commands` 则能一键打通代码分析工具链，确保语言服务器获得的配置与实际构建完全一致。
 
-XMake 还自带包管理，这一条是 CMake 没有的：
+此外，XMake 原生整合了中心化的包管理能力，这在传统构建体系中通常需要额外搭建：
 
 ```lua
 add_requires("zlib")
@@ -762,17 +764,17 @@ target("wordfreq")
     add_packages("zlib")
 ```
 
-`add_requires` 从 XMake 的官方仓库下载并编译依赖，版本、编译选项和平台差异由包定义处理；CMake 里对应的做法是 `find_package` 加系统包管理器，或者 `FetchContent`，两者都要调用方多写一些配置。
+`add_requires` 会自动从官方维护的包仓库中检索、拉取源码并按当前平台工具链编译依赖库，跨平台的符号适配与路径配置由包脚本统筹托管；而在 CMake 体系下，类似需求通常需要组合运用系统包管理、`find_package` 以及针对环境差异的手动适配脚本。
 
-教程使用的 Windows 与 Debian 环境都没有安装 XMake。上面的文件和命令按官方文档写成，没有在这两台机器上运行过，因此不贴输出。第 11 章给 `xmake.lua` 加测试时也只作写法对照。
+由于本教程基准测试主机未全局部署 XMake，以上配置示例基于 XMake 官方规范编写，用于对比构建抽象的设计差异，文内不附带实机运行输出。在第 11 章引入自动化测试时，我们同样会给出对应的配置对比。
 
 ## 8. 选哪一个
 
-CMake 的长处不在写法，而在它已经成了 C 和 C++ 项目的通用接口。CLion 和 Visual Studio 直接读 `CMakeLists.txt`；开源库的安装说明第一条通常是 CMake 配置；`find_package` 背后是一整套已经写好的查找模块；CTest、CPack、预设文件（第 11、16、19 章）都长在它上面。工程要接多个第三方库、要在几种 IDE 和 CI 之间共用一份构建描述时，选它能省掉大量对接工作。它的代价是 CMake 语言本身：命令靠关键字和参数拼装，写复杂条件时像另一门语言，不同版本的模块行为也有差别，遇到问题要查文档而不是凭直觉改。
+在现代工程选型中，CMake 的核心竞争力并不体现在语法表达的优雅度上，而在于它作为 C 与 C++ 工业界事实标准所筑起的庞大生态屏障。主流现代 IDE（如 CLion、Visual Studio、VS Code）均能够直接原生解析 `CMakeLists.txt`；主流开源库的安装与集成指引均以 CMake 优先；`find_package` 体系沉淀了海量现成的环境探测与依赖导入模块；涵盖 CTest（测试驱动）、CPack（安装打包）以及 CMake Presets（环境预设）的工具链，构成了极深的一体化工程支撑。当项目需要密集集成复杂的异构第三方依赖，或需要在多种 IDE 与持续集成矩阵中保持一致构建时，选用 CMake 能大幅降低跨环境协同的摩擦成本。相应的代价则是 CMake 自身的语法范式：命令参数拼接偏向宏语言风格，跨版本行为策略演进较为繁琐，排查深层构建问题往往需要严格依赖官方文档。
 
-XMake 的写法短，配置、构建、测试、包管理、生成 `compile_commands.json` 都收在一个 `xmake.lua` 和几条命令里，个人项目或新项目上手快。它的短板是生态：用 CMake 描述的项目更多，IDE 和 CI 的现成模板更多，团队里熟悉 XMake 的人更少。换工具的成本不在写构建文件，而在周围所有工具的默认假设。
+XMake 则代表了现代化敏捷构建的演进方向。其语法短小精悍，将配置、编译、测试、包管理以及编译数据库导出有机融合在单一日程指令体系中，对于个人项目、中小型独立团队或全新架构的工程而言，具备极高的启动效率与使用舒适度。它的主要制约在于生态贯性：大型开源项目与工业级 CI 流水线模板普遍以 CMake 为默认假设，团队成员的技术储备也往往更偏向 CMake。更换构建系统的核心门槛，往往不在于重写几行构建脚本，而在于打破周围既有工具链的默认协作假设。
 
-本书后续以 CMake 为主。第 11 章往 `CMakeLists.txt` 里加测试，第 13、14 章加 Sanitizer 与覆盖率选项，第 16 章处理编译器差异和预设，第 18 章接持续集成，第 19 章加安装与打包。用 XMake 的读者可以按第 7 节的对照把每一处翻译过去。两种工具描述的仍然是第 8 章那张构建图，目标、先决条件、执行命令三样东西没有变。
+本书后续的工程实践章节将以工业标准的 CMake 为主线展开。在第 11 章中我们将使用 CTest 挂载自动化测试套件；第 13 与 14 章将配置 AddressSanitizer 诊断与代码覆盖率分析；第 16 章将系统探讨跨编译器特性分支与 CMake Presets 预设；第 18 与 19 章则分别打通自动化持续集成流水线与跨平台打包发布。倾向于使用 XMake 的读者，可以根据本章建立的语义对应法则，平滑地将各项工程配置转译至 `xmake.lua` 中。无论表面语法如何变换，二者在底层统筹调度与维护的，依然是第 8 章所揭示的那张严谨的构建拓扑图。
 
 ## 9. 习题
 

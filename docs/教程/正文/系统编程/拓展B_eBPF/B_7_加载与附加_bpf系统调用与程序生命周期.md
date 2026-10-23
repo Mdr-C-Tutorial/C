@@ -1,14 +1,14 @@
 # B.7 加载与附加：bpf() 系统调用与程序生命周期
 
-[B.3](/教程/正文/系统编程/拓展B_eBPF/B_3_第一个eBPF程序) 的 hello 只有四个骨架调用：open、load、attach、destroy。按 Ctrl-C 之后 `trace_pipe` 立刻安静下来，是因为 destroy 关掉了附加用的文件描述符；[B.6](/教程/正文/系统编程/拓展B_eBPF/B_6_Map与数据交换) 的 syscount 每次重新启动都从零开始计数：它打印完就删掉键，加上 map 又随着上一个进程退出被内核回收，两次运行之间什么也没留下。两件事背后是同一套机制：bpf() 系统调用创建的对象都靠引用计数存活，谁持有引用，谁决定它活多久。
+回顾 [B.3](/教程/正文/系统编程/拓展B_eBPF/B_3_第一个eBPF程序) 中的 `hello` 入门程序，用户态控制面仅仅依序调用了 `open`、`load`、`attach` 与 `destroy` 四个骨架函数；当我们在终端按下 `Ctrl-C` 触发退出信号时，原本不断刷新的 `trace_pipe` 管道便会瞬间归于沉寂，原因正是 `destroy` 关闭了维持挂载状态的文件描述符。同样地，在 [B.6](/教程/正文/系统编程/拓展B_eBPF/B_6_Map与数据交换) 的 `syscount` 工具中，每次重启监控进程都会从零开始重新计数：一方面它在每轮打印后主动清空了键值，另一方面其底层的内核 Map 也会随着前一个用户态进程的退出而被内核彻底回收，导致先后两次运行之间无法延续任何状态。这两处现象背后指向了同一套内核资源管理法则：由 `bpf()` 系统调用创建的各类内核对象均依托引用计数（Reference Counting）维持生命周期，究竟有哪些实体正持有对象引用，直接决定了该对象能在内核中存续多久。
 
-这一页把骨架拆开。先看 bpf() 这个系统调用有多少命令、各自返回什么；再抛开 libbpf 手写一个加载程序，看清 `BPF_PROG_LOAD` 到底收到哪些字段；然后回到骨架，把 open、load、attach、destroy 对应到具体的系统调用；最后讲引用计数、BPF link、bpffs 固定，以及用 bpftool 观察系统中的对象。读完能判断一个附加好的程序在加载程序退出后还在不在，能让 map 的数据跨进程存活，也能读懂 `bpftool prog show` 的每一列。
+为了彻底看清骨架封装之下的底层脉络，本节将深入 `bpf()` 系统调用的命令分发机制与对象生命周期模型：从梳理 `bpf()` 所支持的子命令与返回值约定出发，我们将暂时抛开 libbpf 高级库，直接基于原生系统调用手写一份完整的字节码加载器，直观审视 `BPF_PROG_LOAD` 与 `BPF_MAP_CREATE` 传递给内核的联合体字段；随后重新回到现代骨架编程模型，将 `open`、`load`、`attach`、`destroy` 四个阶段精准映射到具体的系统调用序列；最后围绕内核引用计数规则，剖析 BPF link 抽象、BPF 虚拟文件系统（bpffs）钉住（Pinning）持久化机制，并结合 `bpftool` 检视运行态内核对象的各项属性指标。
 
-本页的 `raw_load.c` 在 Debian 13 上用 `gcc -std=c17 -Wall -Wextra` 编译链接通过，`bpftool` 的帮助文本是在同一台机器上实际运行得到的。凡是要把程序加载进内核才能看到的输出，都照 bpf(2) 手册、内核文档和 libbpf 源码引用，写成「输出类似」，来源列在「参考资料」里。
+本节配套的原生加载示例 `raw_load.c` 已在 Debian 13 环境下通过 `gcc -std=c17 -Wall -Wextra` 严格编译校验，`bpftool` 相关子命令的帮助信息亦取自同一实测环境；涉及将字节码实际载入内核后产生的运行时输出，则对照 `bpf(2)` 手册页、Linux 内核官方文档与 libbpf 源码注释给出。完整工程归档于 `code/系统编程/拓展B_eBPF/B_7_加载与附加_bpf系统调用与程序生命周期/` 目录下。
 
 ## 1. 一个系统调用，几十个命令
 
-bpf() 的原型只有一个：
+整个 eBPF 子系统向用户空间暴露的系统调用入口极其收束，仅包含 `bpf()` 一个函数原型：
 
 ```c
 #include <linux/bpf.h>
@@ -16,59 +16,59 @@ bpf() 的原型只有一个：
 int bpf(int cmd, union bpf_attr *attr, unsigned int size);
 ```
 
-`cmd` 选操作，`attr` 指向一个联合体，`size` 是这个联合体的大小。建 map、加载程序、附加、固定、查信息，全部是这一个系统调用的不同 `cmd`。bpf(2) 手册对 `attr` 有一句必须遵守的说明：*The unused fields and padding must be zeroed out before the call.*
+其中，第一个参数 `cmd` 用于指定具体的操作指令（枚举类型 `enum bpf_cmd`），第二个参数 `attr` 指向一个庞大的共用联合体 `union bpf_attr`，第三个参数 `size` 则告知内核当前传入联合体的字节大小。无论是创建 Map、上传 BTF 元数据、加载并验证程序字节码，还是将探针附加到内核钩子、把对象钉住在文件系统中乃至查询对象运行信息，全部通过向同一个 `bpf()` 系统调用传递不同的 `cmd` 枚举值来完成分发。在使用该接口时，`bpf(2)` 手册页对 `attr` 参数提出了一条必须严格遵守的铁律：*The unused fields and padding must be zeroed out before the call.*（在发起调用前，所有当前子命令未使用的字段与内存对齐填充字节必须全部清零。）
 
-常用的命令列在下表里：
+工程中高频接触的核心子命令归纳如下表所示：
 
 | 命令 | 作用 | 成功时返回 | 主要 attr 字段 |
 | --- | --- | --- | --- |
-| `BPF_MAP_CREATE` | 创建 map | map 的文件描述符 | `map_type`、`key_size`、`value_size`、`max_entries` |
-| `BPF_MAP_LOOKUP_ELEM` | 按键读值 | 0 | `map_fd`、`key`、`value` |
-| `BPF_MAP_UPDATE_ELEM` | 写入或更新 | 0 | `map_fd`、`key`、`value`、`flags` |
-| `BPF_MAP_DELETE_ELEM` | 删除一个键 | 0 | `map_fd`、`key` |
-| `BPF_MAP_GET_NEXT_KEY` | 遍历时取下一个键 | 0 | `map_fd`、`key`、`next_key` |
-| `BPF_BTF_LOAD` | 上传 BTF 类型信息 | BTF 的文件描述符 | `btf`、`btf_size` |
-| `BPF_PROG_LOAD` | 验证并加载程序 | 程序的文件描述符 | `prog_type`、`insns`、`insn_cnt`、`license` |
-| `BPF_LINK_CREATE` | 附加并创建 BPF link | link 的文件描述符 | `prog_fd`、`target_fd`、`attach_type` |
-| `BPF_PROG_ATTACH` | 旧式附加，不创建 link | 0 | `target_fd`、`attach_bpf_fd`、`attach_type` |
-| `BPF_LINK_UPDATE` | 原子替换 link 上的程序 | 0 | `link_fd`、`new_prog_fd` |
-| `BPF_OBJ_PIN` | 把对象固定到 bpffs | 0 | `bpf_fd`、`pathname` |
-| `BPF_OBJ_GET` | 按固定路径取回对象 | 对象的文件描述符 | `pathname` |
-| `BPF_PROG_TEST_RUN` | 用构造的输入运行一次 | 0 | `prog_fd`、`data_in`、`data_out` |
+| `BPF_MAP_CREATE` | 创建内核 Map 实例 | 新 Map 的文件描述符 | `map_type`、`key_size`、`value_size`、`max_entries` |
+| `BPF_MAP_LOOKUP_ELEM` | 按键查询对应元素的值 | 0 | `map_fd`、`key`、`value` |
+| `BPF_MAP_UPDATE_ELEM` | 插入新键值或更新已有元素 | 0 | `map_fd`、`key`、`value`、`flags` |
+| `BPF_MAP_DELETE_ELEM` | 删除指定键对应的元素 | 0 | `map_fd`、`key` |
+| `BPF_MAP_GET_NEXT_KEY` | 迭代遍历时获取下一个键 | 0 | `map_fd`、`key`、`next_key` |
+| `BPF_BTF_LOAD` | 向内核上传 BTF 类型元数据 | BTF 对象的文件描述符 | `btf`、`btf_size` |
+| `BPF_PROG_LOAD` | 静态验证并加载 eBPF 程序 | 程序对象的文件描述符 | `prog_type`、`insns`、`insn_cnt`、`license` |
+| `BPF_LINK_CREATE` | 附加程序并创建 BPF link 实例 | link 对象的文件描述符 | `prog_fd`、`target_fd`、`attach_type` |
+| `BPF_PROG_ATTACH` | 传统附加模式（不生成 link） | 0 | `target_fd`、`attach_bpf_fd`、`attach_type` |
+| `BPF_LINK_UPDATE` | 原子替换 link 所绑定的程序 | 0 | `link_fd`、`new_prog_fd` |
+| `BPF_OBJ_PIN` | 将内核对象钉住到 bpffs 路径 | 0 | `bpf_fd`、`pathname` |
+| `BPF_OBJ_GET` | 按 bpffs 固定路径获取句柄 | 目标对象的文件描述符 | `pathname` |
+| `BPF_PROG_TEST_RUN` | 在沙箱中注入测试输入试运行程序 | 0 | `prog_fd`、`data_in`、`data_out` |
 
-返回值几乎全落在两类里：一个新的文件描述符，或者 0。内核文档的 Syscall API 页统计了全部命令，十三个返回文件描述符，二十五个返回 0，只有 `BPF_PROG_STREAM_READ_BY_FD` 返回读到的字节数；失败一律返回 -1 并设置 `errno`。手册里明确写了 `BPF_MAP_CREATE` 和 `BPF_PROG_LOAD` 返回的描述符带 close-on-exec 标志，这些描述符都不该被 `execve()` 之后的程序继承。
+审视上述子命令的返回值设计可以发现，几乎所有成功调用的结果都收敛在两个范畴内：要么返回一个新分配的**文件描述符**（当子命令在内核中创建或打开某个实体对象时），要么返回 **0**（当子命令针对既有对象执行读写、挂载或属性变更时）。根据 Linux 内核文档 *eBPF Syscall API* 的完整统计，在全部子命令中共有 13 个命令返回文件描述符，25 个命令返回 0，仅 `BPF_PROG_STREAM_READ_BY_FD` 返回实际读取的字节数；而一旦调用失败，则统一返回 `-1` 并设置相应的 `errno`。此外，手册页特别指明：`BPF_MAP_CREATE` 与 `BPF_PROG_LOAD` 等命令返回的文件描述符默认自动附带 `FD_CLOEXEC`（close-on-exec）标志，以防止这些敏感的内核对象句柄在当前进程调用 `execve()` 载入新映像时无意间泄漏给子进程。
 
-返回描述符这件事决定了整个对象模型。一个 map 在内核里没有名字，只有别人手上的描述符：描述符关掉，引用就少一个，见第 4 节。
+“创建对象即返回文件描述符”这一设计直接奠定了整个 eBPF 的内核对象管理模型。一个 Map 或一段 eBPF 程序在内核空间内并不依靠全局唯一的字符串名称来维系自身的存在，它的存续完全系于外部持有的文件描述符与内核引用之上——每关闭一个描述符，对象的内核引用计数便相应递减，具体规则将在第 4 节深入展开。
 
 ::: warning `attr` 里没用到的字段必须清零
 
-内核会检查这条命令用不到的字段，只要不是零就返回 `EINVAL`；`size` 超过内核认识的 `union bpf_attr` 时，多出来的那一段也必须是零，否则返回 `E2BIG`。调用前一句 `memset(&attr, 0, sizeof(attr))` 同时解决这两件事。
+内核在处理 `bpf()` 调用时，会严格核验当前 `cmd` 子命令未涉及的其余字段：只要发现任何未使用的字段或填充位包含非零残留字节，便会立即拒绝请求并返回 `EINVAL`；同时，当用户态传入的 `size` 大于当前运行内核所认知的 `union bpf_attr` 结构体尺寸时，内核还会逐字节检查超出部分是否全为零，若存在非零字节则返回 `E2BIG`。因此，在组装参数前始终执行一句 `memset(&attr, 0, sizeof(attr))`，便能同时满足这两项前向与后向兼容要求。
 
 :::
 
-`size` 传 `sizeof(union bpf_attr)` 就行。内核只拷贝前 `size` 个字节，再把比它自己的联合体多出来的部分检查一遍是否全零，所以旧程序用旧头文件编译出来的小结构照样能工作。
+在实际编码中，第三个参数 `size` 直接传入 `sizeof(union bpf_attr)` 即可。这种“携带结构体尺寸并强制零值校验”的设计是 Linux 内核实现系统调用平滑扩展的经典手法：当旧版用户态程序运行在新内核上时，内核只从用户空间拷贝前 `size` 个字节并将新增尾部视作零值默认值；当使用新头文件编译的程序运行在旧内核上时，只要未使用新特性（尾部新增字段保持全零），旧内核在校验尾部全零后依然能够正常放行。
 
 ## 2. 不用 libbpf 加载一个程序
 
-libbpf 把 bpf() 包了很多层。要看清它到底做了什么，最直接的办法是抛开它写一遍。下面这个程序只包含 `<linux/bpf.h>` 和 `<sys/syscall.h>`，不链接 libbpf。
+在日常开发中，libbpf 库为我们屏蔽了繁琐的 ELF 解析与系统调用拼装细节。为了直观洞悉 libbpf 在幕后完成的底层工作，最直接的途径便是暂时脱离第三方库，仅凭内核头文件 `<linux/bpf.h>` 与 `<sys/syscall.h>` 手工编写一个最小自包含加载器。
 
-完整文件在 `code/系统编程/拓展B_eBPF/B_7_加载与附加_bpf系统调用与程序生命周期/raw_load.c`，正文里贴出关键的三段。
+该示例的完整源码位于 `code/系统编程/拓展B_eBPF/B_7_加载与附加_bpf系统调用与程序生命周期/raw_load.c`，下文分段剖析其中的三处核心实现。
 
 ### 2.1 程序要做的事
 
-程序把一个套接字过滤器挂在本进程的 UDP 套接字上，过滤器每运行一次就把 map 里的计数加一，然后返回 0 丢弃报文。步骤是：
+该示例程序的目标是向当前进程自身创建的 UDP 套接字挂载一段 eBPF 套接字过滤器（Socket Filter）：每当有网络数据报流经该套接字时，过滤器便将内核数组 Map 中的计数器加一，随后返回 `0` 指示内核直接丢弃该报文。完整的执行流程包含以下五个步骤：
 
-1. `socket(AF_INET, SOCK_DGRAM, 0)` 之后绑定 `127.0.0.1:20003`；
-2. `BPF_MAP_CREATE` 建一个只有一项的数组 map；
-3. `BPF_PROG_LOAD` 加载手写的字节码；
-4. `setsockopt(SO_ATTACH_BPF)` 把程序挂到这个套接字上；
-5. 向自己发三个数据报，再 `recv`，然后用 `BPF_MAP_LOOKUP_ELEM` 读计数。
+1. 调用 `socket(AF_INET, SOCK_DGRAM, 0)` 创建 UDP 套接字，并将其绑定至本地回环地址 `127.0.0.1:20003`；
+2. 发起 `BPF_MAP_CREATE` 系统调用，在内核中创建一个仅包含 1 个元素的数组 Map；
+3. 发起 `BPF_PROG_LOAD` 系统调用，将手工构造的 eBPF 字节码数组加载进内核；
+4. 调用 `setsockopt(SO_ATTACH_BPF)` 将加载成功的程序描述符附加到上述 UDP 套接字上；
+5. 通过该套接字向自身连续发送三个测试数据报，尝试调用非阻塞 `recv` 接收，最后发起 `BPF_MAP_LOOKUP_ELEM` 系统调用读回内核 Map 中的累计计数值。
 
-端口 20003 是本章网络示例固定使用的一个，B.12、B.13 也用它。真正要观察的是第 2 步到第 4 步。
+其中端口号 `20003` 是本系列网络编程示例统一选用的测试端口（后续 B.12 与 B.13 章节亦沿用该端口）。我们重点关注其中的第 2 步至第 4 步。
 
 ### 2.2 建 map 与加载程序的 attr
 
-`bpf()` 没有 glibc 的包装函数，libbpf 内部也是直接调 `syscall()`：
+由于 GNU C 标准库（glibc）并未为 `bpf()` 提供专门的同名封装函数，包括 libbpf 在内的所有用户态工具在底层均通过通用的 `syscall()` 接口按系统调用号发起调用：
 
 ```c
 static int bpf_sys(enum bpf_cmd cmd, union bpf_attr *attr)
@@ -77,7 +77,7 @@ static int bpf_sys(enum bpf_cmd cmd, union bpf_attr *attr)
 }
 ```
 
-建 map 只需要填四个字段：
+创建一个基础的数组 Map 仅需在清零后的联合体中填充四个核心字段：
 
 ```c
 static int create_array_map(void)
@@ -94,9 +94,9 @@ static int create_array_map(void)
 }
 ```
 
-对照 bpf(2) 手册里 `BPF_MAP_CREATE` 的说明：`map_type` 选择内核里的 map 实现，`key_size` 和 `value_size` 是键和值的字节数，`max_entries` 是最大项数。键和值都是二进制块，内核不关心里面是什么类型，所以 map 的值可以是一个结构体。
+对照 `bpf(2)` 手册页中关于 `BPF_MAP_CREATE` 的规范说明：`map_type` 用于指定内核底层的存储数据结构实现，`key_size` 与 `value_size` 分别定义了键与值的字节宽度，而 `max_entries` 则限定了容器的最大条目容量。在内核眼里，Map 的键与值均只是定长的原始二进制字节块，内核本身并不介入其内部字段的语义解析，这也使得开发者能够自由地将任意复杂的 C 语言结构体作为 Map 的值进行存取。
 
-加载程序要填的字段多一些：
+相比之下，调用 `BPF_PROG_LOAD` 加载程序时需要填写的元数据字段要丰富得多：
 
 ```c
 static int load_prog(int map_fd)
@@ -139,13 +139,13 @@ static int load_prog(int map_fd)
 }
 ```
 
-`prog_type` 决定验证器按哪一套规则检查、程序能调用哪些辅助函数（[B.10](/教程/正文/系统编程/拓展B_eBPF/B_10_程序类型与附加类型) 展开）。`license` 是字符串指针，一部分辅助函数只对 GPL 兼容的许可证开放。`log_level` 非零时内核把验证过程写进 `log_buf`，`log_size` 不够时返回 `ENOSPC`。
+在这段加载逻辑中，`prog_type` 告知内核验证器应当采用哪一套上下文内存布局规则与辅助函数白名单来审查这段代码（详见 [B.10](/教程/正文/系统编程/拓展B_eBPF/B_10_程序类型与附加类型)）；`license` 传递指向许可证字符串的指针（需要强制转换为 64 位无符号整型以填入联合体），确保标记为 `gpl_only` 的辅助函数得以顺利放行；而在验证日志处理上，代码复刻了 libbpf 内部的经典两阶段策略：首次调用将 `log_level`、`log_buf` 与 `log_size` 全部置零，以避免验证器在正常加载路径上耗费额外的字符串格式化开销；一旦首次加载因验证失败而被驳回，则立即挂载 64 KiB 的日志缓冲区并将 `log_level` 设为 1 重新发起调用，从而将验证器拒绝的具体指令位置与寄存器状态完整捕获并打印出来（若日志缓冲区容量不足以容纳完整推演过程，内核会返回 `ENOSPC`）。
 
-`prog[0].imm = map_fd` 这一行值得停一下：字节码里引用 map 的那条 `lddw` 指令，`src_reg` 是 `BPF_PSEUDO_MAP_FD`，`imm` 是 map 的描述符。libbpf 从 ELF 重定位表里读出「这条指令指向第几个 map」，再把运行时的描述符填进去，做的正是同一件事。
+尤其值得驻足细看的是开头的 `prog[0].imm = map_fd;` 这一行赋值操作。在 eBPF 字节码中，凡是需要把某个 Map 对象的地址加载进寄存器以供辅助函数调用的地方，都必须使用一条跨越两个指令槽位的 64 位立即数加载指令（`lddw`），将其源寄存器字段标记为 `BPF_PSEUDO_MAP_FD`，并将当前进程持有的 Map 文件描述符填入第一槽位的 `imm` 立即数字段。当内核验证器扫描到带有 `BPF_PSEUDO_MAP_FD` 标记的加载指令时，便会根据 `imm` 中的文件描述符在当前进程的文件表中查找到对应的内核 `struct bpf_map` 实例，并在指令内部将其改写为该 Map 对象在内核虚拟地址空间中的真实内存指针。我们在使用 libbpf 时之所以无需手动填写描述符，正是因为 libbpf 在解析 ELF 重定位表时自动识别出了目标指令关联的 Map 符号，并在调用 `BPF_MAP_CREATE` 拿到描述符后替我们完成了这一步指令回填。
 
 ### 2.3 手写字节码
 
-套接字过滤器是一串 `struct bpf_insn`，每条 8 字节。下面这段实现「如果 map[0] 存在就加一，然后返回 0」：
+在内核头文件中，单条 eBPF 指令由 8 字节宽的 `struct bpf_insn` 结构体表示。下面这段手工编排的指令数组实现了“查找 `map[0]` 槽位，若指针非空则执行原子加一，最后统一返回 0”的完整逻辑：
 
 ```c
 static struct bpf_insn prog[] = {
@@ -181,21 +181,21 @@ static struct bpf_insn prog[] = {
 };
 ```
 
-有四条规则在这段代码里都能看到。
+透过这段紧凑的指令序列，可以直观印证前文介绍过的四项虚拟机底层准则：
 
-第一条，`lddw` 这类 64 位立即数加载占两个槽，第二个槽全零，跳转偏移按槽数算而不是按指令条数算。第 6 条的 `off = 2` 跳过槽 7、8，落到槽 9。
+第一，双槽位宽指令与相对跳转计算。槽位 `0` 与 `1` 共同组成了一条 16 字节的 `lddw` 伪加载指令，其中第二个槽位必须保持全零；而所有的条件跳转偏移量（`off`）均以 8 字节指令槽为单位，并从当前跳转指令的**下一条指令**开始起算——例如槽位 `6` 处的 `off = 2` 会在条件成立时跳过紧随其后的槽位 `7` 与 `8`，精准降落在槽位 `9` 处。
 
-第二条，栈上读写用 `r10` 加负偏移。`r10` 是帧指针，不能写；栈从 `r10 - 1` 向下生长，最多 512 字节。map 的查找辅助函数要求键指针指向栈或 map 值，直接传一个用户空间地址会被验证器拒绝。
+第二，基于帧指针 R10 的栈空间寻址。在调用 `bpf_map_lookup_elem` 时，第二个参数 R2 必须传递指向待查找键值的内存指针，且验证器强制要求该指针必须指向当前函数栈帧或其它已受控的内核内存区。由于 R10 是只读的栈底帧指针，代码在槽位 `2` 处将 4 字节整型键 `0` 写入 `r10 - 4` 处的栈内存中，随后在槽位 `3` 与 `4` 中计算出 `r10 - 4` 的地址并装入 R2。
 
-第三条，辅助函数按编号调用。`BPF_FUNC_map_lookup_elem` 展开就是 1，所以字节码里是 `call 1`。B.4 在反汇编里见过同一种写法。
+第三，按静态编号分发辅助函数调用。槽位 `5` 处的 `BPF_FUNC_map_lookup_elem` 在头文件中展开为枚举常量 `1`，对应的机器指令正是我们在 B.4 反汇编中见过的 `call 1`。
 
-第四条，套接字过滤器的返回值是「保留多少个字节」，返回 0 就是全部丢弃。这个约定只对 `BPF_PROG_TYPE_SOCKET_FILTER` 成立，XDP 的返回值是另一套（[B.10](/教程/正文/系统编程/拓展B_eBPF/B_10_程序类型与附加类型)）。
+第四，特定于程序类型的返回值契约。对于 `BPF_PROG_TYPE_SOCKET_FILTER` 类型的程序而言，退出前装入 R0 的返回值代表“允许内核保留并递交给套接字接收队列的报文最大字节数”，返回 `0` 即指示内核将该数据报完整丢弃（而在 XDP 等其它网络程序类型中，返回值则采用专门的动作枚举码，将在 [B.10](/教程/正文/系统编程/拓展B_eBPF/B_10_程序类型与附加类型) 中对比介绍）。
 
-对照一下：clang 为同一段逻辑生成的指令是十二个槽，比手写的多一个。它先把键 0 放进 `r1` 再存到栈上（`r1 = 0; *(u32 *)(r10 - 4) = r1`），而手写版本用 `BPF_ST` 直接把立即数写进栈。功能完全一样，手写版本省掉寄存器中转的那一步。两边的跳转偏移、`call 1` 和结尾的 `XADD` 都对得上。
+如果将完全相同的 C 语言逻辑交由 Clang 编译器生成目标代码，编译器会产出占据 12 个槽位的指令序列，比我们手写的版本多出 1 条指令：Clang 选择先将立即数 `0` 装入通用寄存器（`r1 = 0`），再通过寄存器写内存指令（`BPF_STX`）将其存入 `r10 - 4`；而手写版本则直接利用立即数写内存指令（`BPF_ST`）一步到位地完成了栈初始化，省去了寄存器中转。除此之外，两者在后续的指针判空跳转、`call 1` 辅助函数调用以及末尾的 `BPF_XADD` 原子累加指令上完全吻合。
 
 ### 2.4 附加与预期结果
 
-附加只有一句：
+将加载就绪的套接字过滤器挂载到目标 UDP 套接字上，仅需调用一行标准的 `setsockopt`：
 
 ```c
 if (setsockopt(sock, SOL_SOCKET, SO_ATTACH_BPF, &prog_fd, sizeof(prog_fd)) < 0) {
@@ -204,15 +204,13 @@ if (setsockopt(sock, SOL_SOCKET, SO_ATTACH_BPF, &prog_fd, sizeof(prog_fd)) < 0) 
 }
 ```
 
-这个选项收的是程序描述符。套接字从此持有程序的一个引用，每收到一个数据报就运行一次过滤器，返回值非零时保留前若干字节，返回 0 时丢弃。程序忽略 `ctx` 参数，所以它看不到报文内容，只知道有报文经过。
+`SO_ATTACH_BPF` 选项接收刚才由 `BPF_PROG_LOAD` 返回的程序文件描述符。调用成功后，内核中的套接字结构体便正式持有了该 eBPF 程序的一份引用：此后每当有数据报到达该套接字，内核协议栈便会触发过滤器执行，并根据返回值决定截断保留的长度或直接丢弃。由于我们的手写字节码全程忽略了上下文寄存器 R1，它并不读取报文载荷内容，仅在每次被唤醒时忠实累加流经的数据报数量。
 
-有 root 权限运行时，程序的行为是：三个数据报全部被丢弃，`recv` 返回 -1、`errno` 为 `EAGAIN`（`MSG_DONTWAIT` 下没有数据），最后一行打印 `过滤器运行了 3 次`。没有 root 时在第一步 `BPF_MAP_CREATE` 就被拒绝，错误是 `Operation not permitted`；发行版一般把 `kernel.unprivileged_bpf_disabled` 设成 2，普通用户连 map 都建不了，这个错误就是本页在 Debian 13 上以普通用户运行 `raw_load` 时实际得到的。
-
-本页的验证只做到编译。运行它就会向内核加载程序，这不在本页的验证范围之内，所以上面两段结果是按代码推出来的，不是实机输出。
+当在具备 `root` 特权（或拥有 `CAP_BPF` 与 `CAP_NET_ADMIN` 能力）的环境下运行该程序时，预期的运行表现为：主程序向自身发送的三个 UDP 数据报在进入接收队列前被过滤器悉数拦截丢弃，随后的非阻塞 `recv(..., MSG_DONTWAIT)` 调用因无数据可读而返回 `-1`（`errno` 置为 `EAGAIN`），最终从内核 Map 中读回并打印出 `过滤器运行了 3 次`。反之，若以普通非特权用户身份直接执行，程序在第一步调用 `BPF_MAP_CREATE` 时便会遭遇内核拦截并报出 `Operation not permitted` 错误——现代主流 Linux 发行版通常默认将内核参数 `kernel.unprivileged_bpf_disabled` 配置为 `2`，禁止非特权用户发起任何 `bpf()` 系统调用（我们在 Debian 13 实验环境 SignalX 上以普通用户身份实测运行 `raw_load` 时，捕获到的正是这一权限拒绝错误）。
 
 ### 2.5 编译
 
-`raw_load.c` 只用系统头文件，不需要 libbpf，编译命令里也没有 `-lbpf`：
+由于 `raw_load.c` 仅依赖 Linux 内核 UAPI 头文件与标准 C 库，编译时无需链接 `-lbpf`：
 
 ::: terminal title="zsh - build raw_load"
 
@@ -225,7 +223,7 @@ $ size raw_load
 
 :::
 
-`bss` 有 64 KiB，那一大块就是静态的 `log_buf`。把它放在静态区是有意的：64 KiB 放在栈上会直接撑爆线程栈的默认大小。
+通过 `size` 工具观察生成的可执行文件可以发现，`.bss` 未初始化数据段占据了约 64 KiB 空间，对应的正是我们在 `load_prog()` 内部声明为 `static` 的验证器日志缓冲区 `log_buf`。将其放置在静态存储区而非函数局部栈上，是为了避免硕大的字符数组耗尽用户态线程栈空间。
 
 ::: generate ebpf-b7-raw-load-walkthrough kind=explanation
 
@@ -235,13 +233,13 @@ $ size raw_load
 
 ## 3. 骨架背后的系统调用
 
-`raw_load.c` 里那几步，libbpf 每天都在替我们做。它把编译好的 ELF 读进来，替我们填 `union bpf_attr`，替我们处理重定位，最后把描述符交给骨架结构体。
+在手工走完 `raw_load.c` 的每一处底层细节后，我们再来审视现代 libbpf 骨架机制就会倍感清晰：libbpf 正是在幕后替我们接管了读取 ELF 目标文件、组装 `union bpf_attr` 参数、执行符号与描述符重定位，并将最终生成的各类文件描述符妥善保存在骨架结构体中的全套脏活累活。
 
 ### 3.1 四个骨架调用各自做了什么
 
-`hello_bpf__open()` 不发任何 bpf() 请求。它把骨架里嵌入的目标文件字节当 ELF 解析：读节头、认 SEC 名称确定每个程序的类型、从 `.maps` 节的 BTF 里读出 map 定义、收集重定位表。libbpf 的源码里这段叫 `bpf_object_open()`，结尾是 `bpf_object__elf_finish()`，中间没有任何 `sys_bpf()`。它会为每个 map 预留一个描述符槽位，用的是 `memfd_create()` 造的空文件描述符，等 load 阶段真正建 map 时再原地替换。这一手是为了让重定位在 map 还不存在时就能算好。
+调用第一阶段 `hello_bpf__open()` 时，libbpf **不会向内核发起任何 `bpf()` 系统调用**。该阶段纯粹在用户态内存中进行 ELF 格式解析：扫描各个节区头部、根据 `SEC(...)` 节名称推断每个探针的程序类型与附加类型、从 `.maps` 与 `.BTF` 节区中解析出所有 Map 的创建参数，并收集重定位表。在 libbpf 源码实现中，这一过程对应于 `bpf_object_open()` 函数，直至末尾调用 `bpf_object__elf_finish()` 释放原始 ELF 缓冲区为止，全程不触碰内核 BPF 子系统。唯一涉及的系统调用是：libbpf 会提前为每一个待创建的 Map 调用 `memfd_create()` 申请一个占位的匿名内存文件描述符，以便在尚未真正创建内核 Map 的情况下提前完成相关指令的描述符槽位分配，待进入 `load` 阶段创建出真实的内核 Map 后再通过 `dup2()` 原地替换。
 
-`hello_bpf__load()` 是一长串系统调用：
+进入第二阶段 `hello_bpf__load()` 后，libbpf 开始向内核密集发起一系列系统调用。对照 libbpf 源码中 `bpf_object_load()` 的真实实现，其内部调用链严格遵循如下顺序：
 
 ```text
 bpf_object_load()
@@ -254,27 +252,27 @@ bpf_object_load()
 └── bpf_object__load_progs()         BPF_PROG_LOAD，每个程序一次
 ```
 
-这个顺序是从 libbpf 源码的 `bpf_object_load()` 里抄下来的，函数名一字不差。注意第一项：libbpf 在加载任何东西之前，先加载一个只有 `r0 = 0; exit` 的临时程序，验证通过就立刻关掉描述符。它探测的是「这个内核到底让不让我用 BPF」，失败时给出的提示是 *Couldn't load trivial BPF program*。
+上述子函数名称与源码保持完全一致。其中排在首位的 `bpf_object__probe_loading()` 尤为有趣：在正式处理业务对象之前，libbpf 会先向内核提交一段仅包含 `r0 = 0; exit` 两条指令的极简探测程序，一旦加载成功便立即关闭该描述符。这一步旨在探测当前宿主机内核是否开启了 BPF 支持以及当前进程是否具备足够的加载权限；若连这两条指令都被拒绝，libbpf 便会直接终止后续流程并输出 *Couldn't load trivial BPF program* 提示。随后，libbpf 依次读取宿主内核的 `/sys/kernel/btf/vmlinux`、完成跨版本结构体偏移重定位、通过 `BPF_BTF_LOAD` 上传目标文件自身的 BTF 元数据、遍历创建所有内核 Map 并把真实的 `map_fd` 回填进字节码的 `lddw` 指令中，最后针对每一个探针函数调用 `BPF_PROG_LOAD` 完成验证与加载。
 
-`hello_bpf__attach()` 按 SEC 名称决定附加方式。tracepoint 走 `perf_event_open()` 加 `BPF_LINK_CREATE`：先按事件名查出 tracepoint 的 ID，用 `PERF_TYPE_TRACEPOINT` 和这个 ID 开一个 perf 事件，再以 `BPF_PERF_EVENT` 为附加类型创建 link。kprobe、uprobe 同理，只是 perf 事件的类型不同。
+第三阶段 `hello_bpf__attach()` 则依据各探针的 `SEC` 节名称自动分派对应的挂载系统调用。以静态跟踪点（tracepoint）为例，libbpf 首先从 `/sys/kernel/tracing/events/.../id` 中读取目标事件的数值编号，调用 `perf_event_open()`（指定 `PERF_TYPE_TRACEPOINT`）打开一个内核性能事件文件描述符，最后发起 `bpf(BPF_LINK_CREATE, ...)` 系统调用（指定附加类型为 `BPF_PERF_EVENT`）将探针程序与该性能事件正式绑定，并返回一个 `bpf_link` 对象。对于 kprobe 与 uprobe 等动态探针，底层同样遵循“先打开 perf 事件描述符、再创建 BPF link”的两步挂载路径。
 
-`hello_bpf__destroy()` 先对每个 link 调 `bpf_link__destroy()`：对 tracepoint 这类基于 perf 事件的 link，内部的 detach 会 `ioctl(PERF_EVENT_IOC_DISABLE)`，再关掉 link 和 perf 事件两个描述符；然后 `bpf_object__close()` 关掉所有程序和 map 的描述符。第 4 节会说明，这两步就是程序从内核里消失的全部原因。
+第四阶段 `hello_bpf__destroy()` 负责逆向拆卸并释放全部资源：它首先遍历骨架中的每一个 `link` 指针并调用 `bpf_link__destroy()`（对于基于 perf 事件的跟踪探针，内部会先通过 `ioctl(PERF_EVENT_IOC_DISABLE)` 停用事件触发，随后依次关闭 `link` 描述符与 `perf` 事件描述符）；紧接着调用 `bpf_object__close()`，将此前打开的所有程序文件描述符、Map 文件描述符以及 BTF 文件描述符逐一调用 `close()` 关闭。正如第 4 节即将揭示的，关闭这批文件描述符正是让探针程序与 Map 从内核中彻底卸载销毁的根本触发动作。
 
 ::: tip 自己看一遍这些系统调用
 
-在一台允许加载 BPF 的机器上，把加载程序的系统调用录下来：
+在一台具备 BPF 加载权限的实验机器上，可以直接借助 `strace` 拦截并录制加载器进程发起的核心系统调用序列：
 
 ```bash
 sudo strace -f -e trace=bpf,perf_event_open,memfd_create ./hello 2>&1 | head -40
 ```
 
-会看到 `bpf(BPF_PROG_LOAD, ...)`、`bpf(BPF_MAP_CREATE, ...)`、`perf_event_open(...)`、`bpf(BPF_LINK_CREATE, ...)` 依次出现，以及 open 阶段那几个 `memfd_create`。`-e trace=bpf` 只留下 bpf() 时更清楚。
+在终端输出中，你将清晰目睹 `open` 阶段用于占位的 `memfd_create`、以及 `load` 和 `attach` 阶段依次触发的 `bpf(BPF_PROG_LOAD, ...)`、`bpf(BPF_MAP_CREATE, ...)`、`perf_event_open(...)` 与 `bpf(BPF_LINK_CREATE, ...)` 调用轨迹。若将过滤条件收敛为 `-e trace=bpf`，则可专门检视每一次 `bpf()` 调用的具体参数字段。
 
 :::
 
 ### 3.2 libbpf 的调试日志
 
-libbpf 把每一步都写进调试日志，默认级别不显示，用 `libbpf_set_print()` 打开。libbpf-bootstrap 的 bootstrap 示例带 `-v` 选项，README 给出了它的日志开头（输出类似）：
+为了便于开发者诊断 ELF 解析、重定位与验证过程中的异常，libbpf 在内部各关键节点均埋设了详尽的调试日志，默认情况下仅输出警告与错误信息，可通过注册 `libbpf_set_print()` 回调函数将其完整开启。在 libbpf-bootstrap 仓库的 `bootstrap` 示例中便内置了 `-v` 详细日志开关，其官方 README 展示了开启后的典型输出片段：
 
 ::: terminal title="zsh - ./bootstrap -v（引用 libbpf-bootstrap README）"
 
@@ -292,7 +290,7 @@ libbpf: license of bootstrap_bpf is Dual BSD/GPL
 
 :::
 
-这几行全部发生在 open 阶段，也就是在 `BPF_PROG_LOAD` 之前。它们证明 open 只做 ELF 解析：`section(2)`、`section(3)` 是节索引，`type=1` 是 `SHT_PROGBITS`，`found program` 后面的 `48 insns` 是从节大小除以 8 推算出来的。日志走 `pr_debug`，级别为 `LIBBPF_DEBUG`，所以加载程序里那个 `libbpf_set_print` 回调必须放行 `LIBBPF_DEBUG` 才能看到。
+上面展示的这几行日志全部产生于 `open` 阶段（即尚未发起任何 `BPF_PROG_LOAD` 系统调用之前），直观印证了 `open` 阶段纯粹聚焦于用户态 ELF 解析：`section(2)` 与 `section(3)` 对应 ELF 节区表下标，`type=1` 对应标准代码数据节类型 `SHT_PROGBITS`，而 `48 insns (384 bytes)` 则是将节区字节总长度除以单条指令的 8 字节跨度直接换算得出的指令条数。由于这些内部追踪日志在 libbpf 源码中均通过 `pr_debug` 宏以 `LIBBPF_DEBUG` 级别发出，用户态注册的打印回调函数只需放行该级别即可将其呈现在标准错误流上：
 
 ::: code-group
 
@@ -354,20 +352,20 @@ sequenceDiagram
 
 ## 4. 引用计数决定对象存活
 
-第 1 节说过，bpf() 建出来的对象没有名字，只有描述符。这带来一个直接后果：程序加载完、描述符交给用户态之后，对象是死是活取决于还有谁拿着它。
+正如第 1 节所述，通过 `bpf()` 创建出的内核对象本身不具备全局符号名称，仅凭返回给调用方的文件描述符加以标识。这一机制带来了一个直接结果：当一段程序或一个 Map 完成加载并将文件描述符交还给用户态之后，该对象在内核中能否继续存续，完全取决于系统中是否仍有实体持有它的引用。
 
 ::: concept ebpf-b7-object-lifetime title="BPF 对象的存活由引用计数决定"
 
-BPF 程序、map、BTF 和 link 都是引用计数的内核对象。引用计数大于 0 时对象存活；减到 0 之后，对象在宽限期结束后被释放。以下四件事各持有一份引用：打开的文件描述符、程序指令里引用的 map、附加到钩子上这件事本身、bpffs 里的一个固定路径。
+BPF 程序、Map、BTF 元数据以及 BPF link 均属于受引用计数（`refcnt`）管控的内核对象。只要对象的引用计数大于 0，它便持续驻留在内核内存中；一旦引用计数归零，内核便会在经历一次 RCU 宽限期（Grace Period）后将其彻底释放回收。在系统中，以下四类载体各自独立持有一份对象引用：用户态打开的文件描述符、已加载程序指令中对 Map 的内部引用、挂载在内核钩子上的附加关系本身，以及钉住在 bpffs 虚拟文件系统中的目录项路径。
 
 :::
 
-「Lifetime of BPF objects」一文把这个规则写得很干脆：*As long as the refcnt of a BPF object (program or map) is > 0, the kernel will keep it alive.*（只要 BPF 对象（程序或 map）的引用计数大于 0，内核就会让它活着。）同一篇还说明了几种增加计数的动作：
+内核首席维护者 Alexei Starovoitov 在经典技术文档 *Lifetime of BPF objects* 中将这一存活法则概括得极为简明：*As long as the refcnt of a BPF object (program or map) is > 0, the kernel will keep it alive.*（只要 BPF 程序或 Map 对象的引用计数大于 0，内核就会维持其存活状态。）该文档同时梳理了引发引用计数递增的四个核心环节：
 
-- 创建对象时计数为 1，随对象返回一个描述符；
-- 程序加载时，验证器把它引用到的每个 map 的计数加一，程序自己的计数置为 1；
-- 程序附加到钩子上时，程序的计数加一；
-- 把对象固定到 bpffs 时，计数加一。
+- 调用 `bpf()` 创建对象成功时，对象的初始引用计数被置为 `1`，并与返回给用户态的文件描述符相绑定；
+- 当某段 eBPF 程序通过 `BPF_PROG_LOAD` 加载入内核时，验证器会扫描其字节码中所有标记为 `BPF_PSEUDO_MAP_FD` 的指令，将所引用的每一个 Map 对象的引用计数分别加 `1`，并将该程序自身的初始引用计数置为 `1`；
+- 当程序被附加到内核钩子（Hook）或创建出关联的 `bpf_link` 时，程序对象的引用计数相应加 `1`；
+- 当调用 `BPF_OBJ_PIN` 将对象钉住到 bpffs 文件系统路径上时，目标对象的引用计数加 `1`。
 
 ```mermaid
 flowchart LR
@@ -379,18 +377,18 @@ flowchart LR
     PIN2["bpffs 里的固定路径"] -->|持有 1| MAP
 ```
 
-bpf(2) 手册的 NOTES 一节把描述符的性质写得更细：描述符在 `fork()` 之后被子进程继承，可以经 Unix 域套接字传给别的进程，也可以正常 `dup()`（[主线第 10 章](/教程/正文/系统编程/10_套接字编程)讲过 `SCM_RIGHTS`）。一个对象只有在所有指向它的描述符都关闭之后才被释放。手册同时说了一句容易被忽略的话：*Programs normally disappear when their loader exits, although an attached subsystem can retain a reference.*（程序通常在加载程序退出时消失，不过附加它的子系统可能保留一份引用。）
+`bpf(2)` 手册页的 NOTES 章节进一步阐明了 BPF 文件描述符在进程间流转时的标准 POSIX 属性：这些描述符在调用 `fork()` 派生子进程时会被自动继承，支持通过 `dup()` 复制句柄，也支持借助 Unix 域套接字的 `SCM_RIGHTS` 辅助消息在无亲缘关系的进程之间传递（参见[主线第 10 章 套接字编程](/教程/正文/系统编程/10_套接字编程)）；唯独在执行 `execve()` 时会因默认携带 `FD_CLOEXEC` 标志而被内核自动关闭。只有当指向同一个底层内核对象的所有文件描述符与外部引用全部关闭销毁后，该对象才会被内核回收。手册页随后补充了一句耐人寻味的总结：*Programs normally disappear when their loader exits, although an attached subsystem can retain a reference.*（程序通常会在加载它的进程退出时随之消失，但挂载该程序的内核子系统可能会额外保留一份引用。）
 
 ### 4.1 两类附加点
 
-上面那句话里的「附加它的子系统可能保留一份引用」，就是程序在加载程序退出后还在不在的分界线。「Lifetime of BPF objects」把钩子分成两类：
+手册页中提到的“挂载子系统是否额外保留引用”，恰恰构成了决定“用户态加载器进程退出后，内核探针是否仍在后台继续运行”的分水岭。*Lifetime of BPF objects* 一文据此将内核中的挂载钩子划分为两大类别：
 
 | 类别 | 例子 | 谁持有引用 | 加载程序退出后 |
 | --- | --- | --- | --- |
 | 绑定在进程的描述符上 | kprobe、uprobe、tracepoint、raw tracepoint、perf_event、套接字过滤器、reuseport | 进程打开的那个事件描述符或套接字 | 描述符关闭，程序被分离 |
 | 全局的（经 netlink 或 `BPF_PROG_ATTACH` 附加） | XDP、tc 的 clsact、cgroup 钩子 | 网卡或 cgroup 本身 | 程序继续处理报文，直到显式卸载 |
 
-套接字过滤器是前一类里最直观的例子：`SO_ATTACH_BPF` 把程序挂在套接字上，套接字一关，附加就结束。`raw_load.c` 里如果删掉 `close(sock)`，进程退出时内核也会替它关。
+前文手写的套接字过滤器正是第一类“描述符局部挂载点”的典型代表：`setsockopt(SO_ATTACH_BPF)` 将程序引用直接挂载在套接字内核结构上，一旦所属的套接字文件描述符被关闭，附加关系便即刻解除。即便我们在 `raw_load.c` 末尾故意省去 `close(sock)` 调用，当进程终止退出时，操作系统内核在清理进程文件表时依然会自动关闭所有残留描述符，进而触发过滤器的自动分离与释放。
 
 <Quiz
   type="single"
@@ -409,15 +407,15 @@ bpf(2) 手册的 NOTES 一节把描述符的性质写得更细：描述符在 `f
 
 </template>
 
-正确答案是 **A**。libbpf 的附加函数返回的是 `bpf_link`，骨架的 `__destroy` 会关闭它的描述符；link 是引用计数对象，最后一个描述符关闭时内核的 release 回调把程序从钩子上摘下来。B 描述的是经 netlink 附加的旧式 XDP、tc 程序，见 4.2 节。
+正确答案是 **A**。libbpf 的现代附加接口统一返回 `struct bpf_link *` 对象，无论用户态是显式调用骨架的 `__destroy` 还是直接退出进程，内核都会关闭该 `bpf_link` 关联的文件描述符；当最后一个描述符关闭使 link 的引用计数归零时，内核的 `release` 回调便会自动将程序从跟踪点钩子上摘除。选项 B 描述的是通过传统 netlink 消息直接挂载在网卡或排队规则上的旧式 XDP 与 TC 程序行为，详见下节对比。
 
 </Quiz>
 
 ### 4.2 用 link 附加时，情况变了
 
-还有一类附加点需要单独说明：用 `BPF_LINK_CREATE` 创建的 link。link 本身是一个引用计数对象，它的生命周期绑定在描述符上。内核源码里 XDP link 的 release 回调 `bpf_xdp_link_release()` 直接把程序从网卡上摘下来，`close()` 最后一个描述符就会走到这里。
+随着现代内核引入 `BPF_LINK_CREATE` 机制，上述“全局钩子在进程退出后依然常驻”的传统规律发生了一项重要演进。由于 `bpf_link` 本身是一个由文件描述符托管的引用计数对象，它的存亡默认与创建它的进程文件描述符深度绑定。翻阅 Linux 内核网络子系统源码可以看到，XDP link 对象的销毁回调函数 `bpf_xdp_link_release()` 会直接把绑定的 XDP 程序从网卡驱动槽位上摘除——只要用户态关闭了指向该 link 的最后一个文件描述符（且未将其钉住在 bpffs 上），内核就会立即走入这一清理分支。
 
-所以「XDP 程序在加载程序退出后还留在网卡上」这句话，只对旧式的 netlink 附加成立：`ip link set dev lo xdpgeneric obj xdp.o sec xdp` 这种方式由内核直接记在网卡的 `xdp_state` 上，没有 link 对象。而用 `bpf_program__attach_xdp()`（内部是 `BPF_LINK_CREATE`）附加的 XDP 程序，加载程序一退出就没了。
+因此，许多早期技术资料中常说的“XDP 程序在加载进程退出后依然留在网卡上持续处理数据包”，实际上仅适用于通过传统 netlink 接口（例如执行 `ip link set dev lo xdpgeneric obj xdp.o sec xdp` 命令）直接修改网卡 `xdp_state` 状态的挂载方式，因为该路径根本不会创建 `bpf_link` 对象。反之，如果使用现代 libbpf 的 `bpf_program__attach_xdp()` 接口（底层默认发起 `BPF_LINK_CREATE` 调用）完成附加，一旦加载器进程退出且未做持久化钉住，挂载在网卡上的 XDP 程序同样会随进程一道自动卸载：
 
 ::: compare vertical left-title="经 netlink 附加：留在网卡上" right-title="经 BPF link 附加：随描述符消失"
 
@@ -445,13 +443,13 @@ link = bpf_program__attach_xdp(skel->progs.xdp_count, ifindex);
 
 :::
 
-左边那几行的格式照 xdp-tutorial 的演示，`prog/xdp id ... tag ... jited` 是 `ip link show` 在挂有 XDP 程序时多出来的一行。
+左侧终端展示的输出格式引自 `xdp-tutorial` 经典实验，其中 `prog/xdp id ... tag ... jited` 一行正是 `ip link show` 在检测到网卡挂载有 XDP 程序时额外输出的内核状态标识。
 
-真正需要「加载程序退出、程序留下」的场合，做法不是指望 netlink，而是把 link 固定到 bpffs，见第 6 节。
+如果在使用现代 `bpf_link` 接口的同时，又希望实现“命令行加载工具执行完毕立即退出，而探针或网络程序继续留在内核钩子上工作”的守护效果，只需将该 `bpf_link` 对象钉住（Pin）到 bpffs 文件系统中即可，具体做法见第 6 节。
 
 ::: info 不要把长驻程序交给一个前台命令
 
-凡是靠加载程序维持的附加，都会在进程收到 `SIGKILL`、崩溃或重启时消失。生产环境里要么让加载程序常驻并由服务管理器拉起，要么把 link 固定到 bpffs。临时用 `sudo ./tool` 跑起来再关终端，程序随之消失，这是正常的。
+凡是依赖加载器进程所持有的文件描述符来维持附加状态的程序，一旦该进程遭遇 `SIGKILL` 强制终止、意外崩溃或终端会话断开，内核都会在回收进程描述符表时自动摘除全部探针。因此在生产环境部署长驻监控或网络策略时，要么将加载器注册为受 `systemd` 等服务管理器守护的后台常驻服务，要么显式将创建的 `bpf_link` 与 Map 钉住到 `/sys/fs/bpf` 下。而在日常调试中直接在前台运行 `sudo ./tool` 并随时按 `Ctrl-C` 退出，探针随之干净卸载不留任何内核残留，恰恰是文件描述符生命周期带来的便利特性。
 
 :::
 
@@ -463,20 +461,22 @@ link = bpf_program__attach_xdp(skel->progs.xdp_count, ifindex);
 
 ## 5. BPF link
 
-用 `BPF_PROG_ATTACH` 附加时，内核里没有「这次附加」的实体，只有「这个钩子现在挂着这个程序」这一条状态。要撤销，得再发一次 `BPF_PROG_DETACH`；要查现在挂着什么，得用 `BPF_PROG_QUERY`；程序要换怎么办？先 detach 再 attach，中间有一段时间钩子上什么都没有。
+在早期仅支持 `BPF_PROG_ATTACH` 或 netlink 挂载的内核版本中，内核内部并不存在一个专门代表“某次挂载关系”的独立对象，目标钩子槽位上仅仅记录着“当前挂载的是哪一个程序指针”。这种无句柄设计在工程运维中暴露出诸多不便：若要卸载程序，必须再次构造完全相同的目标参数发起 `BPF_PROG_DETACH`；若加载器进程意外崩溃，钩子上的程序便沦为无人认领的孤儿状态；若要将旧版程序升级为新版程序，或者需要先 `detach` 再 `attach`（从而在切换瞬间留下毫微秒级的监控真空期），或者极易在多个管理进程并发操作时发生无条件互相覆盖。
 
-BPF link 把「程序附加在某处」这件事本身做成内核对象。`BPF_LINK_CREATE` 接受程序描述符、目标描述符和附加类型，返回 link 的描述符。此后：
+为了统一收束纷繁各异的挂载机制，Linux 内核引入了 **BPF link**，将“程序与内核钩子之间的绑定关系”正式抽象为一等公民级别的内核对象。调用 `BPF_LINK_CREATE` 时传入程序描述符、目标对象描述符以及附加类型，内核便会返回指向该绑定关系的 `link` 文件描述符。自此之后，挂载关系获得了四项关键能力：
 
-- link 的存活按第 4 节的规则走，关掉最后一个描述符就分离；
-- link 可以固定到 bpffs，让附加状态跨进程存活；
-- `bpftool link show` 能列出系统里所有的 link，并且能看出它挂在哪个钩子上；
-- `BPF_LINK_UPDATE` 换掉 link 上的程序，不经过「先摘后挂」的中间状态。
+- **统一的自动回收语义**：无论底层挂载的是跟踪点还是 XDP 网卡驱动，只要关闭指向 link 的最后一个文件描述符，内核便自动将程序从钩子上安全摘除，彻底消除了进程崩溃导致的探针残留；
+- **跨进程持久化**：link 对象自身支持通过 `BPF_OBJ_PIN` 钉住到 bpffs 文件系统中，使挂载状态能够以受控的伪文件路径形式跨进程存活；
+- **全局可观测性**：管理员随时可执行 `bpftool link show` 枚举系统中所有活跃的挂载关系，清晰检视每个程序分别绑定在哪个具体的内核事件、cgroup 或网卡接口上；
+- **无损原子热替换**：支持调用 `BPF_LINK_UPDATE` 将 link 上绑定的旧程序原地原子切换为新程序，全程不产生任何中断或卸载空窗期。
 
-内核文档对它的定位写得很直接：*BPF links are the newest and thus preferred way to attach BPF programs to their hook locations within the kernel.*（BPF link 是把 BPF 程序附加到内核钩子上的最新、也是首选的途径。）同一页说明：*It is intended to replace both BPF_PROG_ATTACH and other legacy attachment methods.*（它意在取代 `BPF_PROG_ATTACH` 与其他旧的附加方式。）
+Linux 内核官方文档在介绍该机制时明确给出了架构定调：*BPF links are the newest and thus preferred way to attach BPF programs to their hook locations within the kernel. It is intended to replace both BPF_PROG_ATTACH and other legacy attachment methods.*（BPF link 是将 BPF 程序附加到内核钩子位置的最新且首选的方式，旨在全面取代 `BPF_PROG_ATTACH` 以及其它历史遗留的附加手段。）
 
-libbpf 的附加 API 全部返回 `struct bpf_link *`。`bpf_program__attach_tracepoint()` 这样的函数内部就是 `perf_event_open()` 加 `bpf_link_create()`，骨架的 `__attach` 把这些返回值存进 `skel->links`。`hello_bpf__destroy()` 调 `bpf_link__destroy()`，对 tracepoint 这类 link 就是停用 perf 事件、关掉两个描述符。
+在 libbpf 的用户态编程接口中，所有形如 `bpf_program__attach_*()` 的函数统一返回 `struct bpf_link *` 指针。例如调用 `bpf_program__attach_tracepoint()` 时，函数内部会自动依次完成 `perf_event_open()` 与 `bpf_link_create()`，而骨架生成的 `__attach` 函数则将返回的指针保存在 `skel->links` 结构体字段中；待销毁阶段调用 `hello_bpf__destroy()` 时，内部遍历调用 `bpf_link__destroy()` 即可一次性关闭 link 描述符与底层 perf 事件描述符。
 
 ### 5.1 五种附加方式的对照
+
+下表横向对比了 Linux 演进历程中出现的五种典型附加方式在对象模型与运维能力上的差异：
 
 | 方式 | 内核里的实体 | 关闭描述符后 | 能否固定 | 能否原子替换 |
 | --- | --- | --- | --- | --- |
@@ -486,7 +486,7 @@ libbpf 的附加 API 全部返回 `struct bpf_link *`。`bpf_program__attach_tra
 | netlink（`ip link set ... xdp`） | 网卡的 `xdp_state` | 不受影响 | 否 | 否 |
 | `perf_event_open` 加 ioctl | perf 事件上的一个指针 | 分离 | 否 | 否 |
 
-第三行的「看 link 类型」是内核里的实际实现：`link_update()` 检查 link 的操作表里有没有 `update_prog`，没有就返回 `EINVAL`。XDP link 登记了 `bpf_xdp_link_update`，perf 事件的 link 没有，所以对 tracepoint link 调 `BPF_LINK_UPDATE` 会失败。
+表格第三行中的“看 link 类型”直接对应于内核 `kernel/bpf/syscall.c` 中的 `link_update()` 实现：当收到 `BPF_LINK_UPDATE` 请求时，内核会检查该 link 所属的操作函数表（`struct bpf_link_ops`）是否注册了 `.update_prog` 回调方法，若未注册则直接返回 `-EINVAL`。例如 XDP link 与 cgroup link 均实现了各自的更新回调（如 `bpf_xdp_link_update`），支持平滑原子替换；而基于 perf 事件的 tracepoint、kprobe 等跟踪类 link 目前并未注册该回调，因此对其调用 `BPF_LINK_UPDATE` 会收到不支持错误。
 
 <Quiz
   type="single"
@@ -505,35 +505,35 @@ libbpf 的附加 API 全部返回 `struct bpf_link *`。`bpf_program__attach_tra
 
 </template>
 
-正确答案是 **B**。这条路走 netlink，程序直接记在网卡的 `xdp_state` 上，没有 link 对象，因此不受发起命令的进程影响。要卸载得再执行一次 `ip link set dev lo xdpgeneric off`。用 `bpf_program__attach_xdp()` 走 link 时结果才是 A。
+正确答案是 **B**。`iproute2` 的 `ip link` 命令通过传统 netlink 消息直接将程序挂载在网卡设备的 `xdp_state` 属性上，并未创建绑定于进程描述符的 `bpf_link` 对象，因此在命令行工具退出后程序依然常驻网卡处理报文，直至显式执行 `ip link set dev lo xdpgeneric off` 将其卸载。唯有使用 `bpf_program__attach_xdp()` 走 `BPF_LINK_CREATE` 路径且未钉住时，结果才是 A。
 
 </Quiz>
 
 ::: tip 新代码一律用 link
 
-libbpf 的附加函数返回的都是 link，骨架的 `skel->links` 里存的也是 link，所以只要按 B.3 的写法用骨架，已经在用 link 了。需要留意的是两类旧写法：`setsockopt(SO_ATTACH_BPF)` 和 `bpf_program__attach_perf_event()` 的 legacy 模式。前者在 libbpf 里没有替代品，套接字过滤器本来就只能这样附加；后者只在旧内核上退化成 ioctl。
+由于 libbpf 的现代附加接口默认返回 `bpf_link`、生成的骨架结构也在 `skel->links` 中统一托管它们，因此只要遵循 B.3 介绍的标准骨架开发模式，便已经自然而然地处于 BPF link 体系的保护之下。日常阅读存量代码时，仅需留意两类传统写法：其一是 `setsockopt(SO_ATTACH_BPF)`，因为普通套接字过滤器至今仍专门通过套接字选项挂载，并未设立对应的 link 类型；其二是 `bpf_program__attach_perf_event()` 在早期内核上自动回退的 `ioctl(PERF_EVENT_IOC_SET_BPF)` 模式。
 
 :::
 
 ### 5.2 用 BPF_LINK_UPDATE 换程序
 
-换程序时可以把新旧两头的描述符都交出去：
+在支持原子替换的 link 类型上，用户态可以通过 `bpf_link_update()` 将挂载的程序无缝切换为新版本：
 
 ```c
 int err = bpf_link_update(bpf_link__fd(link), new_prog_fd, &opts);
 ```
 
-`opts` 是 `struct bpf_link_update_opts`，其中有 `old_prog_fd` 和 `flags` 两个字段。先给 `old_prog_fd` 赋值、再把 `flags` 置成 `BPF_F_REPLACE`，内核就会先确认这个 link 上现在挂着的确实是 `old_prog_fd`，不是就返回 `EPERM`，避免两个管理进程互相覆盖。旧程序在替换之后引用计数减一，如果没人再拿着它，就被释放。
+第三个参数指向 `struct bpf_link_update_opts` 选项结构体，其中包含 `old_prog_fd` 与 `flags` 两个关键字段。若在调用时将当前预期正在运行的旧程序描述符填入 `old_prog_fd`，并将 `flags` 设置为 `BPF_F_REPLACE`，内核在执行替换前便会执行一次严格的“比较并交换”（Compare-And-Swap）校验：唯有确认该 link 当前绑定的确实是 `old_prog_fd` 所指向的程序时才允许替换，若不一致则立即拒绝并返回 `-EPERM`。这一乐观锁机制能够有效防止多个控制面进程在并发热升级时发生误覆盖。替换生效后，旧程序的内核引用计数随即减 `1`，若无其它描述符引用便被自动回收。
 
-libbpf 的包装是 `bpf_link__update_program(link, prog)`，它只填 `new_prog_fd`，不带 `old_prog_fd`。
+若无需校验旧版本，也可直接调用 libbpf 提供的简写封装 `bpf_link__update_program(link, prog)`，它在底层仅传入 `new_prog_fd` 完成无条件替换。
 
 ## 6. 固定到 BPF 文件系统
 
-第 4 节说引用计数决定存活，那么「让对象活得比进程久」的办法就很自然：找一个进程之外的东西替它持有引用。bpffs 就是这个东西。
+既然第 4 节确立了“内核对象的存亡完全取决于引用计数是否归零”这一准则，那么想要让某个程序、Map 或 link 在创建它的进程退出之后依然长久留存，思路便十分清晰：只需在进程生命周期之外找一个常驻载体替我们持有一份引用。Linux 内核专为此设计的载体便是 **BPF 虚拟文件系统（bpffs）**。
 
 ### 6.1 bpffs 与 bpf_obj_pin
 
-bpffs 是一种伪文件系统，通常挂在 `/sys/fs/bpf`。它不能存普通文件，只能存 BPF 对象的固定点（pin）。一个固定点看起来是个空文件，实际含义是「这里有一份对某个 BPF 对象的引用」。对它 `unlink()`，引用就减一。
+bpffs 是一种完全驻留在内存中的伪文件系统（文件系统魔数为 `BPF_FS_MAGIC`），在现代 Linux 发行版中默认挂载于 `/sys/fs/bpf` 目录下。它不能用于存储常规的磁盘文本或二进制文件，专门用于承载 BPF 内核对象的**固定点**（Pin，常译作“钉住”）。当我们将一个 BPF 对象固定在 `/sys/fs/bpf` 下的某个路径时，该路径在 `ls` 下呈现为一个大小为 0 的特殊文件节点，但它在内核 VFS 层面的实质含义是：“由该目录项（dentry）与索引节点（inode）直接持有底层 BPF 对象的一份内核引用”。一旦对该路径执行 `unlink()`（或 `rm` 命令），这份引用便随之释放，对象的引用计数相应减 `1`。
 
 ```c
 /* 把对象固定到 bpffs，路径必须在这个文件系统里，且不能含 '.' */
@@ -545,11 +545,11 @@ if (bpf_obj_pin(prog_fd, "/sys/fs/bpf/mdr_hello") < 0) {
 int fd = bpf_obj_get("/sys/fs/bpf/mdr_hello");
 ```
 
-`BPF_OBJ_PIN` 成功时返回 0，`BPF_OBJ_GET` 返回描述符。内核文档对前者的说明是 *Pin an eBPF program or map referred by the specified bpf_fd to the provided pathname on the filesystem.*，并强调路径的父目录必须属于 `BPF_FS_MAGIC` 这个文件系统；成功后 *pathname retains a reference to the eBPF object*（路径本身保留一份对对象的引用）。
+在底层系统调用层面，`BPF_OBJ_PIN` 成功时返回 `0`，而 `BPF_OBJ_GET` 则在当前进程中分配并返回一个指向同一个内核对象的全新文件描述符。Linux 内核文档对前者的语义给出了明确界定：*Pin an eBPF program or map referred by the specified bpf_fd to the provided pathname on the filesystem... pathname retains a reference to the eBPF object.*（将指定 `bpf_fd` 所指向的 eBPF 程序、Map 或 link 固定到文件系统上的目标路径……该路径本身将持有一份对该 eBPF 对象的引用。）同时内核强制要求：目标路径所在的父目录必须位于已挂载的 `BPF_FS_MAGIC` 文件系统之内，且文件名本身不得包含点号（`.`）。
 
 ::: concept ebpf-b7-pin-lifetime title="固定的作用只是多一份引用"
 
-固定不是把对象「保存到磁盘」，也不是让对象「永久存在」。它只是在 bpffs 里多一个目录项，这个目录项持有对象的一份引用。`rm` 掉这个路径，引用就减一；机器重启，bpffs 里的内容全部消失，对象随之消失。所以固定解决的是「进程退出后对象还在不在」，不解决「重启后还在不在」。
+将对象固定（Pin）到 bpffs，本质上只是在内存虚拟文件系统中创建一个持有该对象引用的目录项节点；对象本身的字节码或键值数据依然完全存放在内核 RAM 中，不会向底层块设备磁盘写入任何持久化数据。执行 `rm` 删除该路径会使对象的引用计数减 `1`；而一旦宿主机操作系统发生重启，内存中的 bpffs 随之清空，所有固定点与对应的 BPF 对象也会一并消失。
 
 :::
 
@@ -570,39 +570,43 @@ int fd = bpf_obj_get("/sys/fs/bpf/mdr_hello");
 
 </template>
 
-正确答案是 **B**。固定只是在 bpffs 里多一个目录项，这个目录项持有对象的一份引用；它不写磁盘，也不跨系统重启。C 是常见的误解：bpffs 里的内容在重启后清空。
+正确答案是 **B**。固定操作只是在 `/sys/fs/bpf` 内存虚拟文件系统中创建一个目录项，由该文件系统节点持有一份对目标 Map 的内核引用，从而使其在进程退出后不被回收；它既不会把键值序列化写入磁盘，也无法跨越操作系统重启。选项 C 是初学者常见的误解：系统重启后内存中的 bpffs 会被完全重置。
 
 </Quiz>
 
 ### 6.2 libbpf 的固定接口
 
-libbpf 有三层：
+围绕 bpffs 固定机制，libbpf 由细到粗提供了三个层级的开发接口：
 
-- `bpf_map__pin(map, path)`、`bpf_program__pin(prog, path)`、`bpf_link__pin(link, path)`：固定单个对象。文档对 `bpf_link__pin` 的说明是 *This increments the links reference count, allowing it to stay loaded after the process which loaded it has exited.*（它增加 link 的引用计数，使 link 在加载它的进程退出后仍然存在。）
-- `bpf_object__pin_maps(obj, dir)`：把对象里所有 map 固定到某个目录下，按 map 名命名。`bpf_object__pin_programs(obj, dir)` 对程序做同样的事。
-- map 定义里的 `__uint(pinning, LIBBPF_PIN_BY_NAME);`：load 时自动按 map 名固定到 `/sys/fs/bpf`。重新运行时如果路径已经存在，libbpf 会 `bpf_obj_get()` 取回已有的 map 而不是新建一个，这正是「重启加载程序、计数还在」的实现方式。
+- **单对象显式固定**：直接调用 `bpf_map__pin(map, path)`、`bpf_program__pin(prog, path)` 或 `bpf_link__pin(link, path)` 将单个指定对象固定到目标路径。libbpf 官方 API 文档对 `bpf_link__pin` 注释道：*This increments the links reference count, allowing it to stay loaded after the process which loaded it has exited.*（该操作会增加 link 的引用计数，使其在加载进程退出后依然保持挂载状态。）
+- **整包批量固定**：调用 `bpf_object__pin_maps(obj, dir)` 或 `bpf_object__pin_programs(obj, dir)`，自动将当前 ELF 对象内包含的所有 Map 或所有程序按各自的名称批量固定到指定的 `dir` 目录下。
+- **声明式自动固定与复用**：在内核态 `.bpf.c` 源码的 Map 定义结构体内直接加入一行声明 `__uint(pinning, LIBBPF_PIN_BY_NAME);`。如此一来，libbpf 在首次 `load` 阶段会自动按 Map 名称将其固定到默认根路径（`/sys/fs/bpf/<map名>`）；而在程序后续再次启动运行时，libbpf 一旦检测到该固定路径已经存在，便会自动调用 `bpf_obj_get()` 取回并复用现有的内核 Map 实例，跳过重新创建空表的步骤——这正是实现“控制面进程重启升级、而内核态统计数据无缝延续”的标准工程范式。
 
-最后一条要配合 `bpf_object_open_opts.pin_root_path` 才能改目录。它的默认值是 libbpf 源码里的 `BPF_FS_DEFAULT_PATH`，也就是 `/sys/fs/bpf`。
+若在使用声明式 `LIBBPF_PIN_BY_NAME` 时希望自定义固定目录，可在调用 `open_opts` 时通过 `bpf_object_open_opts.pin_root_path` 字段指定自定义路径；未指定时则默认采用 libbpf 源码中定义的 `BPF_FS_DEFAULT_PATH`（即 `/sys/fs/bpf`）。
 
 ### 6.3 让 map 跨进程存活
 
-B.6 的 syscount 里那张哈希 map 叫 `counts`，按进程名统计系统调用次数。在它的定义里加一行：
+回顾 [B.6](/教程/正文/系统编程/拓展B_eBPF/B_6_Map与数据交换) 中的 `syscount` 工具，其内部用于按进程名统计系统调用次数的哈希表名为 `counts`。如果我们希望这张哈希表在用户态监控进程退出后继续保留在内核中，只需在 `syscount.bpf.c` 的 Map 声明体内补充一行属性：
 
 ```c
 __uint(pinning, LIBBPF_PIN_BY_NAME);
 ```
 
-重新编译运行，load 阶段就会把这张 map 固定到 `/sys/fs/bpf/counts`。此后第一次运行到某个时刻按 Ctrl-C 退出，路径留在那里；第二次启动读到的是同一张 map 对象。要看出跨进程累加，还得去掉 syscount 打印后删除键的那段逻辑，否则每次打印都等于清零；删不删它，都不影响「map 这个对象还在不在」。
+重新编译并启动程序后，libbpf 会在 `load` 阶段自动将该哈希表固定至 `/sys/fs/bpf/counts`。此时即便我们在运行中途按下 `Ctrl-C` 终止 `syscount` 进程，`/sys/fs/bpf/counts` 路径依然持有着该 Map 的引用；待下一次重新启动 `syscount` 时，新进程打开并读取的将是同一个内核哈希表实例（当然，若要直观观察到两次运行之间的计数累加效果，还需要同步注释掉 `syscount.c` 每次打印后调用 `bpf_map__delete_elem` 清空键值的代码，但这并不影响底层 Map 对象本身的跨进程存续）。
 
-机制在 libbpf 的 `bpf_object__create_maps()` 里：建每个 map 之前先看它有没有带 `pin_path`，有就调 `bpf_object__reuse_map()` 用 `bpf_obj_get()` 打开已有路径；只有取回 `ENOENT` 时才继续走 `BPF_MAP_CREATE`，建好之后按同一个路径固定。syscount 的计数本身没有权威输出可引，这里只描述机制。
+这一“存在即复用、不存在则新建并固定”的完整闭环实现在 libbpf 源码的 `bpf_object__create_maps()` 函数中：在遍历创建每一个 Map 之前，libbpf 会先检查该 Map 是否配置了 `pin_path`；若已配置，则优先调用内部函数 `bpf_object__reuse_map()` 尝试通过 `bpf_obj_get()` 打开既有路径（并在复用前严格校验既有 Map 的类型、键值尺寸与最大容量是否与当前程序声明一致）；唯有当路径尚不存在（返回 `-ENOENT`）时，才继续走 `BPF_MAP_CREATE` 创建新实例并随即将其固定到该路径上。
 
-读完之后清理：`sudo rm /sys/fs/bpf/counts`。
+实验完毕后，若要彻底销毁并释放该内核 Map，只需在终端删除对应的固定路径：
 
-`rm` 之后，如果没有别的描述符引用这个 map，它就在宽限期结束后被释放。下一次运行 syscount 会重新建一个空 map。
+```bash
+sudo rm /sys/fs/bpf/counts
+```
+
+执行 `rm` 移除目录项后，若当前没有任何正在运行的进程或探针持有该 Map 的引用，内核便会在 RCU 宽限期结束后回收其占用的全部内存；此后再次启动 `syscount` 时，便会重新创建一张全新的空表。
 
 ### 6.4 bpftool 的固定命令
 
-`bpftool prog load` 的参数在 SignalX 上是这样的（本机真实输出）：
+除在 C 代码中调用 API 外，运维人员也可以直接使用 `bpftool` 命令行工具在终端完成加载与固定操作。在 Debian 13 实验环境 SignalX 上执行 `bpftool prog help`，可以看到其支持的完整参数语法：
 
 ::: terminal title="zsh - bpftool prog help"
 
@@ -630,15 +634,15 @@ Usage: bpftool prog { show | list } [PROG]
 
 :::
 
-`load` 的位置参数 `PATH` 就是固定路径，不是输出文件名。所以「加载并固定」是同一个命令：
+注意 `bpftool prog load OBJ PATH` 命令中的必填位置参数 `PATH`：由于 `bpftool` 本身是一个执行完命令即刻退出的瞬态进程，倘若它加载完程序后不将其固定在 bpffs 上，程序会在 `bpftool` 退出的同一毫秒内因引用计数归零而被内核立即回收。因此，`bpftool prog load` 天然将“加载字节码”与“固定到 `PATH`”合并为一步原子操作：
 
 ```bash
 sudo bpftool prog load hello.bpf.o /sys/fs/bpf/mdr_hello
 ```
 
-`autoattach` 是另一个开关，含义是「先附加、再把 link 固定到 `PATH`」：bpftool 的文档说 *with autoattach, attachment precedes pinning*，此时 *only the link (representing the program attached to its hook) is pinned, not the program as such*（固定的是代表附加的 link，而不是程序本身）。需要程序长期挂着时用它；只需要程序本身留着、以后再附加时，不加这个开关。
+命令末尾可选的 `autoattach` 开关则进一步改变了固定的目标对象。正如 `bpftool-prog` 官方文档所阐明的：*with autoattach, attachment precedes pinning... only the link (representing the program attached to its hook) is pinned, not the program as such.*（一旦指定 `autoattach`，工具会先按节名称将程序附加到内核钩子上，随后将代表这次附加关系的 `bpf_link` 对象固定到 `PATH` 路径，而不再单独固定程序对象本身——因为 link 已经持有了程序的引用。）因此，当需要让探针在后台立即开始工作并长期驻留时，应当加上 `autoattach`；而若仅仅希望先把程序载入内核备用、留待后续由其它组件按路径取回并挂载，则不加该开关。
 
-`bpftool map pin` 和 `bpftool link pin` 分别对应另外两类对象，`link` 子命令的语法在帮助里写得很清楚：
+与之类似，`bpftool map pin` 与 `bpftool link pin` 分别用于将系统中已存在的 Map 与 link 对象固定到指定路径。其中 `bpftool link` 子命令的完整语法如下：
 
 ::: terminal title="zsh - bpftool link help"
 
@@ -655,21 +659,21 @@ Usage: bpftool link { show | list }   [LINK]
 
 :::
 
-`link detach` 也值得注意：它把 link 从钩子上摘下来，但 link 对象和它指向的程序仍然有效，link 进入失效状态，直到最后一个描述符关闭。这与 `close()` 的效果不同，后者是引用减一，减到零才释放。
+这里同样值得辨析的是 `bpftool link detach` 子命令的语义：它会强制将目标 link 从内核钩子上剥离摘除（使探针立即停止触发），但即便此时仍有某个进程或 bpffs 路径持有该 link 的引用，link 对象本身也只是进入“已分离失效（detached）”的空壳状态，直至所有引用全部释放后才最终销毁内存。这与关闭文件描述符或删除固定路径靠引用计数归零来触发分离属于两条不同的控制路径。
 
 ### 6.5 工程里的用法
 
-systemd 的资源控制指令 `IPIngressFilterPath=` 和 `IPEgressFilterPath=` 收的就是固定在 bpffs 里的程序路径。文档原文是 *Takes an absolute path to a pinned BPF program in the BPF virtual filesystem*（接收一个指向 BPF 虚拟文件系统中已固定程序的绝对路径），作用范围是 *all IP packets sent and received over AF_INET and AF_INET6 sockets*（该单元所有 AF_INET 与 AF_INET6 套接字上的收发报文）。
+在现代 Linux 生产系统的基础设施中，bpffs 固定机制最典型的应用范例莫过于 `systemd` 的网络访问控制指令 `IPIngressFilterPath=` 与 `IPEgressFilterPath=`。查阅 `systemd.resource-control(5)` 官方手册可以看到：这两个配置项接收的参数正是 *an absolute path to a pinned BPF program in the BPF virtual filesystem*（指向 BPF 虚拟文件系统中某个已固定 BPF 程序的绝对路径），用于对该服务单元所属 cgroup 内所有 `AF_INET` 与 `AF_INET6` 套接字的收发 IP 数据包实施内核级过滤与记账。
 
-这就是「固定」在生产里的典型位置：一个独立的加载程序负责把编译好的程序固定到 `/sys/fs/bpf`，systemd 在启动服务时按路径把它挂到服务的 cgroup 上。加载程序可以退出，甚至可以在服务启动完之后就不再运行，过滤器照样生效，因为 cgroup 持有引用。
+这一协作流程清晰展示了 bpffs 在工业级架构中的枢纽地位：专职的安全策略编译加载工具在系统初始化阶段运行，将经过验证的 eBPF 过滤程序固定到 `/sys/fs/bpf/filters/...` 路径下并随即退出；随后每当 `systemd` 拉起受控的业务守护进程时，便根据配置文件中的路径调用 `bpf_obj_get()` 取回程序描述符，并将其附加到对应服务的 cgroup 钩子上。如此一来，策略加载器无需作为后台守护进程常驻内存，而业务服务与安全过滤策略的生命周期也由 `systemd` 统一接管。
 
 ## 7. 用 bpftool 观察
 
-bpftool 读的是内核里的实际对象，所以它是检验前几节结论的工具。
+由于 `bpftool` 直接通过内核迭代接口读取当前系统中真实存活的 BPF 对象，它是我们在日常开发与运维中核验前文生命周期规律的最佳观测窗口。
 
 ### 7.1 prog show 的每一列
 
-`bpftool prog show` 列出所有已加载的程序。bpftool 文档给出的样例（输出类似）：
+执行 `bpftool prog show` 可以枚举当前内核中所有已加载的 eBPF 程序。以下输出片段引自 `bpftool-prog` 官方文档示例：
 
 ::: terminal title="zsh - bpftool prog show（引用 bpftool-prog 文档）"
 
@@ -682,25 +686,27 @@ bpftool 读的是内核里的实际对象，所以它是检验前几节结论的
 
 :::
 
-各字段的含义：
+输出中各核心字段的物理含义如下表所示：
 
 | 字段 | 含义 |
 | --- | --- |
-| `10` | 程序的 ID，内核内唯一，从 1 开始分配 |
-| `xdp` | 程序类型 |
-| `name some_prog` | 加载时指定的名字，通常来自 BPF 对象的函数名 |
-| `tag` | 对程序指令算出的哈希，同一份字节码在任何机器上都是这个值 |
-| `gpl` | 许可证与 GPL 兼容 |
-| `loaded_at` | 加载时刻 |
-| `uid` | 加载者的用户 ID |
-| `xlated`、`jited` | 字节码与 JIT 后机器码的大小 |
-| `memlock` | 占用内核内存的记账值 |
-| `map_ids` | 程序引用到的 map 的 ID 列表 |
-| `pids` | 打开着这个程序描述符的进程 |
+| `10` | 内核分配给该程序的全局唯一整型 ID（自系统启动起从 1 递增分配） |
+| `xdp` | 程序的挂载类型（对应 `enum bpf_prog_type`） |
+| `name some_prog` | 加载时注册的程序名称（通常截取自 ELF 目标文件中的 C 函数名，最长 15 字符） |
+| `tag` | 内核对程序指令流计算出的 SHA-1 摘要截断值，相同字节码在不同机器上具有相同的 tag |
+| `gpl` | 标识该程序声明了兼容 GPL 的开源许可证 |
+| `loaded_at` | 程序完成加载的绝对时间戳 |
+| `uid` | 发起 `BPF_PROG_LOAD` 系统调用的进程有效用户 ID |
+| `xlated`、`jited` | 经验证器改写后的 eBPF 字节码字节数，以及经 JIT 编译后的原生机器码字节数 |
+| `memlock` | 该程序对象在内核中锁定的物理内存记账大小 |
+| `map_ids` | 该程序字节码中引用的所有内核 Map 的 ID 列表 |
+| `pids` | 当前正持有该程序文件描述符的用户态进程名称与 PID |
 
-`pids` 这一列直接对应第 4 节：它列出的是当前还开着这个程序描述符的进程。一个只能靠 bpffs 里的固定点存活的程序，这一列是空的，因为它已经没有进程描述符，只剩固定路径那一份引用。
+最末一行的 `pids` 字段直观映射了第 4 节讲述的描述符引用关系：它通过扫描系统中活跃进程的文件描述符表，列出当前正直接握有该程序句柄或关联 link 句柄的进程。如果某个程序仅仅依靠钉住在 `/sys/fs/bpf` 下的路径维持存活、而加载它的进程早已退出，那么输出的条目中将不会出现 `pids` 这一行（或者需要附加 `-f` 选项让 `bpftool` 扫描文件系统以额外显示 `pinned /sys/fs/bpf/...` 路径）。
 
 ### 7.2 map show 与 link show
+
+同理，使用 `bpftool map show` 可以检视系统中存活的 Map 实例（引自 `bpftool-map` 官方文档）：
 
 ::: terminal title="zsh - bpftool map show（引用 bpftool-map 文档）"
 
@@ -712,7 +718,9 @@ bpftool 读的是内核里的实际对象，所以它是检验前几节结论的
 
 :::
 
-map 的 ID 出现在 `prog show` 的 `map_ids` 里，两边可以对上：程序 10 引用了 map 10，这个 map 就是第 2 节里用 `BPF_MAP_CREATE` 建出来的那种对象。
+此处显示的 Map ID `10`，恰好与上方 `bpftool prog show` 输出中的 `map_ids 10` 形成一一对应：表明编号为 10 的 XDP 程序在其字节码指令中持有了对编号为 10 的哈希表的内核引用。
+
+而执行 `bpftool link show` 则会列出系统中所有活跃的 `bpf_link` 挂载关系（引自 `bpftool-link` 官方文档）：
 
 ::: terminal title="zsh - bpftool link show（引用 bpftool-link 文档）"
 
@@ -724,13 +732,13 @@ map 的 ID 出现在 `prog show` 的 `map_ids` 里，两边可以对上：程序
 
 :::
 
-link 的输出以 ID 开头，跟着 link 类型和若干属性。`prog 25` 是它挂着的程序 ID。cgroup 类型多出 `cgroup_id` 与 `attach_type`；perf 事件类型的 link 会显示 kprobe 或 tracepoint 的函数名、偏移；XDP link 会显示 `ifindex`。这些差异来自每种 link 各自的 `fill_link_info` 回调。
+每条 link 记录均以自身的 link ID 开头，紧随其后的是 link 类型以及当前所绑定的目标程序 ID（如 `prog 25`）。针对不同挂载子系统的 link，内核会通过各自的 `.fill_link_info` 回调补充专属的挂载点标识：例如 cgroup link 会输出目标 `cgroup_id` 与进出方向 `attach_type`；perf 事件类 link 会展示所挂载的 tracepoint 名称或 kprobe 目标函数地址；XDP link 则会输出目标网卡的接口索引 `ifindex`。
 
-一个 link 在 `bpftool link show` 里出现，说明它还没被分离，也就说明钩子上确实挂着那个程序。加载程序退出之后再跑一次这条命令，如果 link 消失了，程序就已经被分离。
+只要某条记录依然出现在 `bpftool link show` 的输出列表中，就说明该挂载关系在内核中依然处于激活生效状态。当用户态加载器进程退出后，再次执行该命令即可迅速确认对应的 link 是否已随描述符关闭而被自动摘除。
 
 ### 7.3 dump xlated 与 jited
 
-`bpftool prog dump xlated` 显示内核里保存的字节码，`dump jited` 显示 JIT 之后的机器码。前者是验证器实际检查过的那一份，可以和 `llvm-objdump` 看到的原始字节码对照；后者能看出 JIT 有没有真正生效。
+除了查看对象元数据，`bpftool` 还支持直接从内核内存中反汇编导出已加载程序的指令流：`bpftool prog dump xlated` 用于导出经过验证器重定位与内部改写后的最终 eBPF 字节码，而 `bpftool prog dump jited` 则用于导出经由内核 JIT 编译器翻译生成的宿主 CPU 原生汇编指令。通过对比 `llvm-objdump` 针对磁盘 `.bpf.o` 目标文件的静态反汇编与 `dump xlated` 的内核实态输出，开发者能够清晰观察到验证器对 Map 地址与辅助函数调用所做的内部改写；而 `dump jited` 则直接反映了 JIT 硬件加速是否生效。
 
 ::: terminal title="zsh - bpftool prog dump（引用 bpftool-prog 文档）"
 
@@ -749,11 +757,11 @@ $ ls -l /tmp/t
 
 :::
 
-xlated 是内核里保存的那一份字节码，jited 是 JIT 之后的机器码，两者的编号都是指令序号。加上 `opcodes` 参数时还会打印每条指令的原始字节。
+如果不指定 `file` 参数，反汇编结果将直接以人类可读的助记符形式输出到终端；附加 `opcodes` 参数时还会在每条助记符下方一并列出原始机器字节码。
 
 ::: tip 没有权限时 bpftool 报什么
 
-`bpftool prog show` 需要 `CAP_BPF`（或者 root）。没有权限时它会报 `Error: can't get next program: Operation not permitted`，libbpf-bootstrap 的 lsm 示例就是用这个报错来证明「bpf() 被自己的 LSM 程序拦住了」。这条输出是 README 里的原文，不是编的。
+执行 `bpftool prog show` 等查询命令同样需要调用方具备 `CAP_BPF`（或 `root`）特权。在非特权账户下直接运行会报出 `Error: can't get next program: Operation not permitted`。在 libbpf-bootstrap 官方仓库的 `lsm` 安全模块示例中，作者正是通过在挂载拦截策略后运行该命令并观察这一报错，来验证自定义的 BPF LSM 安全钩子已经成功拦截了针对 `bpf()` 系统调用的访问。
 
 :::
 
@@ -769,37 +777,37 @@ xlated 是内核里保存的那一份字节码，jited 是 JIT 之后的机器�
 
 <Exercise id="47701" :d="2" :w="2">
 
-`raw_load.c` 的过滤器返回 0，所以报文全部被丢弃。把返回值改成「不丢弃」，让 `recv()` 能收到那三个数据报，同时计数仍然要增加。
+在示例 `raw_load.c` 中，手写的套接字过滤器在退出前将返回值 R0 置为 `0`，导致流经套接字的数据报被全部丢弃。请修改这段字节码的返回值，使其放行数据报并让用户态的 `recv()` 调用能够顺利收到那三个测试报文，同时保持 Map 计数器的累加逻辑不变。
 
-改动只允许动 `prog` 数组里的一两条指令。改完之后说明：套接字过滤器返回值的合法范围是什么，返回一个比报文长度大的数会怎样。
+要求仅改动 `prog` 指令数组中的一至两条指令。完成修改后请结合内核实现回答：套接字过滤器（`BPF_PROG_TYPE_SOCKET_FILTER`）返回值的合法语义范围是什么？如果返回一个大于当前数据报实际字节长度的正整数，内核会如何处理？
 
-验收：挂在有 root 的机器上运行，`recv` 收到 5 字节，最后一行仍是 `过滤器运行了 3 次`。
+验证方式：在拥有 `root` 权限的实验环境中编译运行修改后的程序，确认每次 `recv` 调用均成功收到 5 字节载荷，且最终输出依然显示 `过滤器运行了 3 次`。
 
 </Exercise>
 
 <Exercise id="47702" :d="2" :w="1">
 
-写出完成下面每件事的 bpftool 命令，并说明它读的是内核里的哪一类对象：
+请写出完成以下各项运维操作的具体 `bpftool` 命令，并分别指出每条命令在底层操作的是哪一类内核对象：
 
-(1) 列出系统中所有 BPF link，只看类型和它挂着的程序 ID；
+(1) 枚举当前系统中所有活跃的 BPF link，检视其附加类型以及所绑定的目标程序 ID；
 
-(2) 把已经加载的程序 37 的字节码导出到文件；
+(2) 将已加载进内核、ID 为 `37` 的程序经过验证器改写后的字节码反汇编导出至指定文件；
 
-(3) 把 id 为 12 的 map 固定到 `/sys/fs/bpf/mdr_counts`；
+(3) 将内核中 ID 为 `12` 的 Map 实例固定（Pin）到 `/sys/fs/bpf/mdr_counts` 路径；
 
-(4) 查看一个已固定的程序所引用的 map 的 ID 列表。
+(4) 查看一个已被固定在 bpffs 指定路径上的程序所引用的全部 Map ID 列表。
 
 </Exercise>
 
 <Exercise id="47703" :d="2" :w="1">
 
-`bpf_sys()` 把 `sizeof(*attr)` 作为第三个参数传给内核。回答：
+在 `raw_load.c` 的封装函数 `bpf_sys()` 中，我们将 `sizeof(*attr)` 作为第三个参数传递给内核。请围绕该参数的设计机制回答以下问题：
 
-(1) 如果传 0，`BPF_MAP_CREATE` 会成功还是失败，为什么？
+(1) 如果故意将第三个参数 `size` 传为 `0`，发起 `BPF_MAP_CREATE` 调用会成功还是失败？原因是什么？
 
-(2) 如果用旧版头文件编译，`union bpf_attr` 比内核里的小，调用会失败吗？
+(2) 如果使用较旧版本的内核头文件编译用户态加载器（导致编译期的 `sizeof(union bpf_attr)` 小于当前运行的新内核所定义的联合体尺寸），发起系统调用会失败吗？内核是如何兼容这种尺寸差异的？
 
-(3) 为什么 `attr` 里没用到的字段必须清零，内核是怎么检查的？
+(3) 为什么 `union bpf_attr` 中当前子命令未使用的字段必须清零？内核在系统调用入口处是如何执行这项零值校验的？
 
 </Exercise>
 
@@ -807,30 +815,30 @@ xlated 是内核里保存的那一份字节码，jited 是 JIT 之后的机器�
 
 <Exercise id="47704" :d="3" :w="3">
 
-不依赖 libbpf，只用 `syscall(__NR_bpf, ...)` 写一个 `raw_map.c`，对哈希 map 完成一轮完整操作：
+不链接 libbpf 库，仅使用 `<linux/bpf.h>` 与 `syscall(__NR_bpf, ...)` 编写一个独立程序 `raw_map.c`，针对内核哈希 Map 完成一轮完整的增删改查与遍历操作：
 
-(1) 用 `BPF_MAP_CREATE` 建一个 `BPF_MAP_TYPE_HASH`，键和值都是 `__u32`，`max_entries` 为 8；
+(1) 调用 `BPF_MAP_CREATE` 创建一个 `BPF_MAP_TYPE_HASH` 类型的哈希表，键与值的类型均为 `__u32`，`max_entries` 容量设为 `8`；
 
-(2) 用 `BPF_MAP_UPDATE_ELEM` 写入 `0..4` → `0, 10, 20, 30, 40`，其中一次用 `BPF_NOEXIST` 重复写同一个键，观察返回值；
+(2) 调用 `BPF_MAP_UPDATE_ELEM` 依次写入键 `0..4` 及其对应的值 `0, 10, 20, 30, 40`；随后针对某个已存在的键指定 `BPF_NOEXIST` 标志发起重复写入，记录并验证内核返回的错误码；
 
-(3) 用 `BPF_MAP_LOOKUP_ELEM` 逐个读回并打印，再查一个不存在的键，打印 `errno`；
+(3) 调用 `BPF_MAP_LOOKUP_ELEM` 逐一读回上述键的值并打印，随后查询一个不存在的键，打印此时设置的 `errno`；
 
-(4) 用 `BPF_MAP_GET_NEXT_KEY` 遍历全部键（注意第一次要传 `key = NULL`），打印遍历顺序；
+(4) 调用 `BPF_MAP_GET_NEXT_KEY` 迭代遍历哈希表中的所有键（注意首次调用时需将 `key` 指针设为 `0`），打印实际遍历到的键顺序；
 
-(5) 用 `BPF_MAP_DELETE_ELEM` 删掉两个键，再遍历一次。
+(5) 调用 `BPF_MAP_DELETE_ELEM` 删除其中的两个键，随后再次执行全表遍历以确认剩余条目。
 
-要求 `-Wall -Wextra` 无警告，每个系统调用的返回值都检查。验收：程序在 root 下跑完不崩溃，遍历能取到全部 5 个键，删除后只剩 3 个。
+要求代码在 `-Wall -Wextra` 下编译无任何警告，且对每一次系统调用的返回值均作严格检查。验证标准：在 `root` 权限下运行全程无崩溃，首次遍历能够完整取出 5 个键，删除两个键后二次遍历恰好剩余 3 个键。
 
 </Exercise>
 
 <Exercise id="47705" :d="4" :w="3">
 
-写一对程序，演示 bpffs 固定跨进程传递对象：
+编写一对协同工作的用户态程序，演示通过 bpffs 固定机制在两个无亲缘关系的进程之间传递并共享同一个内核 Map 对象：
 
-- `pin_writer.c`：建一个数组 map（1 项，`__u64` 值），把 42 写进去，用 `BPF_OBJ_PIN` 固定到 `/sys/fs/bpf/mdr_answer`，然后退出；
-- `pin_reader.c`：用 `BPF_OBJ_GET` 打开 `/sys/fs/bpf/mdr_answer`，读出值并打印，再用 `BPF_MAP_UPDATE_ELEM` 改成 43。
+- `pin_writer.c`：创建一个仅包含 1 个元素的数组 Map（值类型为 `__u64`），向第 0 号槽位写入数值 `42`，调用 `BPF_OBJ_PIN` 将该 Map 固定至 `/sys/fs/bpf/mdr_answer`，随后立即退出进程；
+- `pin_reader.c`：调用 `BPF_OBJ_GET` 打开 `/sys/fs/bpf/mdr_answer` 获取文件描述符，读出第 0 号槽位的当前数值并打印，随后调用 `BPF_MAP_UPDATE_ELEM` 将其原地修改为 `43` 并退出。
 
-验收步骤：
+按如下步骤依次执行并完成验证：
 
 ```text
 $ sudo ./pin_writer
@@ -841,21 +849,21 @@ $ sudo rm /sys/fs/bpf/mdr_answer
 $ sudo ./pin_reader      # 打开失败，errno = ENOENT
 ```
 
-说明每一步的引用计数是多少、谁持有它。另外说明 `ls -l` 看到的权限位是怎么定下来的（看 `bpf_obj_do_pin()` 里 `mode` 的算法），以及这对「非 root 能不能读这个固定点」意味着什么。
+请结合执行过程分析：在每一个命令执行节点上，该数组 Map 的内核引用计数分别是多少，各自被哪些载体持有？此外，请结合内核源码 `kernel/bpf/inode.c` 中的 `bpf_obj_do_pin()` 实现，说明 `ls -l` 观察到的文件权限位是如何计算得出的，以及这一权限设置对“非特权用户能否打开该固定点”有何影响。
 
 </Exercise>
 
 <Exercise id="47706" :d="4" :w="4">
 
-B.6 的 `syscount` 每次启动都从零开始，而且每次打印之后会删掉所有键，相当于自己清零。把它改成跨进程累加：
+在 [B.6](/教程/正文/系统编程/拓展B_eBPF/B_6_Map与数据交换) 的 `syscount` 工具中，每次重启进程都会新建空表，且每轮打印时都会删除已读取的键。请将其改造为支持跨进程持久化累加的版本：
 
-(1) 在 `syscount.bpf.c` 的计数 map 定义里加上 `__uint(pinning, LIBBPF_PIN_BY_NAME);`；
+(1) 在 `syscount.bpf.c` 的 `counts` 哈希表定义中加入 `__uint(pinning, LIBBPF_PIN_BY_NAME);` 声明；
 
-(2) 在 `syscount.c` 里用 `bpf_object_open_opts.pin_root_path` 把固定目录改到一个可写的临时目录，并检查 `bpf_map__is_pinned()` 的返回值；
+(2) 在用户态 `syscount.c` 中利用 `bpf_object_open_opts.pin_root_path` 将固定根目录指定到 `/sys/fs/bpf` 下的专属子目录，并在打开后调用 `bpf_map__is_pinned()` 核实固定状态；
 
-(3) 加一个只读模式：遍历仍然用 `bpf_map__get_next_key` 和 `bpf_map__lookup_elem`，但不再调 `bpf_map__delete_elem`。原来的清零行为仍是默认。
+(3) 为用户态程序新增一个“只读观测模式”命令行开关：在该模式下，遍历哈希表时仅调用 `bpf_map__get_next_key` 与 `bpf_map__lookup_elem` 读取并排序打印，不再调用 `bpf_map__delete_elem` 清空条目；未指定该开关时则保持原有的排空清零行为。
 
-验收：先后运行两次，第二次用只读模式，打印出的计数不小于第一次的值；不用只读模式时，第二次的计数从零重新开始。写一段说明：第二次启动时 libbpf 在 load 阶段哪一步发现了已有的固定点，用的是哪个系统调用。
+验证标准：连续启动并运行两次程序，第二次开启只读模式，确认打印出的各进程系统调用累计数不小于第一次退出时的数值；若不开启只读模式，则每轮打印后计数归零。最后请结合 libbpf 源码说明：当程序第二次启动时，libbpf 是在 `load` 阶段的哪一个内部函数中检测到既有固定点的，底层调用了哪一个系统调用命令完成复用？
 
 </Exercise>
 
@@ -863,71 +871,71 @@ B.6 的 `syscount` 每次启动都从零开始，而且每次打印之后会删�
 
 <Exercise id="47707" :d="5" :w="4">
 
-用骨架写一个 `pinlink.c`，把 B.3 的 hello 程序附加之后，再把 **link** 固定到 bpffs：
+基于 libbpf 骨架编写一个控制面程序 `pinlink.c`，在将 [B.3](/教程/正文/系统编程/拓展B_eBPF/B_3_第一个eBPF程序) 的 `hello` 探针附加到跟踪点之后，进一步将其生成的 **`bpf_link`** 对象固定到 bpffs 文件系统中：
 
-(1) `open`、`load`、`attach` 之后，调用 `bpf_link__pin(skel->links.handle_tp, "/sys/fs/bpf/mdr_hello_link")`；
+(1) 依次执行 `open`、`load` 与 `attach` 后，调用 `bpf_link__pin(skel->links.handle_tp, "/sys/fs/bpf/mdr_hello_link")`；
 
-(2) 进入主循环等待 `SIGINT`，退出时先 `bpf_link__unpin()` 再 `__destroy()`；
+(2) 进入主循环等待 `SIGINT` 信号，收到退出信号时先调用 `bpf_link__unpin()` 移除固定点，再调用 `__destroy()` 清理资源；
 
-(3) 在另一个终端用 `sudo bpftool link show` 观察 link 是否出现，`rm` 固定路径之后再观察一次。
+(3) 在主循环等待期间，从另一终端运行 `sudo bpftool link show` 观察该 link 的状态；手动执行 `rm` 删除固定路径后再次观察。
 
-要求额外回答：如果在主循环里直接 `kill -9` 这个进程，link 和固定点各是什么状态？第二次运行程序时，固定路径已经存在，`bpf_link__pin` 会返回什么？
+请在此基础上深入验证并回答：如果在主循环运行期间，直接从另一终端向 `pinlink` 进程发送无法捕获的 `kill -9`（`SIGKILL`）信号强制杀死进程，此时内核中的 link 对象与 `/sys/fs/bpf/mdr_hello_link` 固定点分别处于什么状态，`trace_pipe` 中是否还会继续输出日志？如果此时不删除固定路径便直接第二次启动 `pinlink` 程序，`bpf_link__pin` 会返回什么错误码？
 
-验收：给出一组 `bpftool link show` 前后的对照（可以只写字段变化），并解释每一条的成因。
+验证要求：记录并对比进程被 `kill -9` 前后以及手动 `rm` 固定点前后的 `bpftool link show` 输出变化（重点关注 `pids` 与 `pinned` 字段），并阐述每一处变化的内核成因。
 
 </Exercise>
 
 <Exercise id="47708" :d="6" :w="5">
 
-给程序加一个「热替换」功能：准备两个版本的程序（一个丢弃、一个放行，两者都统计），用 `BPF_LINK_CREATE` 附加第一个，运行一段时间后用 `BPF_LINK_UPDATE` 换成第二个，验证计数不中断。
+设计并实现一套支持“在线无损热升级”的探针程序：准备两个版本的内核态程序（版本 A 在递增 Map 计数器后丢弃/拦截事件，版本 B 在递增同一计数器后正常放行），首先使用 `BPF_LINK_CREATE` 将版本 A 挂载运行，持续工作一段时间后调用 `BPF_LINK_UPDATE` 原地原子替换为版本 B，验证切换全过程中数据包或事件计数连续不中断。
 
-套接字过滤器只能经 `setsockopt()` 附加，没有 link，所以这一题要换一个能走 link 的附加点。可以改用 XDP（`lo` 就够）或 kprobe（`perf_event_open` 加 `BPF_LINK_CREATE`）。选定之后：
+由于传统套接字过滤器仅支持 `setsockopt()` 挂载而不支持 BPF link，本题需选用支持 `BPF_LINK_UPDATE` 的挂载类型（推荐使用本地回环网卡 `lo` 上的 XDP 程序，或挂载于 cgroup 上的网络程序）。具体实现步骤如下：
 
-(1) 分别加载两个程序，各自带自己的 map 或共用同一张 map；
+(1) 分别加载两个版本的程序，并让它们共享访问同一张内核计数 Map；
 
-(2) 创建 link 并附加第一个；
+(2) 为版本 A 创建 `bpf_link` 并挂载生效；
 
-(3) 用 `bpf_link_update()` 替换，注意 `old_prog_fd` 与 `BPF_F_REPLACE` 的配合；
+(3) 运行数秒后调用 `bpf_link_update()` 将 link 切换至版本 B，要求显式填入 `old_prog_fd` 并启用 `BPF_F_REPLACE` 标志；
 
-(4) 故意传一个错误的 `old_prog_fd`，确认返回 `EPERM`。
+(4) 额外构造一次故意传入错误 `old_prog_fd` 的更新调用，确认内核拒绝替换并返回 `-EPERM`。
 
-验收：替换前后的计数连续；错误的 `old_prog_fd` 被拒绝并且 link 仍然指向原程序。说明为什么 `BPF_LINK_UPDATE` 比「detach 再 attach」更适合生产环境。
+验证标准：热替换前后 Map 中的累计计数平滑递增无断层；传入错误的旧程序描述符时更新被安全拦截且原程序继续正常工作。最后请结合高并发生产环境的需求，阐述为何 `BPF_LINK_UPDATE` 相比于“先 `detach` 旧程序、再 `attach` 新程序”具有不可替代的工程优势。
 
 </Exercise>
 
 <Exercise id="47709" :d="7" :w="6" scope="*">
 
-写一个最小加载器 `mini_loader.c`，不链接 libbpf，直接从 `.bpf.o` 里读出 SEC 名称和指令并加载：
+编写一个不依赖 libbpf 的轻量级通用 ELF 加载器 `mini_loader.c`，直接解析编译器生成的 `.bpf.o` 目标文件并将其中包含的 Map 与程序加载进内核：
 
-(1) 用 `<elf.h>` 打开 ELF，遍历节头，找出名称形如 `tp/...`、`xdp`、`socket` 的节，以及 `license` 节；
+(1) 使用标准 `<elf.h>` 头文件解析 ELF 二进制结构，遍历节头表（Section Header Table），自动识别名称形如 `tp/...`、`xdp`、`socket` 的程序代码节，以及 `license` 节、`.maps` 节与对应的重定位节；
 
-(2) 从 `license` 节读出许可证字符串，从程序节读出 `struct bpf_insn` 数组；
+(2) 从 `license` 节中提取许可证字符串，从程序代码节中读取 `struct bpf_insn` 指令数组；
 
-(3) 处理 `.maps` 节与 `.rel<程序节名>` 重定位节：按符号找到 map 定义，用 `BPF_MAP_CREATE` 建出来，再把 fd 填进对应的 `lddw` 指令（`BPF_PSEUDO_MAP_FD`）；
+(3) 解析旧式或基础 Map 声明与 `.rel<程序节名>` 重定位表：先调用 `BPF_MAP_CREATE` 创建内核 Map 实例，再根据重定位项记录的指令字节偏移，将返回的 `map_fd` 填入对应 `lddw` 指令的 `imm` 字段，同时将其 `src_reg` 置为 `BPF_PSEUDO_MAP_FD`；
 
-(4) 用 `BPF_PROG_LOAD` 加载，把验证器日志打到 stderr；
+(4) 调用 `BPF_PROG_LOAD` 将完成重定位的字节码载入内核，当验证失败时将完整验证器日志输出到 `stderr`；
 
-(5) 对 `socket` 类型的程序用 `setsockopt(SO_ATTACH_BPF)` 附加，对 `tp/` 类型的程序给出「需要 perf_event_open」的提示即可。
+(5) 针对 `socket` 类型的程序自动调用 `setsockopt(SO_ATTACH_BPF)` 挂载到测试套接字上；针对 `tp/` 类型的程序则给出“需要配合 `perf_event_open`”的提示信息。
 
-用 B.3 的 `hello.bpf.o` 验收：程序能被加载，`bpftool prog show` 能看到它，`trace_pipe` 里有输出。
+使用 [B.3](/教程/正文/系统编程/拓展B_eBPF/B_3_第一个eBPF程序) 的 `hello.bpf.o` 进行验证：确认程序能够被顺利加载，`bpftool prog show` 列表中能够查看到该程序，附加后 `trace_pipe` 中有对应输出。
 
-最后用一段话说明：libbpf 在这个流程之外还替你做了哪些事（至少列出 BTF 上传、CO-RE 重定位、map 复用、link 创建四项），以及为什么生产工具不该自己写这一套。
+最后请撰写一段总结分析：对比你手写的 `mini_loader.c` 与工业级的 libbpf 库，指出 libbpf 在上述基础流程之外还替开发者额外承担了哪些关键工作（至少涵盖 BTF 类型上传、CO-RE 跨版本字段重定位、声明式 Map 固定复用以及统一 `bpf_link` 生命周期管理四项），并阐述为何生产级工具不应自行从零维护裸加载逻辑。
 
 </Exercise>
 
 ## 9. 参考资料
 
-- bpf(2) 手册：系统调用原型、`BPF_MAP_CREATE` 与 `BPF_PROG_LOAD` 的字段、返回值规则、`attr` 清零要求、描述符在 `fork()` 与 Unix 域套接字间的传递。https://man7.org/linux/man-pages/man2/bpf.2.html
-- 内核文档 *eBPF Syscall API*：各命令的返回值分类（返回描述符的 13 个、返回 0 的 25 个）、`BPF_OBJ_PIN` 与 `BPF_OBJ_GET` 的语义、bpffs 的作用。https://docs.kernel.org/userspace-api/ebpf/syscall.html
-- Alexei Starovoitov，*Lifetime of BPF objects*（2018）：引用计数规则、程序对 map 的引用、附加对程序的引用、固定对对象的引用、fd 局部附加点与全局附加点的区别。https://facebookmicrosites.github.io/bpf/blog/2018/08/31/object-lifetime.html
-- docs.ebpf.io *BPF_LINK_CREATE*：link 是首选附加方式、取代 `BPF_PROG_ATTACH` 与其他旧方式、link 是引用计数对象、关闭描述符导致的销毁与固定。https://docs.ebpf.io/linux/syscall/BPF_LINK_CREATE/
-- docs.ebpf.io *Pinning*：固定的定义（在 bpffs 中放一个伪文件持有引用）、`BPF_OBJ_PIN` 与 `BPF_OBJ_GET`、固定点不跨重启。https://docs.ebpf.io/linux/concepts/pinning/
-- libbpf 源码与头文件：`bpf_object_load()` 的加载顺序、`bpf_object__probe_loading()`、`bpf_object__sanitize_and_load_btf()`、`bpf_program_attach_fd()`、`bpf_link__destroy()`、`bpf_link__pin()` 的文档注释、`BPF_FS_DEFAULT_PATH`。https://github.com/libbpf/libbpf
-- libbpf API 文档：`bpf_link__pin`、`bpf_link__unpin`、`bpf_link__update_program` 的说明。https://libbpf.readthedocs.io/en/latest/api.html
-- libbpf-bootstrap README：Troubleshooting 一节的 libbpf 调试日志（本页 bootstrap 日志引用自此），以及 lsm 示例里 `bpftool prog list` 被拦时的报错。https://github.com/libbpf/libbpf-bootstrap
-- bpftool 文档：`bpftool-prog`（prog show 的样例、`prog load` 的 `autoattach` 与固定路径、dump xlated/jited 的样例）、`bpftool-map`（map show 与 map pin）、`bpftool-link`（link show、link pin、link detach）。https://github.com/libbpf/bpftool/tree/main/docs
-- 内核源码：`kernel/bpf/syscall.c`（`link_update()` 对 `update_prog` 的检查、`bpf_perf_link_release()`、`bpf_check_uarg_tail_zero()`）、`net/core/dev.c`（`bpf_xdp_link_release()`、`bpf_xdp_link_lops`、`bpf_xdp_link_update()`）、`kernel/bpf/inode.c`（`bpf_obj_do_pin()` 的 `mode` 计算）。https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-- systemd 资源控制文档：`IPIngressFilterPath=`、`IPEgressFilterPath=`、`BPFProgram=` 的说明。https://www.freedesktop.org/software/systemd/man/latest/systemd.resource-control.html
-- Liz Rice，*Learning eBPF*，第 2、3 章：bpf() 系统调用与 BPF 对象的生命周期。
-- 本页的 `bpftool prog help`、`bpftool link help`、`bpftool map help` 与 `bpftool gen help` 是在 Debian 13（内核 6.12、bpftool 7.5.0）上实际运行的，正文只引用了其中的 `prog` 与 `link` 两段；`raw_load.c` 的编译输出、`size` 的结果与无 root 时的失败信息也是实际运行得到的。
-- `raw_load.c` 的编译与运行都在 SignalX 上完成。运行以普通用户身份进行，在 `BPF_MAP_CREATE` 处被内核拒绝，没有向内核加载任何 BPF 程序。
+- `bpf(2)` Linux 手册页：详述了 `bpf()` 系统调用原型、`BPF_MAP_CREATE` 与 `BPF_PROG_LOAD` 的联合体字段规范、返回值分类、`attr` 未用字段清零要求，以及文件描述符在 `fork()` 与 Unix 域套接字间的传递规则。https://man7.org/linux/man-pages/man2/bpf.2.html
+- Linux 内核官方文档 *eBPF Syscall API*：汇总了全部子命令的返回值分类（13 个返回文件描述符、25 个返回 0）、`BPF_OBJ_PIN` 与 `BPF_OBJ_GET` 的调用语义以及 bpffs 虚拟文件系统的设计定位。https://docs.kernel.org/userspace-api/ebpf/syscall.html
+- Alexei Starovoitov，*Lifetime of BPF objects*（2018）：系统阐述了 BPF 内核对象的引用计数法则、程序字节码对 Map 的内部引用、挂载关系对程序的引用、bpffs 固定点对对象的引用，以及描述符局部挂载点与全局挂载点的本质区别。https://facebookmicrosites.github.io/bpf/blog/2018/08/31/object-lifetime.html
+- docs.ebpf.io *BPF_LINK_CREATE*：解析了 BPF link 作为首选现代附加机制的设计初衷、对 `BPF_PROG_ATTACH` 等旧接口的演进替代，以及基于引用计数的自动分离与固定机制。https://docs.ebpf.io/linux/syscall/BPF_LINK_CREATE/
+- docs.ebpf.io *Pinning*：阐明了对象固定的内核实现机理（通过 bpffs 伪文件目录项持有内核引用）、`BPF_OBJ_PIN` 与 `BPF_OBJ_GET` 的配合使用，以及固定点不跨越系统重启的内存属性。https://docs.ebpf.io/linux/concepts/pinning/
+- libbpf 源码与头文件：涵盖 `bpf_object_load()` 的内部子阶段调用顺序、`bpf_object__probe_loading()` 内核能力探测、`bpf_object__sanitize_and_load_btf()`、`bpf_program_attach_fd()`、`bpf_link__destroy()`、`bpf_link__pin()` 的文档注释以及 `BPF_FS_DEFAULT_PATH` 宏定义。https://github.com/libbpf/libbpf
+- libbpf 官方 API 文档：提供了 `bpf_link__pin`、`bpf_link__unpin` 与 `bpf_link__update_program` 等接口的参数说明与返回值规范。https://libbpf.readthedocs.io/en/latest/api.html
+- libbpf-bootstrap 官方仓库 README：包含 Troubleshooting 章节中的 libbpf `-v` 调试日志示例（本文第 3.2 节引用自该处），以及 `lsm` 示例拦截 `bpftool prog list` 时的权限报错说明。https://github.com/libbpf/libbpf-bootstrap
+- bpftool 官方文档（`bpftool-prog`、`bpftool-map`、`bpftool-link`）：详述了 `prog show` 各列含义、`prog load` 的 `autoattach` 与固定路径语义、`dump xlated/jited` 指令导出，以及 Map 与 link 的查询、固定与强制分离用法。https://github.com/libbpf/bpftool/tree/main/docs
+- Linux 内核源码：`kernel/bpf/syscall.c`（包含 `link_update()` 对 `.update_prog` 操作表的检查、`bpf_perf_link_release()` 以及 `bpf_check_uarg_tail_zero()` 尾部零值校验）、`net/core/dev.c`（包含 `bpf_xdp_link_release()` 与 `bpf_xdp_link_update()` 实现）、`kernel/bpf/inode.c`（包含 `bpf_obj_do_pin()` 的权限计算逻辑）。https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+- `systemd.resource-control(5)` 官方手册：说明了 `IPIngressFilterPath=`、`IPEgressFilterPath=` 与 `BPFProgram=` 等资源控制指令如何消费固定在 bpffs 中的 BPF 程序。https://www.freedesktop.org/software/systemd/man/latest/systemd.resource-control.html
+- Liz Rice，*Learning eBPF*（ISBN 978-1-098-13512-6），第 2、3 章：深入浅出地介绍了 `bpf()` 系统调用与 BPF 内核对象的生命周期模型。
+- 本节展示的 `bpftool prog help`、`bpftool link help` 输出以及 `raw_load.c` 的编译结果、`size` 段大小统计与非特权用户运行时的 `BPF_MAP_CREATE` 权限拒绝报错，均在 Debian 13（Linux 内核 6.12、bpftool 7.5.0）实验环境 SignalX 上实测生成。
+- `raw_load.c` 的编译与非特权用户运行验证均在 SignalX 环境中完成；以普通用户身份运行时在 `BPF_MAP_CREATE` 阶段即被内核安全策略拦截拒绝，未向宿主机内核实际注入任何 BPF 程序。

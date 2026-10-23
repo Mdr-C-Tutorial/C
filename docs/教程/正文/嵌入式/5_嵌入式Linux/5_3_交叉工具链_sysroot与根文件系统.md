@@ -1,12 +1,12 @@
 # 5.3 交叉工具链、sysroot 与根文件系统
 
-[5.1](/教程/正文/嵌入式/5_嵌入式Linux/5_1_嵌入式Linux与系统编程边界) 里已经把同一个 `hello.c` 编成了两份：x86 版在本机跑，ARM 版在 x86 上跑不起来。那一次只用了交叉编译器一个命令，库从哪里来、头文件是哪一份、目标机上的动态链接器长什么名字，都没有交代。
+在 [5.1](/教程/正文/嵌入式/5_嵌入式Linux/5_1_嵌入式Linux与系统编程边界) 中，我们曾通过本地与交叉编译的对照实验，直观观察了同一段 `hello.c` 源码生成的目标二进制差异：面向宿主机 x86-64 架构的可执行文件能够在本机直接执行，而面向 ARM 架构的目标程序在 x86 宿主机上则因架构不匹配被内核拒之门外。在那次快速验证中，我们仅调用了交叉编译器命令本身，但对于工程构建中更为深层的系统依赖——目标架构的头文件由何处供给、动态链接所需的标准运行库从何处获取、目标机操作系统寻址的动态链接器究竟依附怎样的路径规范——尚未展开系统剖析。
 
-这一页补上这三样。先拆开交叉工具链，看清里面装的是哪几个程序、三元组 (triplet) 的每一段是什么意思；再讲 sysroot，也就是目标系统的头文件与库在宿主机上的那一份副本；然后用 CMake 工具链文件、pkg-config 和 Makefile 前缀把它接到实际的工程里，用 `file` 与 `readelf` 检查产物；最后不借助任何构建系统，用 BusyBox 和 C 库手工拼出一个最小根文件系统，打包成 initramfs 在 QEMU 里启动。做完这一页，再看到「能链接、一运行就找不到符号」这类问题时，知道该去查工具链的哪一层。
+本节将逐一拆解这些维系跨平台构建的核心支柱。首先深入交叉工具链内部，理清其内部包含的各个程序组件与三元组（triplet）命名背后的架构约束；随后聚焦 sysroot 这一关键机制，透视目标系统根目录在宿主机上的镜像拓扑，并演示如何通过 CMake 工具链配置文件、pkg-config 配置参数以及 Makefile 抽象前缀将其无缝融入日常工程构建；最后，我们将脱离庞大自动化构建系统的黑盒，完全借助 BusyBox 源码与精简 C 库手工拼装出一个最小化根文件系统，打包为 initramfs 镜像并在 QEMU 仿真环境中成功引导。走通这一全流程，当未来面对“编译链接顺利通过、目标板上一跑便报符号缺失”的现场异常时，便能迅速定位到工具链与文件系统层面的根本症结。
 
 ## 1. 工具链里有什么
 
-交叉工具链 (cross toolchain) 是在宿主机 (host) 上运行、生成目标机 (target) 代码的一整套程序。`arm-linux-gnueabihf-gcc` 只是入口，它背后是下面这些部件：
+交叉工具链（cross toolchain）是在宿主机（host）上运行、专用于生成目标机（target）机器指令的一整套二进制工具集合。日常调用的 `arm-linux-gnueabihf-gcc` 只是一个统揽全局的前端驱动程序，它的背后精密协调着编译器内核、汇编器、链接器以及一系列针对目标平台深度定制的基础运行时：
 
 ```mermaid
 flowchart TB
@@ -21,9 +21,9 @@ flowchart TB
     GDB["gdb 与 binutils<br/>readelf、objdump、strip"] -.-> LD
 ```
 
-四类东西必须都是给目标机编的：头文件、C 库、编译器辅助库 `libgcc`、启动文件 `crt*.o`。宿主机上 `/usr/include/stdio.h` 是 x86-64 的，里面的 `size_t` 是 8 字节，结构体布局也按 x86-64 对齐；把它喂给 ARM 编译器，编出来的结构体偏移全错。工具链把目标版的那一套放在自己的 sysroot 里，与宿主机的分开。
+四类核心要素必须与目标架构保持绝对纯洁的同源性：目标平台 C 库头文件、预编译的共享库、编译器底层辅助库 `libgcc` 以及负责进程入口引导的启动目标文件 `crt*.o`。宿主机系统中默认的 `/usr/include/stdio.h` 是为 x86-64 架构量身定制的，其内部的 `size_t` 宽度为 8 字节，各类结构体的内存对齐与填充规则完全依附于 64 位 x86 体系；若将其错误地引入 32 位 ARM 编译流，所生成的结构体内存偏移将全盘错位。正因如此，交叉工具链必须将目标平台专有的头文件与库文件严格隔离在专属的 sysroot 空间内，与宿主机环境划清界限。
 
-工具链的身份写在名字里。GNU 的三元组形如 `arch-vendor-os-abi`：
+工具链的命名规范直接承载了其目标运行环境的底层约束。GNU 工具链三元组通常采用 `arch-vendor-os-abi` 的经典四段结构：
 
 | 三元组 | 体系结构 | 厂商 | 操作系统 | ABI | 用途 |
 | --- | --- | --- | --- | --- | --- |
@@ -32,14 +32,14 @@ flowchart TB
 | `arm-buildroot-linux-gnueabihf` | arm | buildroot | linux-gnu | eabihf | Buildroot 自己编出来的工具链 |
 | `aarch64-linux-gnu` | aarch64 | 空 | linux-gnu | 默认 | 64 位 ARM Linux，发行版常备 |
 
-每一段都有信息量：
+三元组中每一字段的取值都决定着编译器的底层生成策略：
 
-- 第一段是 CPU 架构。`arm` 指 32 位 ARM，`aarch64` 指 64 位 ARM。
-- 第二段是厂商字段，多数工具链写 `none`，Buildroot 生成时写 `buildroot`。这一字段不影响代码，只用来区分来源。
-- 第三段是操作系统。`eabi` 表示裸机上的 ARM EABI，`linux-gnu` 表示 Linux 加 glibc。操作系统的名字决定了 C 库提供的系统调用封装，也决定了链接时要不要找动态链接器。
-- 第四段是 ABI。`hf` 是 hard-float 的缩写，表示浮点参数经 VFP 寄存器传递；没有 `hf` 的是软浮点 (soft-float) ABI，浮点参数经整数寄存器传递。两种 ABI 的目标文件不能混链。
+- 第一段声明 CPU 指令集架构。例如 `arm` 指代 32 位 ARM 架构（如 ARMv7-A），而 `aarch64` 则明确代表 64 位 ARMv8-A 及后续架构。
+- 第二段代表芯片原厂或构建方案商标识。多数通用发行版写作 `none`，Buildroot 自主编译出的套件则标识为 `buildroot`。该字段不参与生成指令的决策，主要用于区分工具链的定制化来源。
+- 第三段声明目标操作系统。裸机场景写作 `eabi`（代表遵循 ARM 嵌入式应用二进制接口规范），Linux 系统则标示为 `linux-gnu`（代表基于 Linux 内核与 GNU C 运行库）。操作系统的选型直接决定了 C 库对系统调用的封装形式，并决定了生成 ELF 镜像时是否内嵌对动态链接器的寻址请求。
+- 第四段声明具体的浮点应用程序二进制接口（ABI）。`hf` 是 hard-float 的显式简写，意味着编译器遵循将浮点运算参数直接装入硬件 VFP/NEON 寄存器传递的高性能约定；缺少 `hf` 后缀则代表软浮点（soft-float）约定，即使底层存在硬件浮点单元，浮点参数依然通过通用整型寄存器拆解传递。两类 ABI 在二进制机器指令层面完全不兼容，绝不能在一个可执行体中混合链接。
 
-裸机工具链与 Linux 工具链的差别不只是有没有操作系统这几个字。用 `arm-none-eabi-gcc` 编一个带 `printf` 的程序，编译能过，链接时停住：
+裸机工具链与嵌入式 Linux 工具链最显见的分野首先落在 C 标准运行库的实现机制上。若误用面向单片机的 `arm-none-eabi-gcc` 去编译一个包含 `printf` 的通用 Linux 程序，语法解析与汇编阶段皆能顺利通过，但在最终符号解析阶段链接器将骤然报错：
 
 ::: terminal title="bash - 裸机工具链链接 Linux 程序"
 
@@ -56,7 +56,7 @@ collect2.exe: error: ld returned 1 exit status
 
 :::
 
-`arm-none-eabi` 带的是 newlib，不是 glibc。newlib 里 `printf` 最终要调 `_write`、`_sbrk` 这类由系统提供的函数，裸机上它们由板级支持包实现，Linux 上则由 glibc 直接发起系统调用。`_exit`、`_close`、`_kill` 这些名字是 newlib 要求的系统接口 (system call stub)，没人实现，链接器就报未定义。**看到 `undefined reference to '_sbrk'`，先确认用的是不是 Linux 工具链，而不是去补一个 `_sbrk` 函数。**
+`arm-none-eabi` 工具链默认搭载的是 newlib——一套面向深度嵌入式与裸机场景的微型 C 库。在 newlib 的架构设计中，`printf` 底层最终需要依赖外部系统提供的 `_write`、`_sbrk` 等系统桩函数（system call stub）来完成字符输出与动态堆内存扩容；在无操作系统的裸机单片机上，这些桩函数必须由工程师手写的板级支持包（BSP）予以实现，而在 Linux 体系下，标准的 glibc 则会直接通过特权陷入指令发起内核系统调用。当使用裸机工具链进行编译而工程中又缺少桩函数实现时，链接器便会因无法解析 `_exit`、`_close`、`_kill` 等符号而报错中止。在系统开发中，一旦在链接日志中遭遇 `undefined reference to '_sbrk'` 这类报错，首要动作应是核查手头调用的工具链三元组是否选错为裸机版，切忌盲目在工程源码中手动拼凑伪桩函数。
 
 ::: concept emb53-triplet title="三元组决定目标环境"
 
@@ -64,7 +64,7 @@ collect2.exe: error: ld returned 1 exit status
 
 :::
 
-每个 GNU 工具链都有 `-dumpmachine` 与 `-print-sysroot` 两个查询选项，看一眼就知道手上这套是给谁的：
+每个 GNU 工具链都内建了 `-dumpmachine` 与 `-print-sysroot` 两个基础查询开关，执行即可直接获悉当前套件的目标定位：
 
 ::: terminal title="bash - 查询工具链身份"
 
@@ -77,7 +77,7 @@ C:/.../arm-gnu-toolchain-13.3.rel1-mingw-w64-i686-arm-none-eabi/bin/../arm-none-
 
 :::
 
-`-print-sysroot` 返回的那条路径就是这套工具链的根，头文件在 `<sysroot>/include`，库在 `<sysroot>/lib`。交叉编译时编译器默认就在这里找东西，所以单独的 `arm-none-eabi-gcc` 不需要额外指定 `--sysroot`。
+`-print-sysroot` 返回的物理绝对路径正是这套工具链的内置目标根基址，其对应的标准头文件存放在 `<sysroot>/include`，目标共享库与静态库则收纳在 `<sysroot>/lib` 之中。在常规交叉编译流程中，编译器驱动默认会在该基准路径下完成默认寻径，因此在直接调用特定工具链时并不强制额外传递 `--sysroot` 参数。
 
 <Quiz
   type="single"
@@ -102,7 +102,7 @@ C:/.../arm-gnu-toolchain-13.3.rel1-mingw-w64-i686-arm-none-eabi/bin/../arm-none-
 
 ## 2. 从哪拿一套工具链
 
-四条路都能得到可用的工具链，区别在可控程度和入手难度：
+在项目启动期，获取一套可用的交叉工具链主要有四条主流路径，其可控深度与工程门槛呈阶梯分布：
 
 | 来源 | 特点 | 适用 |
 | --- | --- | --- |
@@ -113,7 +113,7 @@ C:/.../arm-gnu-toolchain-13.3.rel1-mingw-w64-i686-arm-none-eabi/bin/../arm-none-
 
 Bootlin 的实验手册用 crosstool-NG 给 STM32MP157 编了一套 musl 工具链，原因是官方 ST 工具链用的是 glibc，而课程想演示 musl 更小的体积。这是教学上的选择，产品上未必适用：芯片厂提供的 BSP 与二进制库通常只针对 glibc 与特定工具链版本编译。
 
-选择上有两条经验。第一，工具链与根文件系统必须同源。用 Arm 官方工具链编出的程序，拿到 Buildroot 生成的根文件系统上跑，glibc 版本低于目标机时能跑，高于目标机时会报 `GLIBC_2.34 not found` 之类的错。第二，团队里固定版本号，把编译器路径写进构建脚本或容器镜像，不要依赖 `PATH` 里恰好是哪一个。换工具链应当是一次有记录、会重新跑测试的动作。
+在实际选型中，有两项经过检验的工程实践准则。其一，交叉工具链的 sysroot 与目标机根文件系统必须保持绝对的同源性。若使用 Arm 官方较新版本的工具链编译程序，再将其直接拷贝到由旧版 Buildroot 产出的根文件系统中运行，一旦工具链依赖的 glibc 版本高于目标机实际运行的 C 库，动态链接器在解析符号版本时就会断然抛出诸如 `GLIBC_2.34 not found` 的错误而拒绝加载。其二，工程团队内部必须严格锁定工具链的具体构建发行版，将工具链路径与环境配置固化在统一的 Makefile、CMake 预设或标准 Docker 构建镜像中，避免依赖宿主机 `PATH` 中偶发匹配的编译器版本。更迭编译工具链在工程上必须被视为一次正式的基础设施版本升级，需要伴随完整的回归测试。
 
 ::: tip 一次下载，全组共用
 
@@ -123,7 +123,7 @@ Arm GNU Toolchain 的解压目录可以直接放进版本库之外的一个共�
 
 ## 3. sysroot
 
-sysroot 是目标系统根目录在宿主机上的一份副本，只含编译和链接需要的东西：头文件、库、`pkg-config` 的 `.pc` 文件。编译时加上 `--sysroot=<目录>`，编译器就会把 `#include <stdio.h>` 解析到 `<目录>/usr/include/stdio.h`，把 `-lm` 解析到 `<目录>/usr/lib/libm.so`。
+sysroot 是目标系统根文件系统在宿主机上的纯净镜像副本，其内部严格保留了编译与静态链接阶段所需的全部资产：目标平台的 C 运行库头文件、动态链接所需的未剥离共享库、静态归档库，以及 `pkg-config` 专用的 `.pc` 元数据描述文件。在调用交叉编译器时追加 `--sysroot=<目录>` 参数，编译器便会自动将所有的系统级路径解析重定向至该目录拓扑之下——例如 `#include <stdio.h>` 会被重定向至 `<目录>/usr/include/stdio.h`，而链接参数 `-lm` 则会自动寻径至 `<目录>/usr/lib/libm.so`。
 
 Buildroot 的输出目录里有三份容易混淆的东西：
 
@@ -138,7 +138,7 @@ flowchart LR
 
 `output/host` 是给宿主机用的：交叉编译器、`pkg-config`、`cmake` 都在这里，它们的路径前缀是 `output/host/bin`。`output/staging` 是 sysroot，里面的库保留了符号表，方便调试与链接，但不该原样放进设备。`output/target` 才是最终根文件系统的内容，库经过了 `strip`，体积小得多。
 
-这三者不能混用。拿 `output/target` 当 sysroot，链接时可能因为符号被剥掉而失败；把 `output/staging` 整个拷到设备上，根文件系统会大出一倍。Buildroot 的手册明确写了 `output/staging` 是「给编译器看的」，`output/target` 是「给设备用的」。
+这三处目录具有极其鲜明的权责边界，在工程流中严禁混用。若错误地将 `output/target` 当作 sysroot 传递给编译器，链接器可能因为关键调试符号或辅助导出符号已被裁剪而导致链接中断；而若将 `output/staging` 未加甄别地全量灌入目标硬件存储介质，未经剥离的庞大调试信息将使设备固件体积呈数倍膨胀。Buildroot 官方开发手册对此有着极其精确的定性：`output/staging` 专供宿主机编译器在构建期检索审阅，而 `output/target` 才是交付物理设备运行的真实载荷。
 
 ::: concept emb53-sysroot-staging-vs-target title="staging 与 target 的分工"
 
@@ -148,7 +148,7 @@ flowchart LR
 
 用错 sysroot 的后果很直接。指向一个空目录，预处理阶段就停住：
 
-::: compare left-title="--sysroot 指向不存在的目录" right-title="指向真正的 sysroot"
+::: compare left-title="--sysroot 指向不存在的目录" right-title="指向正确的 sysroot"
 
 ```console
 $ gcc --sysroot=/nonexistent/sysroot -std=c17 hello.c -o hello
@@ -235,7 +235,7 @@ calc_arm: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV),
 
 :::
 
-工程里不会每次都手写这一长串。Makefile 的习惯是把前缀单独写成一个 make 对象，交叉编译时只改它的值：
+在实际工程维护中，极少需要反复手工输入繁杂的长参数。Makefile 的常规约定是将工具链前缀抽取为一个独立的配置项，交叉构建时仅需覆写该项即可：
 
 ```make
 CROSS_COMPILE ?=
@@ -247,9 +247,9 @@ calc: calc.c
 	$(CC) $(CFLAGS) $< -o $@ $(LDLIBS)
 ```
 
-本机构建 `make`，交叉构建 `make CROSS_COMPILE=arm-linux-gnueabihf-`。`?=` 让命令行传进来的值覆盖默认值，这是内核与 U-Boot 都用同一套约定的原因。sysroot 可以写进 `CFLAGS`，也可以交给工具链默认值：Buildroot 导出的工具链把自己包装过，默认就指向 `output/staging`。
+本机构建只需输入 `make`，交叉构建则执行 `make CROSS_COMPILE=arm-linux-gnueabihf-`。条件赋值符 `?=` 允许外部传入的命令行实参无缝覆盖文件内的缺省定义，这也是 Linux 内核与 U-Boot 构建系统共同遵循的标准惯例。sysroot 路径既可以在调用时追加至 `CFLAGS`，也可以交由打包好的工具链内部默认解析：Buildroot 导出的交叉工具链均自带封装包装，默认已将 sysroot 锚定在 `output/staging`。
 
-CMake 工程用工具链文件 (toolchain file) 描述目标平台。文件在配置阶段用 `-DCMAKE_TOOLCHAIN_FILE=` 传入，不能等配置完了再改。完整文件在 `code/嵌入式/5_嵌入式Linux/5_3_交叉工具链_sysroot与根文件系统/toolchain-arm.cmake`，核心是这几行：
+CMake 工程用工具链文件 (toolchain file) 描述目标平台。文件在配置阶段用 `-DCMAKE_TOOLCHAIN_FILE=` 传入，不能等配置完了再改。完整文件在 `code/嵌入式/5_嵌入式Linux/5_3_交叉工具链_sysroot与根文件系统/toolchain-arm.cmake`，节选如下：
 
 ```cmake
 set(CMAKE_SYSTEM_NAME Linux)
@@ -269,7 +269,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 ```
 
-`CMAKE_SYSTEM_NAME` 一设成 `Linux`，CMake 就知道这是交叉编译，不再把宿主机当目标。四个 `FIND_ROOT_PATH_MODE` 决定 `find_package`、`find_library` 去哪找：程序（如 `pkg-config` 本身）只在宿主机找，库与头文件只在目标 sysroot 找。少写这几行，`find_package(ZLIB)` 可能找到宿主机的 zlib，链接时才发现架构不对。sysroot 用环境对象传入，同一个文件能在不同人的机器上复用：
+`CMAKE_SYSTEM_NAME` 一旦被声明为 `Linux`，CMake 便会自动切入交叉编译状态机，不再将当前宿主机视作目标平台。四个 `FIND_ROOT_PATH_MODE` 参数精准界定了 `find_package` 与 `find_library` 的寻径边界：主机侧的本地生成工具（如代码生成器、本地打包程序）严格在宿主机根目录下搜寻，而编译依赖的动态库、静态库及头文件则强制收敛于目标 sysroot 之下。缺少这些前置声明，`find_package(ZLIB)` 极易在不知情的情况下抓取到宿主机 x86-64 架构的 zlib 动态库，直到链接阶段才爆发架构不符的致命错误。将 sysroot 路径通过环境参数传入，可令同一份工具链描述文件在团队不同开发机之间平稳复用：
 
 ```console
 $ ARM_SYSROOT=$HOME/buildroot/output/staging \
@@ -296,7 +296,7 @@ $ cmake -S . -B build-arm -DCMAKE_TOOLCHAIN_FILE=toolchain-arm.cmake
 
 :::
 
-第三方库通过 `pkg-config` 报告自己的编译与链接参数。交叉编译时，`.pc` 文件里的 `-I/usr/include` 是目标机上的路径，必须加上 sysroot 前缀才有意义。`pkg-config` 提供了两个环境变量做这件事：
+第三方库通过 `pkg-config` 向上游构建脚本报告自身的头文件路径与链接依赖。在交叉编译体系下，第三方库 `.pc` 文件中声明的 `-I/usr/include` 属于目标机本地路径，必须注入 sysroot 路径前缀方可在宿主机上正确展开。为此，`pkg-config` 提供了两个专用的配置参数来完成这层映射：
 
 ::: terminal title="bash - pkg-config 的 sysroot 处理（真实输出）"
 
@@ -312,7 +312,7 @@ $ PKG_CONFIG_SYSROOT_DIR=/opt/arm-sysroot \
 
 `PKG_CONFIG_LIBDIR` 替换默认的搜索目录，指向 sysroot 里的 `.pc` 文件；不设它，`pkg-config` 会用宿主机的 `/usr/lib/pkgconfig`，返回宿主机库的参数。`PKG_CONFIG_SYSROOT_DIR` 只做路径前缀拼接，不改 `.pc` 的内容。两个都要设，缺一个就出错。
 
-autotools 的项目用 `--host` 而不是环境变量：
+autotools 的项目把目标三元组写在 `configure` 的 `--host` 参数上：
 
 ```console
 $ ./configure --host=arm-linux-gnueabihf \
@@ -357,7 +357,7 @@ hello_musl: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), statically l
 
 :::
 
-第一份是 64 位 ARM 的动态链接程序，第二份是 32 位、静态链接。`statically linked` 意味着没有 `interpreter`，内核加载后直接从程序入口开始执行；`dynamically linked` 要先加载 `interpreter` 指定的动态链接器，再由它把 `libc.so.6` 映射进来。
+第一份是 64 位 ARM 的动态链接程序，第二份是 32 位、静态链接。`statically linked` 表示没有 `interpreter`，内核加载后直接从程序入口开始执行；`dynamically linked` 要先加载 `interpreter` 指定的动态链接器，再由它把 `libc.so.6` 映射进来。
 
 `readelf -h` 把 ELF 头拆成字段，其中 `Machine` 与 `Flags` 是交叉编译最容易看错的两项：
 
@@ -429,7 +429,7 @@ $ arm-linux-gnueabihf-size calc_dyn calc_musl
 
 :::
 
-这里的静态版反而更小，因为它用的是 musl，一个为静态链接优化过的 C 库：动态 glibc 版的 38 KB 只是程序本身，运行时还要加载约 2 MB 的 `libc.so.6`；musl 静态版把需要的那部分库代码编进程序，25 KB 就是全部。同一个 glibc 下静态链接通常要大得多，因为 `libc.a` 里用到的目标文件会被整块拖进来。作者的建议是：正常情况用动态链接，根文件系统里既然已经有 glibc，就没有理由再塞一份静态副本；只有 recovery 分区里的救援程序、`init` 之前的早期用户态程序、或者要拷到未知系统上运行的小工具，才值得静态链接。
+这里的静态二进制体积反而略低于动态版本，关键在于其采用了专为静态链接与紧凑内存设计的 musl C 库：动态链接 glibc 的 38 KB 仅代表 ELF 骨架本身的体积，运行期仍需在物理内存中动态映射进超过 2 MB 的 `libc.so.6`；而 musl 静态版本仅将源码实际触发的库函数段吸纳进可执行程序中，25 KB 便是其运行所需的全部载荷。但在 glibc 体系下，全静态链接生成的二进制往往体积极为惊人，因为庞大的 `libc.a` 归档以及内嵌的 NSS 服务等模块会被整块拖入最终镜像。在常规的嵌入式业务开发中，动态链接是兼顾系统资源与维护性的主流选择：既然生产根文件系统中已经预先装载了 C 标准运行库，便没有理由在每个用户态程序中重复打包静态副本造成内存浪费；只有在设计底层 recovery 分区救援镜像、在系统挂载根分区前执行的早期自举任务，或是编写旨在跨越异构未知发行版直接运行的通用排错工具时，静态链接的自包含优势才真正具备无可替代的工程价值。
 
 没有开发板时，`qemu-arm` 可以用户态模拟单个程序：
 
@@ -557,7 +557,7 @@ Please press Enter to activate this console.
 
 命令行里有三处要留意。`-append "console=ttyAMA0"` 把内核控制台指到第一个 PL011 串口，`-nographic` 把它连到当前终端。`rdinit=/sbin/init` 指定 initramfs 里的 init 程序，不写时内核按 `/init`、`/sbin/init`、`/etc/init`、`/bin/init`、`/bin/sh` 的顺序找。`-dtb` 指定设备树，QEMU 的 vexpress-a9 需要它，`-M virt` 之类的机器则由 QEMU 自己生成。
 
-initramfs 是内存文件系统：内核启动时把整个 cpio 解开到内存里的 tmpfs，之后对它的读写只在内存中，重启就没了。它适合做早期挂载与救援，做产品根文件系统要换真正的存储介质，或者用 initramfs 里的小 init 去挂载 eMMC 上的根分区再 `switch_root`。
+initramfs 是内存文件系统：内核启动时把整个 cpio 解开到内存里的 tmpfs，之后对它的读写只在内存中，重启就没了。它适合做早期挂载与救援。做产品时根文件系统放在持久介质上，或者用 initramfs 里的小 init 去挂载 eMMC 上的根分区再 `switch_root`。
 
 手工走完这一趟，5.4 要讲的 Buildroot 就好理解了：它把「下载、配置、交叉编译、安装到 staging、复制到 target、打包映像」这一串动作写成规则，每个软件包一份 `.mk` 文件，`make` 一条命令跑完。
 
@@ -609,7 +609,7 @@ initramfs 是内存文件系统：内核启动时把整个 cpio 解开到内存�
 
 <Exercise id="65530" :d="3" :w="3">
 
-`pkg-config` 的两个环境对象各自负责什么，用一组最小文件做实验。
+`pkg-config` 的两个环境配置参数各自负责什么，用一组最小文件做实验。
 
 (1) 写一个最小静态库 `libmdrutil.a`（一个函数 `int mdr_twice(int)` 即可）和一个 `mdrutil.pc`：`prefix=/usr`，`Cflags: -I${prefix}/include`，`Libs: -L${prefix}/lib -lmdrutil`。把它放进 `optarm/usr/lib/pkgconfig/`。
 

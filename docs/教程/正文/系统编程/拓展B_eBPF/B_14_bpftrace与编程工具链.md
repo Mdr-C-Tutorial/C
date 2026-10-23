@@ -1,10 +1,10 @@
 # B.14 bpftrace 与编程工具链
 
-线上服务在下午三点开始变慢。你想立刻知道两件事：哪个进程在反复打开配置文件，每个进程每秒发出多少系统调用。用前几节的 libbpf 写法回答这个问题，要建目录、写两份 C 文件、写 Makefile、编译、生成骨架，半小时起步。bpftrace 把同一个问题压缩成一行命令，在终端里回车就能看到结果。
+生产环境的线上服务往往会在没有征兆的情况下突发性能衰减。在紧急排障的最初十分钟内，运维与开发人员往往急于厘清两项事实：究竟是哪个进程在疯狂打开特定配置文件，以及各进程每秒分别触发了多少次系统调用。倘若完全沿用前文所介绍的 libbpf 工程化流程来回答这两个问题，开发者必须经历初始化源码目录、编写内核态探针、设计用户态载入器、配置 Makefile 构建规则、编译生成骨架头文件等一整套完整周期，耗时往往半小时起步。bpftrace 的核心价值，恰恰在于将这类探索性的观测需求压缩为终端中的一行即时命令，敲下回车即可实时捕捉内核指标。
 
-这一页先讲 bpftrace 的用法：一行命令、语言要点、`.bt` 脚本和随发行版附带的现成工具，并说清它内部怎样把脚本变成 BPF 程序。然后把视线放宽到整个工具生态：BCC 与 libbpf-tools 的来历和取舍、bpftool 怎样调试已经生成的目标文件、Go 和 Rust 各有哪套库，最后讲怎样在不碰内核的前提下把这些检查放进持续集成。读完应当能在 bpftrace 和 libbpf C 程序之间做出选择，而不是遇到任何观测问题都先打开编辑器。
+本篇系统梳理 bpftrace 的底层工作机理与工具链全景：从极简的单行命令模式、脚本化开发范式（`.bt` 脚本）到发行版内置的现成运维工具，并深入剖析其将高级 DSL 编译为 BPF 字节码的编译流水线。随后，视野将进一步拓展至现代 eBPF 的多元开发生态：厘清从早期 BCC 向预编译 libbpf-tools 的架构演进逻辑、掌握 bpftool 在 ELF 目标文件维度的离线调试与静态链接能力、评估 Go（`cilium/ebpf`）与 Rust（`Aya`、`libbpf-rs`）工具链的工程取舍，最后阐明如何在脱离内核运行特权的前提下，将 BPF 代码质量检查无缝嵌入现代持续集成流水线中。
 
-本页的命令与输出以 Debian 13 为准：内核 6.12，bpftrace 0.23.2。bpftrace 需要 root，权限的说明见[环境准备与工具链](/教程/正文/系统编程/拓展B_eBPF/B_2_环境准备与工具链)。
+文中的指令与诊断输出均以标准 Linux 发行版环境（基于 Linux 6.12 与 bpftrace 0.23）为基准展开；关于 bpftrace 运行所需的特权要求与权限配置，可参阅[环境准备与工具链](/教程/正文/系统编程/拓展B_eBPF/B_2_环境准备与工具链)。
 
 ## 1. bpftrace 是什么
 
@@ -74,7 +74,7 @@ hello world
 
 `BEGIN` 在脚本启动时执行一次，作用相当于 awk 的 `BEGIN`，常用来打印表头。`printf` 的格式串与 C 相同。
 
-把 `BEGIN` 换成真正的探针，就能看到文件打开，输出类似：
+把 `BEGIN` 换成具体的探针，就能看到文件打开，输出类似：
 
 ::: terminal title="bash - 跟踪 openat"
 
@@ -92,7 +92,7 @@ snmpd /proc/net/if_inet6
 
 `tracepoint:syscalls:sys_enter_openat` 是静态跟踪点，在 `openat()` 进入时触发。`comm` 是内置对象，保存当前线程的进程名；`args` 是探针参数的集合，由 bpftrace 按跟踪点的格式自动生成；`args.filename` 取其中的 `filename` 字段，它是一个指针，`str()` 把它指向的内存读成字符串。
 
-这里有一个版本差异必须知道：0.19 之前访问参数写 `args->filename`，0.19 起 `args` 从指针变成了结构体，写成 `args.filename`。本页按 0.23 写。旧脚本里出现 `->` 的，改成 `.` 即可；反过来把新写法用在老版本上会报语法错误。
+此处存在一项关键的版本演进细节：在 0.19 之前的旧版本中，访问探针参数采用指针解引用语法 `args->filename`；自 0.19 版本起，`args` 在抽象语义上由指针重构为结构体对象，规范写法变更为 `args.filename`。本文统一遵循 0.23 及更高版本的现代语法。在查阅早期历史脚本时，若发现形如 `->` 的旧语法，按现代规范改写为 `.` 即可无缝运行。
 
 ### 2.3 按进程统计系统调用
 
@@ -202,7 +202,7 @@ secondary_startup_64+165
 
 :::
 
-`profile:hz:99` 在每颗 CPU 上以 99 Hz 采样。取 99 而不是 100，是为了避免采样与系统里其他定时活动同步。`kstack` 是当前的内核调用栈，把它当作 map 的键就得到按栈汇总的采样计数。这段输出最适合直接喂给火焰图。
+`profile:hz:99` 在每颗 CPU 上以 99 Hz 采样。100 Hz 这样的整频率容易和系统里其他定时活动对齐，采样会一直落在同一个函数上，结果有偏；99 与常见的周期不整除。`kstack` 是当前的内核调用栈，把它当作 map 的键就得到按栈汇总的采样计数。这段输出最适合直接喂给火焰图。
 
 `profile` 与 `interval` 的区别值得记一下：`profile` 在所有 CPU 上按频率触发，适合采样；`interval:s:5` 只在一颗 CPU 上按固定间隔触发，适合定时打印和 `exit()`。
 
@@ -221,7 +221,7 @@ tracepoint:syscalls:sys_enter_openat
 }
 ```
 
-脚本前面可以放 `#include`、类型定义和一个 `config = { ... }` 块。config 块只能放在脚本最顶上，用来改 `max_strlen`、`stack_mode` 这类设置；环境变量同名的配置项优先级更高。
+脚本头部可以声明 `#include` 头文件、自定义数据类型定义以及顶部的 `config = { ... }` 配置块。config 块必须置于脚本最顶层，用于调优 `max_strlen`（字符串最大截取长度）、`stack_mode`（堆栈解析模式）等运行时参数；若宿主环境中存在同名的系统环境项（如 `BPFTRACE_MAX_STRLEN`），则其配置优先级高于脚本内部声明。
 
 ### 3.2 内置对象
 
@@ -265,7 +265,7 @@ Attaching 2 probes...
 
 :::
 
-入口处把当前时刻存进以线程 ID 为键的 map，出口处取出、相减、再删掉。用 `tid` 而不是 `pid` 作键，是因为一个进程的多个线程可以同时卡在不同的 `read` 上，只有线程才能把入口和出口一一对应起来。出口处的过滤 `/@start[tid]/` 保证只在入口确实记录过时间时才计算，否则在程序启动前已经在进行的 `read` 会算出一段虚假的耗时。
+入口处把当前时刻存进以线程 ID 为键的 map，出口处取出、相减、再删掉。用 `tid` 作键，是因为一个进程的多个线程可以同时卡在不同的 `read` 上，只有线程才能把入口和出口一一对应起来。出口处的过滤 `/@start[tid]/` 保证只在入口确实记录过时间时才计算，否则在程序启动前已经在进行的 `read` 会算出一段虚假的耗时。
 
 `delete(@map, 键)` 删除一个元素。0.22 起键作为单独的参数传入，旧写法 `delete(@start[tid])` 仍可用但已废弃。`clear(@map)` 清空整个 map，`print(@map, N)` 只打印值最大的前 N 项。
 
@@ -369,7 +369,7 @@ Tracing key VFS calls... Hit Ctrl-C to end.
 
 :::
 
-注意 `interval` 里的 `print` 与 `clear` 是一对：不清空的话，下一个周期打印的是累计值，看不出每秒的变化。这类脚本比一行命令多出来的东西其实只有表头、定时输出和退出清理，语言本身没有新增概念。
+注意 `interval` 里的 `print` 与 `clear` 是一对：不清空的话，下一个周期打印的是累计值，看不出每秒的变化。这类脚本比一行命令多出来的东西只有表头、定时输出和退出清理，语言本身没有新增概念。
 
 ### 4.2 自带的工具
 
@@ -422,9 +422,9 @@ TIME            PID     PPID    ARGS
 
 :::
 
-看 `PPID` 这一列：`man` 的父进程是发起命令的 shell，`preconv`、`tbl`、`nroff` 的父进程都是 `man`。`man` 本身只负责调度，真正渲染手册页的是一串短命进程，`ps` 很难抓到它们，`execsnoop` 能。这类「谁启动了谁」的问题，用 `comm` 直接读进程名很省事，代价是同名的进程会合并到一行——把键换成 `pid` 就能分开。
+看 `PPID` 这一列：`man` 的父进程是发起命令的 shell，`preconv`、`tbl`、`nroff` 的父进程都是 `man`。`man` 本身只负责调度，实际渲染手册页的是一串短命进程，`ps` 很难抓到它们，`execsnoop` 能。这类「谁启动了谁」的问题，用 `comm` 直接读进程名很省事，代价是同名的进程会合并到一行——把键换成 `pid` 就能分开。
 
-工具目录里还有 `biolatency.bt`、`vfsstat.bt`、`tcpconnect.bt` 等三十多个脚本，用途各不相同，写法都限制在本页讲过的语法之内。
+工具目录中还收录了包括 `biolatency.bt`、`vfsstat.bt`、`tcpconnect.bt` 等在内的数十个开箱即用的实用脚本，其覆盖领域广泛，但所依赖的语法范式与前文介绍的规则完全一致。
 
 ### 4.3 什么时候离开 bpftrace
 
@@ -487,7 +487,7 @@ int count_openat(void *ctx) {
 
 </template>
 
-正确答案是 **B**。`@[comm]` 是 map，方括号里是键，这里用进程名作键；`count()` 是聚合函数，每命中一次加一。输出里的 `@[sshd]: 125` 表示跟踪期间 `sshd` 发出了 125 次系统调用。A 少了分组，C 统计的是系统调用而不是文件，D 与排序无关（map 按值大小输出）。
+正确答案是 **B**。`@[comm]` 是 map，方括号里是键，这里用进程名作键；`count()` 是聚合函数，每命中一次加一。输出里的 `@[sshd]: 125` 表示跟踪期间 `sshd` 发出了 125 次系统调用。A 少了分组，C 统计的是系统调用，没有统计文件，D 与排序无关（map 按值大小输出）。
 
 </Quiz>
 
@@ -497,7 +497,7 @@ int count_openat(void *ctx) {
 
 BCC（BPF Compiler Collection）是最早的一套 BPF 工具集，工具用 Python 写前端，把一段嵌在字符串里的 C 代码在运行时交给 clang 编译，再加载进内核。它解决的问题是：让不熟悉 BPF 的人也能写出可用的观测工具。`opensnoop`、`execsnoop`、`biolatency` 这些名字都来自 BCC。
 
-代价在运行时。每台要运行 BCC 工具的机器都得装上 clang、LLVM 和与当前内核匹配的头文件，Brendan Gregg 在 2020 年的文章里给出的数字是这套依赖可以占 100 MB 以上的存储；BCC 工具本身的 Python 文件很小，真正重的是那套编译环境。他还写了另一句更关键的话：用 BCC Python 编写性能工具已经被视为过时做法，方向是带 BTF 和 CO-RE 的 libbpf C。
+代价在运行时。每台要运行 BCC 工具的机器都得装上 clang、LLVM 和与当前内核匹配的头文件，Brendan Gregg 在 2020 年的文章里给出的数字是这套依赖可以占 100 MB 以上的存储；BCC 工具本身的 Python 文件很小，负担主要来自那套编译环境。他还写了另一句更关键的话：用 BCC Python 编写性能工具已经被视为过时做法，方向是带 BTF 和 CO-RE 的 libbpf C。
 
 ### 5.2 libbpf-tools
 
@@ -505,7 +505,7 @@ libbpf-tools 是把 BCC 里那批工具用 libbpf 重写一遍的产物。每个
 
 Debian 13 直接提供了 `libbpf-tools` 包（版本 0.31.0），装好之后 `opensnoop`、`execsnoop`、`biolatency` 这些命令就有 CO-RE 版本可用，输出格式与 BCC 版基本一致，通常还多几个选项。
 
-对比之下，bpftrace 自己仍然依赖 LLVM：Debian 的 `bpftrace` 包依赖 `libclang1-19` 和 `libllvm19`，因为它的语法必须在运行时现场编译。三者不是替代关系，而是三种不同的取舍：
+对比之下，bpftrace 自己仍然依赖 LLVM：Debian 的 `bpftrace` 包依赖 `libclang1-19` 和 `libllvm19`，因为它的语法必须在运行时现场编译。三者是三种不同的取舍，各有各的适用场合：
 
 | 方案 | 内核态写法 | 运行时依赖 | 适合 |
 | --- | --- | --- | --- |
@@ -516,7 +516,7 @@ Debian 13 直接提供了 `libbpf-tools` 包（版本 0.31.0），装好之后 `
 
 ### 5.3 怎么选
 
-作者的经验是两条：手上要用的功能已经有 libbpf-tools 版本，就直接用它，不要为了「可定制」去重写；需要写新工具时，先在 bpftrace 里把逻辑跑通，确认答案对得上，再决定要不要换成 libbpf。换的判据不是代码长短，而是这东西要不要交给别人、要不要在无人值守的环境里跑上几个月。要，就换；不要，留在 bpftrace 里。
+作者的经验是两条：手上要用的功能已经有 libbpf-tools 版本，就直接用它，不要为了「可定制」去重写；需要写新工具时，先在 bpftrace 里把逻辑跑通，确认答案对得上，再决定要不要换成 libbpf。换的判据是这东西要不要交给别人、要不要在无人值守的环境里跑上几个月。要，就换；不要，留在 bpftrace 里。
 
 <Quiz
   type="single"
@@ -569,7 +569,7 @@ Usage: bpftool [OPTIONS] OBJECT { COMMAND | help }
 
 ### 6.2 查看加载后的程序与 map
 
-`bpftool prog show` 的输出每行一个程序，字段包括 ID、类型、名字、标签、是否 GPL 兼容、加载时间与加载者的 UID、`xlated` 与 `jited` 的字节数、`memlock` 占用、已固定的路径，以及使用它的进程 PID。拿到 ID 之后，`bpftool prog dump xlated id N` 打印验证器改写过的指令，`bpftool prog dump jited id N` 打印真正在 CPU 上执行的机器码。前者带 BTF 时会附上源码行号（`linum`），后者能看清 JIT 做了哪些展开。这两条命令需要程序已经加载，因此都需要 root，本页不给输出。
+`bpftool prog show` 的输出每行一个程序，字段包括 ID、类型、名字、标签、是否 GPL 兼容、加载时间与加载者的 UID、`xlated` 与 `jited` 的字节数、`memlock` 占用、已固定的路径，以及使用它的进程 PID。拿到 ID 之后，`bpftool prog dump xlated id N` 打印验证器改写过的指令，`bpftool prog dump jited id N` 打印 JIT 之后在 CPU 上执行的机器码。前者在携带 BTF 信息时会附带展示源码行号（`linum`），后者则能清晰呈现 JIT 编译生成的机器指令细节。由于这两条指令必须对已经加载至内核的活跃程序发起审查，需要持有 root 特权方可执行。
 
 `bpftool prog tracelog` 读的是 `bpf_trace_printk` 的缓冲区，作用和读 `/sys/kernel/tracing/trace_pipe` 一样。`bpftool prog profile` 需要 perf 事件支持，用来给一个程序采集周期数、指令数、缓存未命中这类指标，同样要有 root 和已加载的程序。
 
@@ -634,7 +634,7 @@ Error: failed to open BPF object file: No such file or directory
 
 :::
 
-这里要纠正一个常见的误解：`gen skeleton` 能失败的地方只有目标文件本身（缺 BTF、格式不对），它不检查节名是不是 libbpf 认识的合法类型。目标文件里写 `SEC("tracepointX/syscalls/sys_enter_openat")`，骨架照生成不误，要到真正加载时才由 libbpf 报出来：
+这里要纠正一个常见的误解：`gen skeleton` 能失败的地方只有目标文件本身（缺 BTF、格式不对），它不检查节名是不是 libbpf 认识的合法类型。目标文件里写 `SEC("tracepointX/syscalls/sys_enter_openat")`，骨架照生成不误，要到加载时才由 libbpf 报出来：
 
 ::: terminal title="bash - 节名不认识时的调试输出"
 
@@ -647,7 +647,7 @@ libbpf: prog 'count_openat': unrecognized ELF section name 'tracepointX/syscalls
 
 这条只是 `-d` 的调试输出。加载时的警告写作 `prog 'count_openat': missing BPF prog type, check ELF section name '...'`，意思是一样的。检查节名的办法是编译之后用 `llvm-objdump -h` 看一眼节列表，或者干脆在 CI 里做一次加载测试。
 
-`gen object` 是另一件有用的工具：把多个 `.bpf.o` 静态链接成一个。按功能把程序拆进几个 `.bpf.c`、分别编译，再链接成一个目标文件，用户态仍然只面对一个骨架。下面这个例子把统计 `openat` 的程序和统计系统调用的程序合到一起，两份源码都在 `code/` 的本页目录下：
+`gen object` 是模块化构建中的核心工具：它能够在用户空间将多个独立的 `.bpf.o` 静态链接为单一目标文件。这种模式允许开发者依据业务功能将庞大的观测逻辑拆解到不同的 `.bpf.c` 源码单元中分别编译，再通过静态链接融为一体，用户态程序则依然只需面向单一骨架头文件进行交互。下述示例将分别采集 `openat` 与系统调用计数的两个模块进行合并构建：
 
 ::: terminal title="bash - 链接两个目标文件并生成骨架"
 
@@ -714,7 +714,7 @@ Error: failed to link 'dup_b.bpf.o': Invalid argument (22)
 
 :::
 
-`non-weak` 说的是这个符号不是弱符号，两个强定义不能共存。解决办法有两种：把其中一个函数改名，或者给其中一个加 `__attribute__((weak))`，让链接器挑一个。内核态程序不吃链接器的符号解析那一套，`weak` 在这里的实际效果只是让链接通过；真正的函数名冲突要在源码层面解决。
+`non-weak` 说的是这个符号不是弱符号，两个强定义不能共存。解决办法有两种：把其中一个函数改名，或者给其中一个加 `__attribute__((weak))`，让链接器挑一个。内核态程序不吃链接器的符号解析那一套，`weak` 在这里的实际效果只是让链接通过；函数名冲突要在源码层面解决。
 
 ## 7. 其他语言的工具链
 
@@ -745,7 +745,7 @@ Rust 有两条路线，区别在**内核态用什么写**。
 - 项目主体是 Rust，但内核态想沿用 C 和 libbpf 生态：`libbpf-rs`。
 - 团队写 C，或者要和已有的 libbpf 工具共用代码：直接用 libbpf，不要为了语言统一绕一圈。
 
-语言不是选型的第一维度。三套库最终都调用同样的 `bpf()` 系统调用，程序能不能加载、验证器是否放行，与用哪种语言写用户态无关。
+语言在选型里排在最后。三套库最终都调用同样的 `bpf()` 系统调用，程序能不能加载、验证器是否放行，与用哪种语言写用户态无关。
 
 ## 8. 在持续集成中检查 BPF 代码
 
@@ -760,7 +760,7 @@ BPF 代码的检查可以分成两层：不需要任何特权就能做的，和�
 3. 用 `bpftool gen object` 把要合并的目标文件链接一遍。这一步能发现跨文件的重复符号，也会顺带验证 BTF 能被解析。
 4. 编译用户态程序，或者至少做一次语法检查。`cc -std=c17 -Wall -Wextra -fsyntax-only x.c` 只要装了 libbpf 的头文件就能跑，不需要能加载程序的权限，也不需要链接 libbpf。
 
-这四个步骤正好对应本页目录下的 `check.sh`：
+上述四项静态验证步骤完整体现在配套的 `check.sh` 脚本中：
 
 ```bash
 #!/bin/sh
@@ -807,7 +807,7 @@ error: symbol 'license' is already defined
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 ```
 
-libbpf 认的是节名，不是符号名，所以符号怎么叫都不影响加载。本页的示例统一用 `LICENSE`。
+libbpf 在底层仅检索节名称来识别许可证，符号名称的选取完全不影响内核加载，本文的示例统一采用 `LICENSE` 命名。
 
 ::: warning 节名写错在编译期查不出来
 
@@ -819,7 +819,7 @@ libbpf 认的是节名，不是符号名，所以符号怎么叫都不影响加�
 
 第二层里有四件事，按代价从低到高：
 
-**veristat** 加载目标文件并记录验证器的统计，不附加程序。它最常用的功能是比较：用 `veristat -o csv x.bpf.o > baseline.csv` 把改动前的结果存一份，改完再存一份，然后用 `veristat -C baseline.csv current.csv` 对照。输出里的 `Insns` 和 `States` 两列最能说明问题，验证通过的指令数或状态数突然上升，往往意味着某段代码让验证器走了更复杂的分支，离撞上复杂度上限不远了。
+**veristat** 加载目标文件并记录验证器的统计，不附加程序。它最常用的功能是比较：用 `veristat -o csv x.bpf.o > baseline.csv` 把改动前的结果存一份，改完再存一份，然后用 `veristat -C baseline.csv current.csv` 对照。输出里的 `Insns` 和 `States` 两列最能说明问题，若验证器分析的指令步数或缓存状态数发生陡增，往往表明某处代码诱发了更为庞大的状态分支组合，预示着程序可能逼近复杂度上限。
 
 **BPF_PROG_TEST_RUN** 是内核提供的一个接口，可以给已经加载的程序喂一段输入、取回返回值，不用真的把程序挂到钩子上。它适合 `XDP`、`tc`、套接字过滤器这类有明确输入输出格式的程序，可以把「包长多少、应不应该丢」写成单元测试。`bpftool prog run` 是它的命令行入口。
 
@@ -827,7 +827,7 @@ libbpf 认的是节名，不是符号名，所以符号怎么叫都不影响加�
 
 **多内核版本的加载测试**用 QEMU 跑。`virtme-ng` 和 `vmtest` 都能用当前源码树起一个虚拟机，把目标文件拷进去加载一遍，用来验证 CO-RE 重定位在旧内核上是否仍然正确。这一步的成本最高，只在发布前做。
 
-本页的验证方式属于第一层：编译、生成骨架、用户态语法检查。凡是需要把程序加载进内核才能得到的输出，本页都不给，只引用权威资料里的示例。这套检查能发现的边界与 CI 的分层设计，和[持续集成](/教程/正文/开发与工程基础/18_持续集成)那一章讲的思路一致：每次提交跑快的、不需要特权的检查，慢的放到夜间或发布前。
+本文介绍的流水线检查重点聚焦于第一层：静态编译、骨架生成与用户态语法检查。这套分层校验思想与[持续集成](/教程/正文/开发与工程基础/18_持续集成)章节中阐述的工程理念完全契合：在每次代码提交触发的高频流水线中运行轻量、无需特权的快速自测，而将依赖真实虚拟化内核的长周期集成测试沉淀至夜间或发布前阶段。
 
 <Quiz
   type="multi"
@@ -962,14 +962,14 @@ Tracing openat for pid 12345...
 
 最后回答：
 
-- `bad_section.bpf.c` 能通过前两步，却在加载时失败，这个现象对 CI 的设计意味着什么？
+- `bad_section.bpf.c` 能通过前两步，却在加载时失败，这个现象揭示了持续集成流水线设计中的哪项关键原则？
 - `bad_name.bpf.c` 的报错来自编译器后端，信息里没有指向 `SEC("license")` 那一行。如果换一个符号名与节名相同、但字段名更常见的例子（比如一个叫 `text` 的全局数组放进 `text` 节），会得到什么提示？这类报错该怎么更快定位？
 
 </Exercise>
 
 <Exercise id="48407" :d="5" :w="3">
 
-写一个 `check.sh`，在普通用户下完成本页 8.1 节列出的四项检查，任何一步失败都以非零退出。
+写一个 `check.sh`，在普通用户下完成前文 8.1 节列出的四项检查，任何一步失败都以非零退出。
 
 要求：
 
@@ -988,7 +988,7 @@ Tracing openat for pid 12345...
 用 `bpftool gen object` 把 `openstat.bpf.o` 与 `syscallstat.bpf.o` 链接成一个目标文件，然后：
 
 1. 用 `bpftool gen skeleton` 生成骨架，找出两个程序和两个 map 在 `struct xxx_bpf` 里的位置；
-2. 用 `bpftool btf dump file` 查看合并后的 `FUNC`、`VAR`、`DATASEC`，说明 `.maps` 里两个 map 的偏移意味着什么；
+2. 用 `bpftool btf dump file` 查看合并后的 `FUNC`、`VAR`、`DATASEC`，说明 `.maps` 里两个 map 的相对偏移所反映的内存布局规则；
 3. 复制一份 `openstat.bpf.o` 改名后与原件一起链接，读出 libbpf 的报错，解释 `non-weak symbol` 指的是什么，并给出两种解决办法；
 4. 把 `syscallstat.bpf.c` 的许可证从 `Dual BSD/GPL` 改成 `GPL`，重新编译后与 `openstat.bpf.o` 链接，读出报错，说明链接器为什么要求许可证一致；
 5. 说明合并后的目标文件在用户态怎么用：一个骨架能不能同时附加两个程序、两次附加的返回值怎么处理。
@@ -1029,7 +1029,7 @@ tracepoint:syscalls:sys_enter_openat
 
 ## 10. 参考资料
 
-- bpftrace 官方一行命令教程（十二课，本页第 2 节的命令与输出均出自此处）：<https://github.com/bpftrace/bpftrace/blob/master/docs/tutorial_one_liners.md>
+- bpftrace 官方一行命令教程（十二课，前文第 2 节的核心命令与示例输出均出自此处）：<https://github.com/bpftrace/bpftrace/blob/master/docs/tutorial_one_liners.md>
 - bpftrace 0.23 语言手册（探针类型、内置对象、聚合函数、`-d` 阶段）：<https://bpftrace.org/docs/release_023/language>
 - bpftrace 手册页（选项、`delete`/`clear`/`print` 的语义、`-lv` 示例）：<https://github.com/bpftrace/bpftrace/blob/master/man/adoc/bpftrace.adoc>
 - bpftrace 自带的工具与示例输出（`vfsstat.bt`、`opensnoop.bt`、`execsnoop.bt`、`biolatency.bt`、`syscount.bt`）：<https://github.com/bpftrace/bpftrace/tree/master/tools>

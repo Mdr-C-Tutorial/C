@@ -1,64 +1,45 @@
-# 9.9 ACPI
+# 9.9 ACPI 规范与高级中断控制
 
-高级配置与电源管理接口 (Advanced Configuration and Power Interface)
+在早期个人计算机架构中，底层硬件的设备枚举、即插即用以及电源节能状态（如 APM 规范）主要受控于主板 BIOS 固件的黑盒逻辑，操作系统难以精确获知物理拓扑，更无法协同调度外设功耗。
 
-ACPI 是一种描述硬件接口的方法，用于操作系统与计算机硬件之间的通信。它提供了一种标准化的方法来管理电源管理、热管理和配置功能。
+**高级配置与电源管理接口（Advanced Configuration and Power Interface，简称 ACPI）** 的确立，标志着计算机系统步入“操作系统导向的电源管理”（OS-directed Configuration and Power Management，简称 OSPM）时代。在 ACPI 体系下，固件退居为硬件拓扑与电源能力的静态描述者，通过将主板硬件参数编排为结构化数据表提供给内核；而真正的能耗调整、设备启停与全局电源决策，则完全交由操作系统内核根据负载动态掌控。
 
-ACPI 允许操作系统控制计算机的电源状态，例如休眠、待机和关闭。包括：系统电源管理（System Power Management）、设备电源管理 (Device Power Management) 和处理器电源管理 (Processor Power Management). 它还提供了一种方法来管理电源供应和电池状态 (Battery Management).
+ACPI 覆盖了系统运行期的多维硬件交互需求：
+- **层次化电源状态控制**：统一协调全局系统睡眠状态（S0～S5）、设备功耗状态（D0～D3）以及处理器休眠与性能状态（C 状态与 P 状态）；
+- **动态热量与温控治理**：监测处理器与主板温度传感器，按需阶梯式调节风扇转速或实行温度节流；
+- **总线与即插即用枚举**：标准化呈现嵌入式控制器（EC）、系统管理总线（SMBus）以及板载外设的资源占用；
+- **平台拓扑与高级中断路由**：在多核（SMP）环境下，ioapic 的开启以及 SMP 多处理器的开启也需要 ACPI 提供底层硬件描述。
 
-ACPI 可以监测和控制计算机的温度，并根据需要调整风扇的转速。它还可以降低设备的性能以防止过热。
+## 1. ACPI 描述表体系结构
 
-ACPI 提供了一种方法来配置计算机硬件和外部设备。它可以识别和管理各种设备，包括处理器、内存、硬盘驱动器和外部接口等。
+ACPI 的数据交换依托一套层次化的**系统描述表（ACPI Tables）**。固件在自举阶段完成硬件自检后，会将这些表格构建在物理内存中，供内核引导后查阅。
 
-ACPI 的运行时模型用于管理在系统运行期间发生的所有 ACPI 事件。它处理中断事件，并评估处理这些事件所需的对象。当用户启动系统时，系统固件会完成 ACPI 的设置、初始化和自我测试。
+### 1.1 寻址根基：RSDP 结构指针
 
-ACPI 可以实现的功能包括：
+操作系统探查 ACPI 的起点是**根系统描述指针（Root System Description Pointer，简称 RSDP）**：
+- 在传统 Legacy BIOS 机器上，内核通过在 `0xE0000` 至 `0xFFFFF` 物理内存区间内以 16 字节边界扫描包含 `"RSD PTR "` 签名的结构；
+- 在 UEFI 环境下，固件则直接在系统配置表（System Table）中明确传递 RSDP 的物理地址。
 
-- 系统电源管理（System power management）
-- 设备电源管理（Device power management）
-- 处理器电源管理（Processor power management）
-- 设备和处理器性能管理（Device and processor performance management）
-- 配置/即插即用（Configuration/Plug and Play）
-- 系统事件（System Event）
-- 电池管理（Battery management）
-- 温度管理（Thermal management）
-- 嵌入式控制器（Embedded Controller）
-- SMBus 控制器（SMBus Controller）
+RSDP 内部存储了 8 字节签名、单字节累加校验和，以及指向下级主目录表的物理基地址。
 
-> ioapic 的开启以及 SMP 多处理器的开启也需要 ACPI
+### 1.2 核心系统描述表分类
 
-## 1. ACPI Table
+依据 RSDP 中的指针，系统可以顺藤摸瓜检索到 **RSDT（32 位物理指针目录表）** 或 **XSDT（64 位物理指针目录表）**。主目录表中的每个条目均指向一个具备统一 36 字节标准表头的特定描述表：
 
-ACPI 提供了一组用于描述控制设备和描述设备信息方式的结构，它们按照一种层级结构组织。
+- **FADT（Fixed ACPI Description Table）**：固定 ACPI 描述表。记录了控制芯片的核心 I/O 端口与 MMIO 寄存器块（如系统控制中断 SCI 号、电源管理控制块 `PM1a_CNT_BLK` 等），并内嵌了指向 DSDT 的指针，是实现系统软关机与睡眠的核心表；
+- **MADT（Multiple APIC Description Table）**：多 APIC 描述表（签名为 `APIC`）。该表是操作系统启动多核处理器（SMP）以及配置现代中断路由的唯一基准，记录了全机 Local APIC、I/O APIC 以及中断源覆盖（Interrupt Source Override）的物理配置；
+- **DSDT 与 SSDT（Differentiated / Secondary System Description Table）**：差分与次级系统描述表。与前述静态纯数据表不同，DSDT 与 SSDT 内部存放着经过编译的 ACPI 机器语言（AML）字节码。内核若要实现完整的即插即用设备树管理与高级温控事件响应，需内嵌 AML 字节码解释器来执行这些设备方法；
+- **其他专用辅助表**：如描述开机图形资源的 BGRT、描述非易失性内存的 NFIT 以及描述局部距离与亲和性的 SLIT/SRAT 表等。
 
-以下是 ACPI 提供的一些表
+## 2. APIC 体系与多处理器中断拓扑
 
-- Root System Description Table (RSDT)
-- Fixed ACPI Description Table (FADT)
-- Firmware ACPI Control Structure (FACS)
-- Differentiated System Description Table (DSDT)
-- Secondary System Description Table (SSDT)
-- Multiple APIC Description Table (MADT)
-- Smart Battery Table (SBST)
-- Extended System Description Table (XSDT)
-- Embedded Controller Boot Resources Table (ECDT)
-- System Locality Distance Information Table (SLIT)
-- System Resource Affinity Table (SRAT)
-- Corrected Platform Error Polling Table (CPEP)
-- Maximum System Characteristics Table (MSCT)
-- ACPI RAS Feature Table (RASF)
-- Memory Power State Table (MPST)
-- Platform Memory Topology Table (PMTT)
-- Boot Graphics Resource Table (BGRT)
-- Firmware Performance Data Table (FPDT)
-- Generic Timer Description Table (GTDT)
-- NVDIMM Firmware Interface Table (NFIT)
+高级可编程中断控制器（Advanced Programmable Interrupt Controller，简称 APIC）是替代老旧 8259A PIC 芯片组的现代中断架构，广泛应用于 Intel/AMD 平台。
 
-## 2. APIC
+APIC 架构由两类协同运转的核心部件构成：
+1. **Local APIC（本地 APIC）**：内置于每一个 CPU 核心内部。负责接收本核的硬件定时器中断、向其他 CPU 核心投递核间中断（IPI，常用于跨核任务调度、TLB 射落刷表及多核自举唤醒），并响应来自外部中断控制器的信号分发；
+2. **I/O APIC（输入输出 APIC）**：部署于主板芯片组上。其拥有多条可编程中断引脚，能够通过总线消息将外设硬件中断以可配置的优先级和亲和性，均匀且并发地分发到指定 CPU 核心的 Local APIC 上。
 
-高级可编程中断控制器（Advanced Programmable Interrupt Controller）
-
-一种中断控制器架构，通常多见于 Intel 32 位架构（Intel Architecture-based 32-bit）的 PC 系统。APIC 架构支持多处理器中断管理（中断均匀地分布在所有处理器），多 I/O 子系统支持，与 8259A 兼容，并且支持处理器间中断（Inter-Processor Interrupt，IPI）。这个架构由直属于处理器的本地 APICs（Local APICs）和在（南桥）芯片中的 I/O APIC 组成。
+在单核运行时代，系统往往可以仅依赖 8259A 芯片完成基础的 IRQ 响应；但在多核对称多处理（SMP）系统下，8259A 的串行瓶颈使其无法适应核间通信与动态负载均衡。正是借助 ACPI MADT 表提供的硬件映射，内核才能在自举时精确探测出当前物理机安装的核心总数、提取每个核心的 APIC ID，进而将传统的外部 IRQ 引脚重定向至 I/O APIC 的全局系统中断（GSI）线上，构筑起现代化的高性能多核中断网络。
 
 ## 3. 习题
 

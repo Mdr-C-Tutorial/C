@@ -1,62 +1,78 @@
-# 9.11 OSDEV 的代码校正
+# 9.11 OSDev 经典范例的代码校正
 
-因 OSDEV 教程过于古老，并结合笔者实际开发经验，以下章节会有部分对 OSDEV 的代码校正。
+在操作系统内核开发领域，OSDev Wiki 是广受参考的社区知识库。然而，其诸多设备驱动条目中的代码范例多成型于早期的 32 位单核环境，且为了简化演示逻辑，往往假设全内存恒等映射并采用了大量硬编码地址。
 
-## 1. AHCI
+若直接将这些示例移植到现代 64 位长模式、高半核（Higher-half）虚拟内存映射或启用了分页保护的内核中，极易触发指针截断、DMA 寻址失效以及内存越界覆写等严重故障。本节针对 OSDev 中经典的 AHCI（高级主机控制器接口）SATA 驱动实现，系统梳理关键的代码陷阱与工程校正思路。
 
-该章节中部分代码可以优化以及校正错误
+## 1. AHCI 驱动实现的架构校正
 
-[AHCI_port_memory_space_initialization](https://wiki.osdev.org/AHCI#AHCI_port_memory_space_initialization)
+在参考 OSDev 的 [AHCI 端口内存初始化范例](https://wiki.osdev.org/AHCI#AHCI_port_memory_space_initialization) 时，有以下几处典型的设计陷阱需要重构：
 
-1. 代码第 1 行
+### 1.1 静态硬编码内存基址的动态化重构
 
-   ```c:line-numbers=1
-   #define AHCI_BASE 0x400000 // 4M
-   ```
+在 OSDev 的原始代码第 1 行中：
 
-   固定写死的地址不太可取，你可以用 `malloc` 函数申请一块长度为 `1048576` 的超大区域 (但是你需要保证这片区域的页映射是恒等的)
+```c:line-numbers=1
+#define AHCI_BASE 0x400000 // 4M
+```
 
-   > 在使用 AHCI_BASE 中，如果您的恒等映射有一定的偏移 (如 Limine 引导器的映射，必须将其转换成物理地址再写入设备寄存器)
+将物理内存 `0x400000`（4 MiB 处）硬编码为所有端口控制结构的基地址在生产级内核中极其不可取。这一固定地址极易与内核代码段、页表自身或引导器预留结构发生物理重叠。
 
-2. 代码第 34 行
+在健壮的系统实现中，该区域应当通过内核动态堆（`kmalloc`）或物理页框分配器按需申请连续空间（覆盖 32 个端口通常需要约 1 MiB 缓冲区）。同时必须严格遵循 AHCI 规范的硬件对齐约束：
+- 命令列表基址（CLB）必须满足 1 KiB 边界对齐；
+- 接收 FIS 基址（FB）必须满足 256 字节边界对齐；
+- 命令表基址（CTBA）必须满足 128 字节边界对齐，且单张命令表在物理上不可跨越 4 KiB 边界。
 
-   ```c:line-numbers=34
-   cmdheader[i].ctba = AHCI_BASE + (40<<10) + (portno<<13) + (i<<8);
-   cmdheader[i].ctbau = 0;
-   ```
+> **物理地址与虚拟地址的严格分离**  
+> 外设 DMA 控制器不具备 CPU 内部的 MMU 走查能力，其执行总线读写时直接寻址物理内存。在使用现代高半核引导协议（如 Limine 的高半物理内存直接映射 HHDM）时，写入设备寄存器的必须是扣除了虚拟偏置的真实物理基址，而内核软件对其进行初始化和读写时，则必须使用对应的虚拟地址。
 
-   这段代码仅适用于 32 位，而 64 位则需要替换成以下写法
+### 1.2 命令表基址（CTBA / CTBAU）的高位补全
 
-   ```c
-   uint64_t phys_ctb = AHCI_BASE + (40<<10) + (portno<<13) + (i<<8);
-   cmdheader[i].ctba = phys_ctb & 0xFFFFFFFF;
-   cmdheader[i].ctbau = phys_ctb >> 32;
-   ```
+在 OSDev 原始代码第 34 行中：
 
-   [Example\_-_Read_hard_disk_sectors](https://wiki.osdev.org/AHCI#Example_-_Read_hard_disk_sectors)
+```c:line-numbers=34
+cmdheader[i].ctba = AHCI_BASE + (40<<10) + (portno<<13) + (i<<8);
+cmdheader[i].ctbau = 0;
+```
 
-3. 代码第 24, 31 行
-   ::: code-group
+这段逻辑将高 32 位基址寄存器 `ctbau` 强制置 0，仅在物理内存严格限制在 4 GiB 以下的 32 位环境下能正常运转。
 
-   ```c:line-numbers=24
-   cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
-   ```
+在 64 位长模式下，动态分配的命令表极有可能位于 4 GiB 以上的物理高地址空间。若不显式拆解 64 位物理地址并装填 `ctbau`，DMA 控制器走查命令表时将截断到错误的低地址空间，导致不可预知的内存覆写或命令超时：
 
-   ```c:line-numbers=31
-    // Last entry
-    cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
-   ```
+```c
+uint64_t phys_ctb = AHCI_BASE + (40<<10) + (portno<<13) + (i<<8);
+cmdheader[i].ctba = phys_ctb & 0xFFFFFFFF;
+cmdheader[i].ctbau = phys_ctb >> 32;
+```
 
-   :::
-   同上并不适用于 64 位，不同的是需要将 buf 转换成物理地址
+### 1.3 物理区域描述符表（PRDT）虚实转换与 64 位适配
 
-   ```c
-   uint64_t phys_buf = (uint64_t)virt_to_phys((uint64_t)buf); //假设 buf 需要进行虚拟地址转换成物理地址
-   cmdtbl->prdt_entry[i].dba = phys_buf & 0xFFFFFFFF;
-   cmdtbl->prdt_entry[i].dbau = phys_buf >> 32;
-   ```
+在 OSDev 的 [硬盘扇区读取示例](https://wiki.osdev.org/AHCI#Example_-_Read_hard_disk_sectors) 中，代码第 24 行与第 31 行写道：
 
-   > 同理，write 函数也要进行此方法更改
+::: code-group
+
+```c:line-numbers=24
+cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
+```
+
+```c:line-numbers=31
+// Last entry
+cmdtbl->prdt_entry[i].dba = (uint32_t) buf;
+```
+
+:::
+
+此处直接将软件缓冲区指针 `buf` 强制转换为 32 位并填入数据基址（`dba`），存在双重隐患：
+1. **虚拟地址被误当物理地址**：传入的 `buf` 属于当前进程或内核的虚拟地址，而硬件控制器需要的是真实的物理页框地址；
+2. **64 位指针截断**：未设置高 32 位数据基地址寄存器（`dbau`）。
+
+在健壮的驱动实现中，无论是读操作还是写操作，均需通过虚实地址转换函数提取出确切的物理地址，并分步装填：
+
+```c
+uint64_t phys_buf = (uint64_t)virt_to_phys((uint64_t)buf); // 将虚拟地址转换为硬件 DMA 所需的真实物理地址
+cmdtbl->prdt_entry[i].dba = phys_buf & 0xFFFFFFFF;
+cmdtbl->prdt_entry[i].dbau = phys_buf >> 32;
+```
 
 ## 2. 习题
 

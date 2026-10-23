@@ -54,7 +54,7 @@ for (int i = 0; i < 10; ++i) {
 
 ## 4. `for` 中的 `continue`
 
-`continue` 在 `for` 里并不是“直接回到条件判断”，而是先执行步进表达式，再进入下一轮判断。这一点与 `while` / `do while` 的直觉不同，写循环控制时应明确考虑步进副作用。
+在 `for` 里，`continue` 先执行步进表达式，再进入下一轮条件判断。`while` / `do while` 的 `continue` 直接跳到条件判断，两者的差别容易让人在写循环控制时漏掉步进副作用。
 
 ```c
 #include <stdio.h>

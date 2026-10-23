@@ -1,14 +1,18 @@
 # B.11 跟踪与观测：kprobe、uprobe 与 tracepoint
 
-B.5 写过一个挂在 `do_unlinkat` 上的程序，B.3 写过一个挂在 `sys_enter_write` 上的程序，两次都是先写代码再解释它挂在哪里。这一页反过来：先弄清一个观测需求该落在哪种钩子上，再动手写。同样是「某个进程删了一个文件」这件事，挂在 tracepoint 上拿到的是内核作者预先定好的字段，挂在 kprobe 上拿到的是 `struct pt_regs` 要自己按调用约定取参数，挂在 fentry 上拿到的是带类型的函数参数。三者的稳定性、开销和能取到的数据都不一样。
+在前面的章节中，我们曾先后实现过挂载在 `do_unlinkat` 内核函数上的 kprobe 程序，以及挂载在 `sys_enter_write` 跟踪点上的 tracepoint 程序。当时为了迅速建立感性认识，采用了「先给出具体代码、再反推挂载机制」的路径。然而在面对实际工程中的观测与排障需求时，思维流程往往是反向展开的：首先需要准确评估观测目标所处的系统层次，进而权衡稳定性、侵入开销与数据丰富度，挑选最为适宜的探针技术。
 
-读完这一页，拿到一个新的观测需求时能判断该用哪一类钩子，能找到可用的钩子及其参数，也能为每一类钩子写出并附加一个程序。本页的 BPF 程序用 zig 自带的 clang 18 编译，在 SignalX 上用 `bpftool gen skeleton` 生成骨架，用户态加载程序用 `gcc -fsyntax-only` 检查；凡是要加载进内核才有的输出，都照 libbpf-bootstrap 的 README 引用，写成「输出类似」。`calc.c` 的编译与运行、`nm`、`readelf`、`objdump` 的输出，以及 tracefs 与 `/proc/kallsyms` 的目录和符号，都来自 SignalX 上的实际执行。完整程序在 `code/系统编程/拓展B_eBPF/B_11_跟踪与观测_kprobe_uprobe与tracepoint/` 下。
+以最为典型的「监控系统中特定进程删除文件」为例：若选择挂载至预定义的 tracepoint，程序拿到的是内核开发者精心维护的标准化字段，其跨内核版本兼容性最好；若挂载至 `kprobe/do_unlinkat`，程序直接面对底层寄存器快照 `struct pt_regs`，需要依靠 ABI 调用惯例手工解析入参，一旦内核函数签名重构便面临失效风险；而若依托现代的 `fentry` 蹦床机制，不仅能够直接获取带有强类型定义的入参，甚至能以接近普通函数调用的极低开销完成拦截。从内核侧的静态跟踪点到动态符号注入，再到跨越用户态边界的 uprobe 与 USDT，这套丰富的探针生态各自拥有明确的适用边界。
+
+文中的配套示例均收录于 `code/系统编程/拓展B_eBPF/B_11_跟踪与观测_kprobe_uprobe与tracepoint/` 目录。演示涉及的内核态探针使用 clang 18 编译并由 bpftool 7.5 生成骨架；涉及用户态符号解析的 `calc.c` 及相关 ELF 检查指令均在真实环境（基于 Linux 6.12）下实测运行并采纳输出。
 
 ## 1. 钩子的分类
 
-钩子的第一个分法是看谁放的这个钩子。静态钩子（static hook）由代码作者事先在源码里写好，位置和参数都是接口的一部分；动态钩子（dynamic hook）由使用者在运行时指定一个地址或函数名，内核在那里临时改一条指令。tracepoint 属于前者，kprobe 属于后者。
+面对纷繁多样的观测机制，首先可以从「安置来源」与「执行边界」两个核心维度建立清晰的坐标系。
 
-第二个分法是看钩子在哪一侧。内核里的函数归内核侧，普通进程里的函数归用户侧。kprobe、fentry 在内核侧，uprobe 在用户侧，USDT 是用户侧的一种静态钩子。
+第一个维度是静态钩子（static hook）与动态钩子（dynamic hook）的对立与互补。静态钩子由被观测代码的原作者在源码阶段显式埋设，其探针位置、暴露字段以及触发语义均构成了软件向外承诺的稳定可观测性契约的一部分；内核中的各类 tracepoint 即为此类典范。动态钩子则完全由外部观测者在运行时按需指定目标函数或物理指令地址，内核通过动态修改机器指令（如插入断点或改写指令头）来强行拦截执行流；kprobe 与 uprobe 便是动态介入的典型代表。
+
+第二个维度是钩子所锚定的执行特权域，即内核侧（kernel space）与用户侧（user space）的划分。运行在内核地址空间中的常规例程隶属于内核侧，kprobe、kretprobe、fentry 以及 fexit 均在此处驻留；而在普通应用程序或动态链接库中执行的函数则属于用户侧，uprobe 与 uretprobe 专门用于拦截用户进程的符号执行，而 USDT 则是应用程序开发者主动在用户态二进制中埋设的静态标记。
 
 | 钩子 | 静态/动态 | 在哪一侧 | 能取到的数据 | 稳定性 |
 | --- | --- | --- | --- | --- |
@@ -28,11 +32,19 @@ B.5 写过一个挂在 `do_unlinkat` 上的程序，B.3 写过一个挂在 `sys_
 
 :::
 
-开销上的差别来自实现方式。kprobe 把目标指令换成断点指令，命中时进入异常处理，再单步执行被换下来的那条指令。fentry 借用函数开头编译器预留的 NOP 空间，把调用直接改跳到一个蹦床（trampoline），蹦床再调用 BPF 程序，本质上是一次函数调用。uprobe 每次命中都要让被观测进程从用户态陷入内核。tracepoint 关闭时只多一次分支判断，打开后就是一次函数调用，已经是静态钩子里最便宜的形式。
+各机制在运行时造成的性能开销悬殊，主要根源于底层指令拦截机制的技术实现方式：
+
+kprobe 的工作原理依托于软中断异常。它将目标指令的起始字节动态替换为断点指令（如 x86 架构下的 `INT 3`）；一旦 CPU 执行至该处，便会触发断点异常，系统必须完整保存当前 CPU 的通用寄存器现场，跳转至异常处理例程，调度 BPF 程序执行，随后以单步调试（single-step）模式执行被替换的原指令，最后恢复寄存器现场并返回原流程。这一连串异常陷入与上下文切换带来了不容忽视的 CPU 开销。
+
+与之相对，`fentry` 充分利用了现代编译器在函数入口预留的 `NOP` 间隙。当探针生效时，内核直接将该处 `NOP` 指令动态改写为跳转到专门合成的 BPF 蹦床（trampoline）；蹦床内部仅负责轻量级压栈以保护参数，随后以常规 C 函数调用的方式执行 BPF 程序并返回原函数。整个流程完全避免了软中断异常与单步执行，其性能损耗仅仅等同于若干条指令的常规函数跳转。
+
+而在用户态场景中，uprobe 的拦截机制与 kprobe 如出一辙，但其代价更为高昂：每当断点触发，被监控的用户态进程都必须从用户态陷入内核空间，执行完内核中的 BPF 观测逻辑后，再穿越上下文屏障恢复回用户态继续运行。
+
+静态 tracepoint 则最为轻量：在探针未启用时，其在内核代码路径中仅表现为一条预测大概率不跳转的静态跳转指令（依托静态分支 jump label 优化，几乎等同于空操作）；一旦动态开启，其执行本质上也仅仅是一次直接的函数调用，堪称各类方案中侵入性与性能开销最为理想的选择。
 
 ### 1.1 kprobe 与 fentry 的写法差别
 
-同一个函数、同一件事，两种写法放在一起最能看出区别。下面两个程序都挂在 `do_unlinkat` 的入口，都打印调用者的 PID 和要删除的文件名。`do_unlinkat` 不是系统调用的入口，`unlinkat` 系统调用会走到它，所以 `rm` 删除文件的动作能被它捕捉到。
+同一个函数、同一件事，两种写法放在一起最能看出区别。下面两个程序都挂在 `do_unlinkat` 的入口，都打印调用者的 PID 和要删除的文件名。`do_unlinkat` 位于 `unlinkat` 系统调用的处理路径上，`rm` 删除文件的动作能被它捕捉到。
 
 ::: compare vertical left-title="kprobe：从 pt_regs 取参数" right-title="fentry：直接写函数签名"
 
@@ -70,7 +82,7 @@ int BPF_PROG(do_unlinkat, int dfd, struct filename *name)
 
 `BPF_KPROBE` 内部按 x86-64 的调用约定从 `pt_regs` 里取出第 1、2 个参数。这个约定属于内核 ABI，位置稳定，但参数的类型信息编译器完全不知道：`name` 在宏展开后只是一个整数，解引用之前必须走 `BPF_CORE_READ`，由它生成 CO-RE 重定位并调用 `bpf_probe_read_kernel`。`BPF_PROG` 拿到的参数带类型，`name->name` 就是普通的成员访问，clang 直接生成带重定位的读指令。
 
-`BPF_CORE_READ(name, name)` 里两个 `name` 不是重复：前一个是要读的指针对象，后一个是 `struct filename` 里的成员名。`struct filename` 的第一个成员恰好就叫 `name`，所以这一行读的是 `name->name`，即路径字符串。B.8 讲过 `BPF_CORE_READ` 的展开方式。
+`BPF_CORE_READ(name, name)` 里两个 `name` 含义不同：前一个是要读的指针对象，后一个是 `struct filename` 里的成员名。`struct filename` 的第一个成员恰好就叫 `name`，所以这一行读的是 `name->name`，即路径字符串。B.8 讲过 `BPF_CORE_READ` 的展开方式。
 
 `BPF_KPROBE` 还要求编译时指定目标架构，`-D__TARGET_ARCH_x86` 就是为它准备的。不写这一项，编译直接报错：
 
@@ -85,7 +97,7 @@ unlink_kprobe.bpf.c:9:5: error: Must specify a BPF target arch via __TARGET_ARCH
 
 :::
 
-`fentry` 不需要这个宏，因为参数不是从寄存器布局推出来的，而是从 BTF 里的函数原型读出来的。
+`fentry` 不需要这个宏：参数来自 BTF 里的函数原型，带完整类型。
 
 ## 2. tracepoint
 
@@ -278,7 +290,7 @@ $ sudo ./tp_openat
 
 :::
 
-另开一个终端读 `trace_pipe`，内容类似下面这样（格式串取自本页程序，列的含义见 B.3）：
+另开一个终端读取 `trace_pipe`，输出内容与下述展示类似（格式字符串取自配套程序，输出各列字段的具体语义可参阅 B.3 节的解析）：
 
 ::: terminal title="zsh - trace_pipe"
 
@@ -405,7 +417,7 @@ int BPF_KRETPROBE(do_unlinkat_exit, long ret)
 }
 ```
 
-`BPF_KRETPROBE` 只能取返回值，不能取参数。原因在实现上：kretprobe 在函数入口把返回地址换成自己的蹦床，等函数真正返回时才执行 BPF 程序，这时参数占用的寄存器早已被函数体覆盖。libbpf 的 `bpf_tracing.h` 在 `BPF_KRETPROBE` 的注释里写得很直白：input arguments will be clobbered by the time probed function returns。
+`BPF_KRETPROBE` 只能取返回值，不能取参数。原因在实现上：kretprobe 在函数入口把返回地址换成自己的蹦床，等函数返回时才执行 BPF 程序，这时参数占用的寄存器早已被函数体覆盖。libbpf 的 `bpf_tracing.h` 在 `BPF_KRETPROBE` 的注释里写得很直白：input arguments will be clobbered by the time probed function returns。
 
 ### 3.2 生成骨架与加载程序
 
@@ -479,13 +491,13 @@ $ sudo cat /sys/kernel/tracing/trace_pipe
 
 :::
 
-README 里的 EXIT 行没有 pid，那是较早版本留下的输出；上游现在的格式串与本页一样带上了 pid（`"KPROBE EXIT: pid = %d, ret = %ld\n"`），实际运行时这一行会多出一个 `pid = ...`。
+README 早期文档展示的 EXIT 日志行未输出 pid 字段，那是旧版驱动留下的遗迹；当前 libbpf 官方格式串与本文示例一致，均已补齐 pid（`"KPROBE EXIT: pid = %d, ret = %ld\n"`），实际运行时该行会多出 pid 标识。
 
 ### 3.4 挂不上的情况
 
 kprobe 能挂上去的前提是那个地址上有一条可以替换的指令。三种情况会失败：
 
-- 函数被编译器内联了。kprobe 只在真正的函数体里下断点，不会追着在调用点展开的副本一起下，所以给一个被内联的函数下探针，可能一次都不触发。函数如果只有几个语句，很可能已经被内联进调用者。
+- 函数被编译器内联了。kprobe 只在函数本身的代码里下断点，不会追着在调用点展开的副本一起下，所以给一个被内联的函数下探针，可能一次都不触发。函数如果只有几个语句，很可能已经被内联进调用者。
 - 函数在 kprobe 的黑名单上。实现 kprobe 自身的代码，以及 `do_page_fault`、`notifier_call_chain` 这类在异常路径上被调用的函数，注册时直接返回 `-EINVAL`。内核文档把这份名单称为 blacklist，用 `NOKPROBE_SYMBOL()` 标记。
 - 函数名在当前内核里不存在。整个 `kprobe/xxx` 会在 `__attach` 时报错，错误码通常是 `ENOENT`。
 
@@ -526,7 +538,7 @@ int BPF_KSYSCALL(kill_enter, pid_t pid, int sig)
 }
 ```
 
-`BPF_KSYSCALL` 还处理了另一层差异：有的架构在内核里包了一层 `syscall_wrapper`，真正的参数在 `pt_regs` 指向的另一个 `pt_regs` 里。它通过 `LINUX_HAS_SYSCALL_WRAPPER` 这个 `__kconfig` 外部对象在加载时判断，两个分支各自生成读参数的代码。`BPF_KSYSCALL` 依赖 CO-RE，所以必须包含 `bpf_core_read.h`。把上面这段代码里的这一行去掉，编译时报：
+`BPF_KSYSCALL` 还处理了另一层差异：有的架构在内核里包了一层 `syscall_wrapper`，参数实际放在 `pt_regs` 指向的另一个 `pt_regs` 里。它通过 `LINUX_HAS_SYSCALL_WRAPPER` 这个 `__kconfig` 外部对象在加载时判断，两个分支各自生成读参数的代码。`BPF_KSYSCALL` 依赖 CO-RE，所以必须包含 `bpf_core_read.h`。把上面这段代码里的这一行去掉，编译时报：
 
 ::: terminal title="zsh - clang"
 
@@ -545,7 +557,7 @@ libbpf 的注释列出了它还不能透明处理的几种系统调用：`mmap`�
 
 ### 4.1 用 BPF 蹦床
 
-fentry 和 fexit 不修改指令，而是利用函数开头编译器预留的 NOP 空间。内核附加时把这段空间改成跳转到 BPF 蹦床的指令，蹦床保存参数、调用 fentry 程序、调用原函数、再调用 fexit 程序。多个程序可以共用同一个蹦床。
+fentry 和 fexit 利用函数开头编译器预留的 NOP 空间。内核附加时把这段空间改成跳转到 BPF 蹦床的指令，蹦床保存参数、调用 fentry 程序、调用原函数、再调用 fexit 程序。多个程序可以共用同一个蹦床。
 
 `unlink_fentry.bpf.c` 是同一件事的 fentry 版本：
 
@@ -581,7 +593,7 @@ fexit 的参数是「原函数的全部参数，再加一个返回值」，返�
 
 ### 4.2 编译与输出
 
-fentry 程序不需要 `-D__TARGET_ARCH_x86`，因为参数不是从寄存器取出来的：
+fentry 程序不需要 `-D__TARGET_ARCH_x86`，因为它的参数类型记录在 BTF 里：
 
 ::: terminal title="zsh - build"
 
@@ -891,7 +903,7 @@ $ sudo cat /sys/kernel/tracing/trace_pipe
 
 :::
 
-两点说明。第一，这段引用的输出产生于较老的内核，事件名那一列显示成 `0:`；同一个 README 的 kprobe、fentry 各节显示的是 `bpf_trace_printk:`，较新的内核是后一种。第二，第一列显示的是执行 BPF 程序的那个进程：上游的 uprobe 示例把探针挂在自己的函数上（`/proc/self/exe`），所以进程名是加载程序 `uprobe`；本页把探针挂在 `./calc` 上，实际运行时这一列会是 `calc`。要把结果限定到某个进程，在程序里用 `bpf_get_current_pid_tgid` 取 PID 判断。
+此处有两点运行层面的细节值得说明。首先，上述引用的历史测试日志产生于较早的内核版本，事件名称列呈现为 `0:`；在更新的内核中，其输出标签已标准化为与 kprobe、fentry 一致的 `bpf_trace_printk:`。其次，输出日志第一列记录的是触发探针执行的具体进程名：官方示例将探针直接附加至加载器自身的内部函数（`/proc/self/exe`），因此进程名为 `uprobe`；而本文示例则将探针显式挂载到目标外部程序 `./calc` 上，实际运行中该列会准确显示为 `calc`。若需要从内核层精确限定仅观测某个特定的进程实例，在 BPF 程序内部借助 `bpf_get_current_pid_tgid` 获取当前触发者的 PID 进行分支过滤即可。
 
 ### 5.5 开销
 
@@ -922,7 +934,7 @@ $ sudo cat /sys/kernel/tracing/trace_pipe
 
 </template>
 
-正确答案是 **C**。uprobe 的本质是在某个文件里的某个位置下断点，所以既要知道是哪个文件（可执行文件或共享库），也要知道位置。位置有两种给法：函数名（libbpf 会去符号表里查偏移），或者直接给文件内的偏移。给出函数名时还可以再加一个函数内的偏移，用来探测函数中间的位置。PID 是可选的附加条件（`-1` 表示所有进程），不是必需信息。
+正确答案是 **C**。uprobe 是在某个文件里的某个位置下断点，所以既要知道是哪个文件（可执行文件或共享库），也要知道位置。位置有两种给法：函数名（libbpf 会去符号表里查偏移），或者直接给文件内的偏移。给出函数名时还可以再加一个函数内的偏移，用来探测函数中间的位置。PID 是可选的附加条件（`-1` 表示所有进程），不是必需信息。
 
 </Quiz>
 
@@ -1079,7 +1091,7 @@ tracepoint 是内核侧的静态钩子，USDT 是用户侧的。想在用户程�
 
 前面几种钩子都是「事件发生就触发」。perf_event 是采样：按固定频率在 CPU 上打点，每次打点看一下正在执行什么。它不关心事件总数，只给出一个统计上足够接近的抽样结果。
 
-按 99 Hz 采样而不是 100 Hz，是因为整频率容易和系统里其他周期性活动对齐，导致每次采样都落在同一个函数里，得到有偏的样本。99 与常见的周期不整除。
+采样频率取 99 Hz。100 Hz 这样的整频率容易和系统里其他周期性活动对齐，导致每次采样都落在同一个函数里，得到有偏的样本；99 与常见的周期不整除。
 
 `perf_sample.bpf.c` 定义了一个环形缓冲区和采样程序：
 
@@ -1173,9 +1185,9 @@ for (cpu = 0; cpu < ncpu; cpu++) {
 }
 ```
 
-三个字段的作用：`type` 是事件来源，`PERF_TYPE_HARDWARE` 用硬件性能计数器（指令数、缓存缺失），`PERF_TYPE_SOFTWARE` 用软件事件（CPU 时钟、上下文切换）；`config` 指定具体事件，`PERF_COUNT_SW_CPU_CLOCK` 表示 CPU 时钟；`freq = 1` 加上 `sample_freq` 表示按频率采样，而不是每发生固定次数的事件采样一次。每个 CPU 单独开一个，`-1` 表示进程维度不限定。
+三个字段的作用：`type` 是事件来源，`PERF_TYPE_HARDWARE` 用硬件性能计数器（指令数、缓存缺失），`PERF_TYPE_SOFTWARE` 用软件事件（CPU 时钟、上下文切换）；`config` 指定具体事件，`PERF_COUNT_SW_CPU_CLOCK` 表示 CPU 时钟；`freq = 1` 加上 `sample_freq` 表示按频率采样；`freq` 为 0 时该字段表示采样周期，即每发生多少次事件采样一次。每个 CPU 单独开一个，`-1` 表示进程维度不限定。
 
-`perf_event_open` 没有 glibc 的包装函数，要用 `syscall()` 调系统调用，而 `syscall` 的声明只在 `_GNU_SOURCE` 下可见，所以这个文件用 `_GNU_SOURCE` 而不是 `_POSIX_C_SOURCE`。`perf_sample.h` 里的 `__u32`、`__u64` 来自 `<linux/perf_event.h>` 带进来的 `<linux/types.h>`。
+`perf_event_open` 没有 glibc 的包装函数，要用 `syscall()` 调系统调用，而 `syscall` 的声明只在 `_GNU_SOURCE` 下可见，所以这个文件用 `_GNU_SOURCE`。`perf_sample.h` 里的 `__u32`、`__u64` 来自 `<linux/perf_event.h>` 带进来的 `<linux/types.h>`。
 
 `bpf_program__attach_perf_event` 成功后接管 perf 事件的描述符，销毁 link 时会一并关闭；附加失败时 link 不接管，需要自己 `close`。
 
@@ -1204,7 +1216,7 @@ No Userspace Stack
 
 :::
 
-本节的 `perf_sample` 只把采样到的调用栈打印成帧数，看不出热点。要真正做剖析，得把每个地址翻译成符号，这是 `blazesym` 这类库的活，超出本页范围。结构已经和 `profile` 一样，读者可以照着它接一个符号化库。
+本节构建的 `perf_sample` 示例侧重于打通数据采集链路，仅将采集到的调用栈以帧数和物理地址呈现。若要将其转化为直观的性能分析热点，需要进一步在用户态将物理指令地址符号化为具体的函数名与源码行号。这一环节通常交由 `blazesym` 等专门的符号解析库处理，已超出本文针对 BPF 内核机制的讨论范围；但其底层的采样架构与工业级工具 `profile` 别无二致，开发者可直接在此骨架基础上接入符号化组件。
 
 ## 8. 怎样选择
 
@@ -1236,7 +1248,7 @@ flowchart TD
 3. 没有 tracepoint 但要挂内核函数时，用 fentry/fexit；
 4. fentry 挂不上（函数被内联、模块的 BTF 没加载）时退回 kprobe；
 5. 观测对象是用户程序时，先查 USDT，没有就挂 uprobe；
-6. 问题变成「时间花在哪里」而不是「发生了什么」时，改用 perf_event 采样。
+6. 问题从「发生了什么」变成「时间花在哪里」时，改用 perf_event 采样。
 
 :::
 
@@ -1352,4 +1364,4 @@ flowchart TD
 - bpftrace 一行命令教程：tracepoint 与 kprobe 的稳定性对比、`profile:hz:99` 的用法与 99 这个频率的解释。https://github.com/bpftrace/bpftrace/blob/master/docs/tutorial_one_liners.md
 - bpftrace 手册：`bpftrace -l` 的列出方式与 `-lv` 查看探针参数。https://github.com/bpftrace/bpftrace/blob/master/man/adoc/bpftrace.adoc
 - Liz Rice，*Learning eBPF*（ISBN 978-1-098-13512-6），第 4、5 章：kprobe、uprobe、tracepoint、USDT 的分类与选用。
-- 本页的 `calc.c` 运行输出、`nm`、`readelf`、`objdump` 的结果，以及 tracefs 目录列表和 `/proc/kallsyms` 的符号，在 Debian 13（内核 6.12）上实际执行；BPF 程序用 clang 18（zig 0.13 自带）编译，骨架由 `bpftool` 7.5 生成。
+- 文中 `calc.c` 运行输出、`nm`、`readelf`、`objdump` 的结果，以及 tracefs 目录列表和 `/proc/kallsyms` 的符号，在 Debian 13（内核 6.12）上实际执行；BPF 程序用 clang 18 编译，骨架由 `bpftool` 7.5 生成。
