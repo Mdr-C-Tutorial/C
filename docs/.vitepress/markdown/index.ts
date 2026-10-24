@@ -1,7 +1,7 @@
-import type { MarkdownIt } from "./types";
+import type { MarkdownIt } from "./types.ts";
 import footnote from "markdown-it-footnote";
-import { terminalContainer } from "./terminalContainer";
-import { compareContainer } from "./compareContainer";
+import { terminalContainer } from "./terminalContainer.ts";
+import { compareContainer } from "./compareContainer.ts";
 
 /**
  * Register all custom markdown containers (`::: terminal`, `::: compare`)

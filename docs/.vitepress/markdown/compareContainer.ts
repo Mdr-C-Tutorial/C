@@ -1,5 +1,5 @@
 import container from "markdown-it-container";
-import type { MarkdownIt, MarkdownItState, MarkdownItToken } from "./types";
+import type { MarkdownIt, MarkdownItState, MarkdownItToken } from "./types.ts";
 
 /**
  * Parse `name="value"` style attributes from a container info string.
@@ -100,7 +100,8 @@ export function compareContainer(md: MarkdownIt): void {
       const { open, close, hr } = ranges[k];
       const info = tokens[open].info.replace(/^compare/, "").trim();
       const leftTitleRaw = readAttr(info, "left-title") ?? readAttr(info, "left") ?? "";
-      const rightTitleRaw = readAttr(info, "right-title") ?? readAttr(info, "right") ?? "";
+      const rightTitleRaw =
+        readAttr(info, "right-title") ?? readAttr(info, "right") ?? "";
       const vertical = hasFlag(info, "vertical");
 
       const leftTitle = md.utils.escapeHtml(leftTitleRaw);

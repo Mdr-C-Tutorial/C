@@ -5,7 +5,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Sidebar, Nav } from "./nscfg.mts";
-import { setupContainers, setupFootnotes } from "./markdown/index";
+import { setupContainers, setupFootnotes } from "./markdown/index.ts";
 
 const customElements: string[] = [""];
 const bnfLanguage = {

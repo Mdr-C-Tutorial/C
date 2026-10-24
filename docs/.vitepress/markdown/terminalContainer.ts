@@ -1,5 +1,5 @@
 import container from "markdown-it-container";
-import type { MarkdownIt, MarkdownItToken } from "./types";
+import type { MarkdownIt, MarkdownItToken } from "./types.ts";
 
 /**
  * Parse `name="value"` style attributes from a container info string.
@@ -34,9 +34,7 @@ export function terminalContainer(md: MarkdownIt): void {
       if (token.nesting === 1) {
         const info = token.info.replace(/^terminal/, "").trim();
         const title = readAttr(info, "title") ?? "";
-        const titleAttr = title
-          ? ` title="${md.utils.escapeHtml(title)}"`
-          : "";
+        const titleAttr = title ? ` title="${md.utils.escapeHtml(title)}"` : "";
         return `<TerminalWindow${titleAttr}>\n`;
       }
       return "</TerminalWindow>\n";

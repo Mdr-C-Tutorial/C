@@ -1,3 +1,6 @@
 allowBuilds:
   esbuild: true
   sharp: true
+overrides:
+  "@xmldom/xmldom": ^0.9.12
+  "@gentorial/runtime-vue>markdown-it": ^14.3.3
