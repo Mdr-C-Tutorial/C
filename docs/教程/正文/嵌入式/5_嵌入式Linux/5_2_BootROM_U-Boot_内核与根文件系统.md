@@ -395,7 +395,7 @@ Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(179,5)
 
 ### 7.1 巩固
 
-<Exercise id="65518" :d="1" :w="2">
+<Exercise id="60518" :d="1" :w="2">
 
 下面是一段启动日志，行首的编号只是为了引用：
 
@@ -422,7 +422,7 @@ Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(179,5)
 
 </Exercise>
 
-<Exercise id="65519" :d="2" :w="2">
+<Exercise id="60519" :d="2" :w="2">
 
 STM32MP157 的 BootROM 与 STM32F103 的启动方式对照。
 
@@ -436,7 +436,7 @@ STM32MP157 的 BootROM 与 STM32F103 的启动方式对照。
 
 </Exercise>
 
-<Exercise id="65520" :d="2" :w="2">
+<Exercise id="60520" :d="2" :w="2">
 
 第 4.2 节的命令行参数在排错时用得上。给定下面三条 `bootargs`，指出各自会导致什么现象：
 
@@ -456,7 +456,7 @@ C: console=ttySTM0,115200 root=/dev/mmcblk0p9 rootwait rw
 
 </Exercise>
 
-<Exercise id="65521" :d="3" :w="3">
+<Exercise id="60521" :d="3" :w="3">
 
 在第 3.2 节的 U-Boot 命令行里完成一次手动启动，再把它换成 `bootstd`，并分析两边的差别。
 
@@ -476,7 +476,7 @@ C: console=ttySTM0,115200 root=/dev/mmcblk0p9 rootwait rw
 
 ### 7.2 编程
 
-<Exercise id="65522" :d="3" :w="3">
+<Exercise id="60522" :d="3" :w="3">
 
 写 `bootargs` 工具 `btool`，有两个子命令：从配置文件生成命令行，以及检查一条现成的命令行。
 
@@ -500,7 +500,7 @@ C: console=ttySTM0,115200 root=/dev/mmcblk0p9 rootwait rw
 3. `root` 以 `/dev/mmcblk`、`/dev/sd`、`/dev/nvme` 开头而缺 `rootwait` 时报错；`root=/dev/nfs` 而没有 `nfsroot` 时报错。
 4. `root=` 与 `nfsroot=` 同时给出且指向不同来源时，按正文的优先级给出警告，指出最终生效的是哪一个。
 
-验收：用下面三份配置各跑一次 `gen`；再把 65520 里的 A、B、C 三条各跑一次 `check`。B 的 9600 是合法波特率，工具不会报警，据此说明「参数本身合法但与这块板子不符」的错误为什么只能靠板子文档或设备树发现。
+验收：用下面三份配置各跑一次 `gen`；再把 60520 里的 A、B、C 三条各跑一次 `check`。B 的 9600 是合法波特率，工具不会报警，据此说明「参数本身合法但与这块板子不符」的错误为什么只能靠板子文档或设备树发现。
 
 ```text
 # 1.conf
@@ -520,7 +520,7 @@ ip = dhcp
 
 </Exercise>
 
-<Exercise id="65523" :d="4" :w="3">
+<Exercise id="60523" :d="4" :w="3">
 
 `zImage` 与 `uImage` 的区别可以写程序验证。`uImage` 在 zImage 前面加了 64 字节的头，字段按大端存放：
 
@@ -549,7 +549,7 @@ ip = dhcp
 
 </Exercise>
 
-<Exercise id="65524" :d="4" :w="3">
+<Exercise id="60524" :d="4" :w="3">
 
 写 `bootstat`：从一份带时间戳的启动日志算出各阶段的耗时。
 
@@ -574,7 +574,7 @@ ip = dhcp
 
 </Exercise>
 
-<Exercise id="65525" :d="5" :w="4">
+<Exercise id="60525" :d="5" :w="4">
 
 做一个最小 initramfs 并交给 QEMU 启动，验证第 5.1 节的描述。
 
@@ -592,14 +592,14 @@ ip = dhcp
 
 ### 7.3 综合与挑战
 
-<Exercise id="65526" :d="6" :w="5" scope="*">
+<Exercise id="60526" :d="6" :w="5" scope="*">
 
 给一块板子做启动时间分析并给出优化方案，结论要有数据。
 
 要求：
 
 1. 在内核命令行加 `initcall_debug printk.time=1`，用串口抓一份完整启动日志，从第一行到登录提示符。
-2. 用 65524 的 `bootstat`（或自己写）按第 6 节那张表分阶段统计耗时，列成表格，标出最长的一段。
+2. 用 60524 的 `bootstat`（或自己写）按第 6 节那张表分阶段统计耗时，列成表格，标出最长的一段。
 3. 至少做三项可测量的改动，例如 `bootdelay=0`、裁掉不用的驱动、把 U-Boot 的 `bootcmd` 换成 `bootflow scan -lb`、把某个服务的启动推迟。每改一项重新测三次，记录中位数。
 4. 用数据说明哪一项收益最大。如果某一项几乎没有变化，分析原因，不要把它算进结论。
 5. 写出最终方案与剩余瓶颈，指出哪些耗时是改不动的（BootROM、DDR 训练）。

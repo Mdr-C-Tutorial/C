@@ -814,13 +814,13 @@ struct task_state_bpf {
 
 ### 8.1 巩固
 
-<Exercise id="47801" :d="1" :w="1">
+<Exercise id="46801" :d="1" :w="1">
 
 `task_state.bpf.o` 的反汇编里有六条 `CO-RE` 注释。把每条的种类、根类型、成员和访问路径列出来，并说明哪几条在目标内核不同时会被改成坏指令。
 
 </Exercise>
 
-<Exercise id="47802" :d="2" :w="2">
+<Exercise id="46802" :d="2" :w="2">
 
 `three_ways.bpf.c` 里的 `manual`、`core`、`direct` 三个程序读的是同一个 `real_parent->tgid`，但加载到内核里的指令不同。用 `llvm-objdump -dr` 对比后说明：
 
@@ -833,7 +833,7 @@ struct task_state_bpf {
 
 ### 8.2 编程
 
-<Exercise id="47803" :d="3" :w="3">
+<Exercise id="46803" :d="3" :w="3">
 
 写一个程序，在执行 `exec` 时打印当前进程的 `comm`、`pid`、`ppid` 和可执行文件名（`mm->exe_file->f_path.dentry->d_name.name`）。要求：
 
@@ -844,7 +844,7 @@ struct task_state_bpf {
 
 </Exercise>
 
-<Exercise id="47804" :d="4" :w="3">
+<Exercise id="46804" :d="4" :w="3">
 
 `task_state.bpf.c` 现在只用 `bpf_core_field_exists` 选了 `state` 的来源。改成同时兼容类型变化：旧内核的 `state` 是 `long`，新内核的 `__state` 是 `unsigned int`。要求：
 
@@ -854,7 +854,7 @@ struct task_state_bpf {
 
 </Exercise>
 
-<Exercise id="47805" :d="4" :w="3">
+<Exercise id="46805" :d="4" :w="3">
 
 补完 `three_ways.bpf.c` 里挂在 `sys_enter_connect` 上的 `user_read` 程序。现在它只读了 `sa_family`，把它补成读 `sin_port` 与 `sin_addr.s_addr`。要求：
 
@@ -864,7 +864,7 @@ struct task_state_bpf {
 
 </Exercise>
 
-<Exercise id="47806" :d="4" :w="4">
+<Exercise id="46806" :d="4" :w="4">
 
 给 `task_state.bpf.c` 加上第二种兼容手段：用 `extern int LINUX_KERNEL_VERSION __kconfig;` 按版本号选分支。要求：
 
@@ -876,7 +876,7 @@ struct task_state_bpf {
 
 ### 8.3 综合与挑战
 
-<Exercise id="47807" :d="5" :w="4">
+<Exercise id="46807" :d="5" :w="4">
 
 写一个小工具 `btf_field`，给一个结构体名和一个成员名，打印这个成员在本机内核 BTF 里的偏移、大小、类型。要求：
 
@@ -887,7 +887,7 @@ struct task_state_bpf {
 
 </Exercise>
 
-<Exercise id="47808" :d="6" :w="5">
+<Exercise id="46808" :d="6" :w="5">
 
 以 `task_state.bpf.c` 为起点，做一个展示 `___` 后缀规则的对照实验：定义 `struct task_struct___a`、`struct task_struct___2`、`struct task_struct__b` 三个类型，各选一个成员，编译后用 `bpftool gen skeleton` 和 `llvm-objdump -dr` 观察：
 
@@ -899,7 +899,7 @@ struct task_state_bpf {
 
 </Exercise>
 
-<Exercise id="47809" :d="7" :w="5" scope="*">
+<Exercise id="46809" :d="7" :w="5" scope="*">
 
 写一个 BTF 兼容性检查器：读入一个 `.bpf.o`，从 `.BTF.ext` 里取出所有 CO-RE 重定位，对每一条打印根类型、成员路径和种类，并判断在给定的 BTF 文件（可能来自另一台机器）里能否解析。要求：
 

@@ -582,7 +582,7 @@ Bootloader 安装一份 40 KiB 的应用时，看门狗为什么必须在擦写�
 
 ### 8.1 巩固
 
-<Exercise id="66625" :d="1" :w="2">
+<Exercise id="60625" :d="1" :w="2">
 
 正文把 64 KiB Flash 划成 16 KiB Bootloader、47 KiB 应用槽与 1 KiB 配置页，映像头 0x200 字节。下面五组参数都想放进从 0x08004000 开始的应用槽：
 
@@ -604,7 +604,7 @@ Bootloader 安装一份 40 KiB 的应用时，看门狗为什么必须在擦写�
 
 </Exercise>
 
-<Exercise id="66626" :d="2" :w="2">
+<Exercise id="60626" :d="2" :w="2">
 
 一个 `app.img` 的前 32 字节如下，地址从 0x08004000 起，小端：
 
@@ -625,7 +625,7 @@ Bootloader 安装一份 40 KiB 的应用时，看门狗为什么必须在擦写�
 
 </Exercise>
 
-<Exercise id="66627" :d="2" :w="3">
+<Exercise id="60627" :d="2" :w="3">
 
 配置页里的升级日志每条记录 8 字节：`tag`、`arg`、`arg2`（小端 16 位）、前 4 字节的 CRC-32。`tag` 的取值是 1 已暂存、2 已备份、3 已安装、4 试运行、5 已确认、6 已回滚。从 0x0800FC00 读出的一段内容如下：
 
@@ -646,7 +646,7 @@ Bootloader 安装一份 40 KiB 的应用时，看门狗为什么必须在擦写�
 
 </Exercise>
 
-<Exercise id="66628" :d="3" :w="3">
+<Exercise id="60628" :d="3" :w="3">
 
 正文的 `vectors_plausible()` 在跳转前检查向量表的前两项。下面是 12 组取自真实产物的「初始栈指针、复位向量」，应用槽仍然从 0x08004000 起、上限按正文的 0xBC00 计算：
 
@@ -677,7 +677,7 @@ Bootloader 安装一份 40 KiB 的应用时，看门狗为什么必须在擦写�
 
 ### 8.2 编程
 
-<Exercise id="66629" :d="3" :w="4">
+<Exercise id="60629" :d="3" :w="4">
 
 写主机端工具 `mkimage`，把裸二进制包装成正文格式的 `app.img`。
 
@@ -698,7 +698,7 @@ Bootloader 安装一份 40 KiB 的应用时，看门狗为什么必须在擦写�
 
 </Exercise>
 
-<Exercise id="66630" :d="4" :w="3">
+<Exercise id="60630" :d="4" :w="3">
 
 下面这段跳转函数来自一个学生项目，能跑通演示，但不符合正文的要求：
 
@@ -724,7 +724,7 @@ static void jump_to_app(uint32_t vt) {
 
 </Exercise>
 
-<Exercise id="66631" :d="4" :w="4">
+<Exercise id="60631" :d="4" :w="4">
 
 在主机上实现日志型的升级状态记录，并验证记录写到一半被打断时的行为。
 
@@ -740,7 +740,7 @@ static void jump_to_app(uint32_t vt) {
 
 </Exercise>
 
-<Exercise id="66632" :d="5" :w="5">
+<Exercise id="60632" :d="5" :w="5">
 
 正文说安装一份 40 KiB 的应用要擦写四十来页，累计停顿在一秒量级。用下面这组参数把这句话算实，并把断电扫描做成可重复运行的测试。
 
@@ -766,7 +766,7 @@ static void jump_to_app(uint32_t vt) {
 
 ### 8.3 综合与挑战
 
-<Exercise id="66633" :d="6" :w="4" scope="*">
+<Exercise id="60633" :d="6" :w="4" scope="*">
 
 64 KiB 的 F103C8 上，团队在「继续用暂存加备份」与「改用 MCUboot」之间选择。用空间与测试成本做一次定量比较。
 

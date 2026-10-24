@@ -998,7 +998,7 @@ wevtutil qe Application /c:5 /rd:true /f:text
 
 ### 7.1 巩固
 
-<Exercise id="46801" :d="1" :w="1">
+<Exercise id="44801" :d="1" :w="1">
 
 下面是 `sc.exe qc EventLog` 的部分输出：
 
@@ -1016,7 +1016,7 @@ wevtutil qe Application /c:5 /rd:true /f:text
 
 </Exercise>
 
-<Exercise id="46802" :d="2" :w="2">
+<Exercise id="44802" :d="2" :w="2">
 
 为一个文本编辑器选择注册表值的类型，并写出对应的 `RegSetValueExW` 调用（只要调用本身，不用完整程序）：
 
@@ -1030,7 +1030,7 @@ wevtutil qe Application /c:5 /rd:true /f:text
 
 </Exercise>
 
-<Exercise id="46803" :d="2" :w="2" multi>
+<Exercise id="44803" :d="2" :w="2" multi>
 
 下面这段服务骨架有四处错误：
 
@@ -1064,7 +1064,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="46804" :d="2" :w="2">
+<Exercise id="44804" :d="2" :w="2">
 
 写一个 `svc_selfcheck.c`：调用 `StartServiceCtrlDispatcherW`，失败时按错误码分流。
 
@@ -1081,7 +1081,7 @@ int main(void) {
 
 ### 7.2 编程
 
-<Exercise id="46805" :d="3" :w="3">
+<Exercise id="44805" :d="3" :w="3">
 
 写一个 `reg_tool.c`，用命令行管理 `HKCU\Software\MdrTutorial\Tool` 下的一小段配置：
 
@@ -1108,7 +1108,7 @@ reg_tool del                   删除整个项
 
 </Exercise>
 
-<Exercise id="46806" :d="3" :w="3">
+<Exercise id="44806" :d="3" :w="3">
 
 写一个 `svc_list.c`：列出本机所有「启动类型为自动、当前已停止」的服务，每行打印服务名与显示名，最后打印总数。
 
@@ -1130,7 +1130,7 @@ reg_tool del                   删除整个项
 
 </Exercise>
 
-<Exercise id="46807" :d="3" :w="3">
+<Exercise id="44807" :d="3" :w="3">
 
 写一个 `clock_check.c`，验证本机的时钟分辨率与睡眠粒度：
 
@@ -1147,7 +1147,7 @@ reg_tool del                   删除整个项
 
 </Exercise>
 
-<Exercise id="46808" :d="4" :w="4">
+<Exercise id="44808" :d="4" :w="4">
 
 给 `echo_svc.c` 加上「注册表、文件、默认值」三级配置：
 
@@ -1168,7 +1168,7 @@ reg_tool del                   删除整个项
 
 ### 7.3 综合与挑战
 
-<Exercise id="46809" :d="6" :w="5" scope="*" multi>
+<Exercise id="44809" :d="6" :w="5" scope="*" multi>
 
 把 `MdrEcho` 做成一个能安装到系统里的完整服务包。
 

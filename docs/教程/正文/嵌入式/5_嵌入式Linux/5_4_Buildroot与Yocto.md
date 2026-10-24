@@ -524,7 +524,7 @@ Yocto 的首次构建比 Buildroot 慢得多：`core-image-minimal` 在 8 核机
 
 ### 8.1 巩固
 
-<Exercise id="65535" :d="1" :w="2">
+<Exercise id="60535" :d="1" :w="2">
 
 读 `code/嵌入式/5_嵌入式Linux/5_4_Buildroot与Yocto/br2-external/configs/mdr_qemu_defconfig`，不构建，只回答：
 
@@ -538,7 +538,7 @@ Yocto 的首次构建比 Buildroot 慢得多：`core-image-minimal` 在 8 核机
 
 </Exercise>
 
-<Exercise id="65536" :d="2" :w="2">
+<Exercise id="60536" :d="2" :w="2">
 
 覆盖层「只覆盖、不删除」的语义可以用二十行 shell 复现，不必真的跑 Buildroot。
 
@@ -554,7 +554,7 @@ Yocto 的首次构建比 Buildroot 慢得多：`core-image-minimal` 在 8 核机
 
 ### 8.2 编程
 
-<Exercise id="65537" :d="3" :w="3">
+<Exercise id="60537" :d="3" :w="3">
 
 给外部树加一个自己的包 `mdr-hello`，装一个程序和一份配置。
 
@@ -572,7 +572,7 @@ Yocto 的首次构建比 Buildroot 慢得多：`core-image-minimal` 在 8 核机
 
 </Exercise>
 
-<Exercise id="65538" :d="3" :w="3">
+<Exercise id="60538" :d="3" :w="3">
 
 包名、配置符号与宏前缀三者不一致时，Buildroot 不会报错，只会静默用默认值。写一个静态检查脚本把这类问题提前找出来。
 
@@ -591,7 +591,7 @@ Yocto 的首次构建比 Buildroot 慢得多：`core-image-minimal` 在 8 核机
 
 </Exercise>
 
-<Exercise id="65539" :d="4" :w="4">
+<Exercise id="60539" :d="4" :w="4">
 
 按照 `code/嵌入式/5_嵌入式Linux/5_4_Buildroot与Yocto/meta-mdr/` 的结构，写一个 `hello` 配方并把它装进镜像。
 
@@ -609,7 +609,7 @@ Yocto 的首次构建比 Buildroot 慢得多：`core-image-minimal` 在 8 核机
 
 </Exercise>
 
-<Exercise id="65540" :d="4" :w="4">
+<Exercise id="60540" :d="4" :w="4">
 
 团队里两个人各改了一份 defconfig，合并前要看差异。写 `br2diff.sh <旧> <新>`：
 
@@ -623,7 +623,7 @@ Yocto 的首次构建比 Buildroot 慢得多：`core-image-minimal` 在 8 核机
 
 </Exercise>
 
-<Exercise id="65541" :d="5" :w="4">
+<Exercise id="60541" :d="5" :w="4">
 
 把 [5.3](/教程/正文/嵌入式/5_嵌入式Linux/5_3_交叉工具链_sysroot与根文件系统) 手工拼的根文件系统搬到 Buildroot 里，并比较两种做法。
 
@@ -641,7 +641,7 @@ Yocto 的首次构建比 Buildroot 慢得多：`core-image-minimal` 在 8 核机
 
 ### 8.3 综合与挑战
 
-<Exercise id="65542" :d="5" :w="4">
+<Exercise id="60542" :d="5" :w="4">
 
 下面这棵外部树有七处问题，构建会以不同的方式失败或者静默出错。
 
@@ -698,7 +698,7 @@ $(eval $(kernel-module))
 
 </Exercise>
 
-<Exercise id="65543" :d="6" :w="5" scope="*">
+<Exercise id="60543" :d="6" :w="5" scope="*">
 
 Buildroot 的 `generic-package` 是一套模板加依赖调度。写一个 `mini-build`（Makefile 或 shell 脚本），用三个小包演示这套机制：
 

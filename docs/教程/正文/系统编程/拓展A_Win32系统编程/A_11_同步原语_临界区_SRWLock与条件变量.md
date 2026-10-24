@@ -650,7 +650,7 @@ waiter: woke up, state = 1
 
 ### 8.1 巩固
 
-<Exercise id="46101" :d="1" :w="2" multi>
+<Exercise id="44101" :d="1" :w="2" multi>
 
 (1) _[1.1]_ `race.c` 里把 `counter++` 换成 `InterlockedIncrement(&counter)` 之后结果正确；如果改写成 `InterlockedExchangeAdd(&counter, 2)` 也正确，而写成 `counter = counter + 2` 仍然会出错，为什么？
 
@@ -662,7 +662,7 @@ waiter: woke up, state = 1
 
 </Exercise>
 
-<Exercise id="46102" :d="2" :w="3">
+<Exercise id="44102" :d="2" :w="3">
 
 写一个 `lock_probe` 程序：主线程创建一把临界区对象和一把 SRW 锁，先各拿在手里，再创建两个线程分别对两把锁调用 `TryEnterCriticalSection` 与 `TryAcquireSRWLockExclusive`，打印返回值；主线程释放之后重复一次。
 
@@ -676,7 +676,7 @@ waiter: woke up, state = 1
 
 ### 8.2 编程
 
-<Exercise id="46103" :d="3" :w="3">
+<Exercise id="44103" :d="3" :w="3">
 
 把 `race.c` 扩展成三种修复方式的对比程序 `race3.c`：同一份工作（两个线程各加 1,000,000 次）分别用互锁函数、临界区对象、SRW 独占锁各做一遍，每次都把结果与耗时打印出来。
 
@@ -690,7 +690,7 @@ waiter: woke up, state = 1
 
 </Exercise>
 
-<Exercise id="46104" :d="3" :w="3">
+<Exercise id="44104" :d="3" :w="3">
 
 写一个读多写少的缓存表 `table.c`：一个 `SRWLOCK` 保护的 `struct entry { int key; int value; }` 数组，容量 64，写线程每秒插入或更新一条，四个读线程按 key 查找并统计命中次数。
 
@@ -704,7 +704,7 @@ waiter: woke up, state = 1
 
 </Exercise>
 
-<Exercise id="46105" :d="4" :w="3" multi>
+<Exercise id="44105" :d="4" :w="3" multi>
 
 改写 `bounded_queue.c`，做三件事：
 
@@ -718,7 +718,7 @@ waiter: woke up, state = 1
 
 </Exercise>
 
-<Exercise id="46106" :d="4" :w="4">
+<Exercise id="44106" :d="4" :w="4">
 
 `bounded_queue.c` 的关闭方式有两种写法，请都实现并比较：
 
@@ -735,7 +735,7 @@ waiter: woke up, state = 1
 
 ### 8.3 综合与挑战
 
-<Exercise id="46107" :d="5" :w="4" multi>
+<Exercise id="44107" :d="5" :w="4" multi>
 
 下面这个程序读多写少，不变式是 `sum == count * 100`，但它有一个缺陷：
 
@@ -770,7 +770,7 @@ static DWORD WINAPI writer(LPVOID arg) {
 
 </Exercise>
 
-<Exercise id="46108" :d="6" :w="4">
+<Exercise id="44108" :d="6" :w="4">
 
 实现一个线程安全的对象池 `pool.c`：容量 8，`acquire` 取一个对象，`release` 还回去，取不到时用条件量等待。
 
@@ -786,7 +786,7 @@ static DWORD WINAPI writer(LPVOID arg) {
 
 </Exercise>
 
-<Exercise id="46109" :d="7" :w="5" scope="*">
+<Exercise id="44109" :d="7" :w="5" scope="*">
 
 同一个等待队列，用三种方式各实现一遍：
 

@@ -920,7 +920,7 @@ Call trace:
 
 ### 8.1 巩固
 
-<Exercise id="65581" :d="2" :w="3">
+<Exercise id="60581" :d="2" :w="3">
 
 写一个 `irqmon.sh`，监视一条中断的到达情况：
 
@@ -946,7 +946,7 @@ Call trace:
 
 </Exercise>
 
-<Exercise id="65582" :d="3" :w="3">
+<Exercise id="60582" :d="3" :w="3">
 
 下面是从 5.8 的 `mdr_serial` 改出来的接收中断版本。结构体里写的是 `struct mutex lock;`，`read` 回调也用它保护 `kfifo`。代码能编译，装进内核后才暴露问题。
 
@@ -987,7 +987,7 @@ static irqreturn_t mdr_serial_irq(int irq, void *dev_id)
 
 </Exercise>
 
-<Exercise id="65583" :d="3" :w="3">
+<Exercise id="60583" :d="3" :w="3">
 
 一个逐字节接收的设备用工作队列处理数据，`mdr_handle_frame()` 里要调用会睡眠的 `i2c_smbus_read_byte_data()`。
 
@@ -1027,7 +1027,7 @@ static irqreturn_t mdr_irq(int irq, void *dev_id)
 
 ### 8.2 编程
 
-<Exercise id="65584" :d="3" :w="3">
+<Exercise id="60584" :d="3" :w="3">
 
 为第 2 节的 `mdr_serial` 写用户态测试程序 `irqtest.c`，验证 `read` 路径的三种行为：
 
@@ -1047,7 +1047,7 @@ static irqreturn_t mdr_irq(int irq, void *dev_id)
 
 </Exercise>
 
-<Exercise id="65585" :d="3" :w="3">
+<Exercise id="60585" :d="3" :w="3">
 
 把正文的 `imu_read` 扩成采样日志工具 `imu_log.c`：
 
@@ -1066,7 +1066,7 @@ static irqreturn_t mdr_irq(int irq, void *dev_id)
 
 </Exercise>
 
-<Exercise id="65586" :d="4" :w="3">
+<Exercise id="60586" :d="4" :w="3">
 
 一个内存映射的采集外设用三个寄存器：`STATUS`（偏移 0x00，位 0 DATA_RDY）、`DATA`（0x04）、`IRQ_EN`（0x08）。数据准备好时它拉起中断线，直到 `DATA` 被读走才放开。
 
@@ -1080,7 +1080,7 @@ static irqreturn_t mdr_irq(int irq, void *dev_id)
 
 </Exercise>
 
-<Exercise id="65587" :d="4" :w="4">
+<Exercise id="60587" :d="4" :w="4">
 
 下面这段 DMA 接收至少有三处错误，设备负责把采集数据写进内存。
 
@@ -1115,7 +1115,7 @@ static int mdr_capture(struct mdr_dev *d, size_t len)
 
 ### 8.3 综合与挑战
 
-<Exercise id="65588" :d="5" :w="4">
+<Exercise id="60588" :d="5" :w="4">
 
 一个驱动同时用 `d->reg_lock`（互斥量）与 `d->lock`（自旋锁），lockdep 报出：
 
@@ -1191,7 +1191,7 @@ static irqreturn_t mdr_irq(int irq, void *dev_id)
 
 </Exercise>
 
-<Exercise id="65589" :d="6" :w="5" scope="*">
+<Exercise id="60589" :d="6" :w="5" scope="*">
 
 把第 2 节的 `mdr_serial` 扩成一个完整的接收驱动。
 

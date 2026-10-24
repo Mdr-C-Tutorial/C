@@ -476,7 +476,7 @@ int _write(int fd, const void *buf, size_t count) {
 
 ### 7.1 巩固
 
-<Exercise id="61101" :d="1" :w="2">
+<Exercise id="60107" :d="1" :w="2">
 
 写一个主机端程序 `classify_chip.c`，把下面五颗芯片按本节的判据分类，只依据片内 Flash、SRAM 与有无 MMU 三个字段：
 
@@ -511,7 +511,7 @@ i.MX6ULL         flash=   0 KiB sram= 128 KiB mmu=1 -> application processor
 
 </Exercise>
 
-<Exercise id="61102" :d="2" :w="2">
+<Exercise id="60108" :d="2" :w="2">
 
 `hello.c` 在 F103 上直接交给 `arm-none-eabi-gcc` 时，链接器报出 10 个未定义符号。本页的表把它们归成「谁调用它」与「原本要做什么」两列。
 
@@ -551,7 +551,7 @@ int main(void) {
 
 ### 7.2 编程
 
-<Exercise id="61103" :d="3" :w="3">
+<Exercise id="60109" :d="3" :w="3">
 
 仓库里 `code/嵌入式/1_平台与工具链/1_2_MCU_MPU_SoC与执行环境/syscalls.c` 提供了 10 个桩，其中 `_write` 把字符全部丢弃。本节末尾的 `compare` 给出过把 `_write` 改成向 ITM 输出的一行写法。
 
@@ -574,7 +574,7 @@ $ arm-none-eabi-nm -u hello.elf
 
 </Exercise>
 
-<Exercise id="61104" :d="3" :w="3">
+<Exercise id="60110" :d="3" :w="3">
 
 写一个主机端工具 `abi_report.c`，读取 `arm-none-eabi-readelf -A` 的输出（从标准输入读，不调用外部程序），把 ELF 属性整理成一行结论：
 
@@ -601,7 +601,7 @@ arm-none-eabi-gcc -mcpu=cortex-m4  -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -O
 
 </Exercise>
 
-<Exercise id="61105" :d="3" :w="3">
+<Exercise id="60111" :d="3" :w="3">
 
 写一个程序 `freestanding_check.c`，用预处理宏在编译期判断当前编译目标，把结论写进两个全局常量：
 
@@ -629,7 +629,7 @@ const char *core_name = CORE_NAME;
 
 </Exercise>
 
-<Exercise id="61106" :d="4" :w="3">
+<Exercise id="60112" :d="4" :w="3">
 
 本节说 `printf` 的字符最终交给 `_write`，中间隔着 `_write_r`。这个调用链可以用 `arm-none-eabi-objdump -d` 直接看出来。
 
@@ -643,7 +643,7 @@ const char *core_name = CORE_NAME;
 
 </Exercise>
 
-<Exercise id="61107" :d="4" :w="4">
+<Exercise id="60113" :d="4" :w="4">
 
 写一份最小固件的链接约定验证程序，不用任何 C 库，只用独立环境保证的头文件。
 
@@ -665,7 +665,7 @@ arm-none-eabi-gcc -std=c17 -mcpu=cortex-m3 -mthumb -O2 -Wall -Wextra \
 
 </Exercise>
 
-<Exercise id="61108" :d="5" :w="4" scope="*">
+<Exercise id="60114" :d="5" :w="4" scope="*">
 
 给一节嵌入式课程写一个「执行环境判定」小工具 `env_probe.c`，它同时面向主机与交叉编译器，用同一份源文件回答三个问题：这份代码在哪种环境下编译、目标内核属于哪一系列、目标上哪些 C 标准库设施必须由用户补上。
 

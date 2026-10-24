@@ -641,7 +641,7 @@ collect2.exe: error: ld returned 1 exit status
 
 ### 10.1 巩固
 
-<Exercise id="63354" :d="1" :w="2">
+<Exercise id="60353" :d="1" :w="2">
 
 `frame_parse.c` 的最后一段把 `frame[22]` 翻转一位（TTL 字段），重新校验得到 `0xFEFF`。
 
@@ -653,7 +653,7 @@ collect2.exe: error: ld returned 1 exit status
 
 </Exercise>
 
-<Exercise id="63355" :d="2" :w="2">
+<Exercise id="60354" :d="2" :w="2">
 
 `fw_enc28j60_echo/lwipopts.h` 的紧凑配置里 `MEM_SIZE` 为 1600、`PBUF_POOL_SIZE` 为 6、`PBUF_POOL_BUFSIZE` 为 592。
 
@@ -665,7 +665,7 @@ collect2.exe: error: ld returned 1 exit status
 
 </Exercise>
 
-<Exercise id="63356" :d="2" :w="2">
+<Exercise id="60355" :d="2" :w="2">
 
 `code/嵌入式/3_驱动_通信与中间件/3_7_以太网_TCPIP与lwIP/exercises/pbuf_copy_starter.c` 里的 `pbuf_copy_out` 还没有实现。
 
@@ -682,7 +682,7 @@ Partial copy (15 bytes): GET /index.html
 
 </Exercise>
 
-<Exercise id="63357" :d="3" :w="3">
+<Exercise id="60356" :d="3" :w="3">
 
 `frame_parse.c` 的 `inet_checksum` 只用来验证已有首部，现在用它算两段首部：
 
@@ -708,7 +708,7 @@ Partial copy (15 bytes): GET /index.html
 
 ### 10.2 编程
 
-<Exercise id="63358" :d="3" :w="3">
+<Exercise id="60357" :d="3" :w="3">
 
 `exercises/line_echo_starter.c` 实现了一个按行回显的服务器，`line_recv_cb` 里只留了 TODO。一行可能跨多个 pbuf 节点，也可能跨多次回调。
 
@@ -728,7 +728,7 @@ Total echoed lines: 2
 
 </Exercise>
 
-<Exercise id="63359" :d="3" :w="3">
+<Exercise id="60358" :d="3" :w="3">
 
 `exercises/udp_discovery_starter.c` 用 UDP 做设备发现：客户端发 `WHO?`，服务器回设备信息。补全 `discovery_recv_cb`。
 
@@ -746,7 +746,7 @@ Total echoed lines: 2
 
 </Exercise>
 
-<Exercise id="63360" :d="4" :w="4">
+<Exercise id="60359" :d="4" :w="4">
 
 `exercises/modbus_tcp_starter.c` 已经搭好客户端与服务器，只差 `modbus_tcp_handle`。
 
@@ -765,7 +765,7 @@ Total echoed lines: 2
 
 </Exercise>
 
-<Exercise id="63361" :d="4" :w="3">
+<Exercise id="60360" :d="4" :w="3">
 
 `fw_enc28j60_echo/enc28j60.c` 的收包路径先读 6 字节接收状态向量。把这段逻辑做成可在 PC 上测试的函数：
 
@@ -789,7 +789,7 @@ Total echoed lines: 2
 
 ### 10.3 综合与挑战
 
-<Exercise id="63362" :d="5" :w="4">
+<Exercise id="60361" :d="5" :w="4">
 
 正文的 `echo_recv_cb` 在 `tcp_write` 返回 `ERR_MEM` 时直接返回错误，数据就丢了。改成不丢数据的版本：
 
@@ -803,7 +803,7 @@ Total echoed lines: 2
 
 </Exercise>
 
-<Exercise id="63363" :d="6" :w="5" scope="*">
+<Exercise id="60362" :d="6" :w="5" scope="*">
 
 在 `lwip_host_echo` 的基础上写一个最小的 HTTP/1.0 服务器，端口 80。
 

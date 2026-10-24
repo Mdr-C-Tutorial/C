@@ -440,7 +440,7 @@ XDP 程序在收包路径上的位置带来了什么特点？
 
 ### 6.1 巩固
 
-<Exercise id="47101" :d="1" :w="1">
+<Exercise id="46101" :d="1" :w="1">
 
 本页的最小程序 `code/系统编程/拓展B_eBPF/B_1_eBPF概览/ret0.bpf.c` 不依赖 libbpf 的头文件也能编译。做三件事：
 
@@ -450,7 +450,7 @@ XDP 程序在收包路径上的位置带来了什么特点？
 
 </Exercise>
 
-<Exercise id="47102" :d="2" :w="1">
+<Exercise id="46102" :d="2" :w="1">
 
 2.1 节给出了 ARP 过滤器的 cBPF 源码和 `bpf_asm` 的汇编结果：
 
@@ -464,7 +464,7 @@ XDP 程序在收包路径上的位置带来了什么特点？
 
 </Exercise>
 
-<Exercise id="47103" :d="2" :w="3">
+<Exercise id="46103" :d="2" :w="3">
 
 把第 3 节的流水线拆开：指出下面每一项处在哪个环节、由谁执行（用户态工具、内核，还是文件系统里的一份文本）：
 
@@ -485,7 +485,7 @@ XDP 程序在收包路径上的位置带来了什么特点？
 
 ### 6.2 编程
 
-<Exercise id="47104" :d="3" :w="2">
+<Exercise id="46104" :d="3" :w="2">
 
 写一个 `insn_decode.c`，把下面的字节数组按 8 字节一条拆成 eBPF 指令，打印每条指令的 opcode、dst、src、off、imm：
 
@@ -505,7 +505,7 @@ static const unsigned char bytes[] = {
 
 </Exercise>
 
-<Exercise id="47105" :d="3" :w="3">
+<Exercise id="46105" :d="3" :w="3">
 
 写一个只支持 `ldh`、`ldb`、`jeq`、`jgt`、`ret` 的 cBPF 解释器，用它执行 47102 第 3 问写出的 IPv4 TCP 过滤器。
 
@@ -520,7 +520,7 @@ static const unsigned char bytes[] = {
 
 </Exercise>
 
-<Exercise id="47106" :d="3" :w="4">
+<Exercise id="46106" :d="3" :w="4">
 
 用普通 C 模拟 3.2 节讲的「事件驱动、附加在钩子上」的执行模型，写 `hooksim.c`：
 
@@ -536,7 +536,7 @@ static const unsigned char bytes[] = {
 
 </Exercise>
 
-<Exercise id="47107" :d="5" :w="4">
+<Exercise id="46107" :d="5" :w="4">
 
 写一个 `bpfobj.c`，不包含 `<elf.h>`，自己定义 ELF64 文件头与节头的字段布局，读取一个 `.bpf.o` 并输出：
 
@@ -553,7 +553,7 @@ static const unsigned char bytes[] = {
 
 ### 6.3 综合与挑战
 
-<Exercise id="47108" :d="6" :w="5">
+<Exercise id="46108" :d="6" :w="5">
 
 写一个 `check.c`，在「加载」之前对一个 eBPF 指令数组做静态检查，检查四项：
 
@@ -568,13 +568,13 @@ static const unsigned char bytes[] = {
 
 </Exercise>
 
-<Exercise id="47109" :d="7" :w="5" scope="*">
+<Exercise id="46109" :d="7" :w="5" scope="*">
 
-把 47105 的 cBPF 解释器与一个最小 eBPF 解释器放进同一个程序，用同一套过滤逻辑做对照：
+把 46105 的 cBPF 解释器与一个最小 eBPF 解释器放进同一个程序，用同一套过滤逻辑做对照：
 
 1. eBPF 侧只实现 `mov32`/`mov64` 立即数、`add` 立即数、`ldx`、条件跳转、无条件跳转与 `exit`，寄存器用 `int64_t r[11]`；
 2. 为 ARP 过滤器手写等价的 eBPF 指令序列，语义与 cBPF 版本相同；
-3. 对 47105 的四类帧分别运行两个版本，打印两张结果表，断言两者一致；
+3. 对 46105 的四类帧分别运行两个版本，打印两张结果表，断言两者一致；
 4. 统计两个版本在每类帧上各执行多少条指令，说明两者的差别来自哪里；
 5. 在报告里解释：两个版本的指令条数不同，为什么这不影响「两者语义相同」这个结论；再说明 eBPF 把 `jt`、`jf` 两个偏移换成一个偏移之后，同一条比较逻辑为什么常常要多出一条指令。
 

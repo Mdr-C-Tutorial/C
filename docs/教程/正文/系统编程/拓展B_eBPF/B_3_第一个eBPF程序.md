@@ -535,7 +535,7 @@ int handle_tp(void *ctx)
 
 ### 8.1 巩固
 
-<Exercise id="47301" :d="2" :w="3">
+<Exercise id="46301" :d="2" :w="3">
 
 本页 4.2 节的反汇编里，`call 0xe` 和 `call 0x6` 各调用哪个辅助函数？两处 `r1 = 0x0 ll` 的重定位目标分别是什么？`LBB0_2` 这个标号对应的 C 代码是哪一条语句？
 
@@ -543,7 +543,7 @@ int handle_tp(void *ctx)
 
 </Exercise>
 
-<Exercise id="47302" :d="2" :w="2">
+<Exercise id="46302" :d="2" :w="2">
 
 把 `hello.bpf.c` 的格式串改成同时打印进程名和 PID：用 `bpf_get_current_comm` 取进程名，用 `bpf_printk("comm=%s pid=%d\n", comm, pid)` 输出。要求：
 
@@ -555,7 +555,7 @@ int handle_tp(void *ctx)
 
 ### 8.2 编程
 
-<Exercise id="47303" :d="3" :w="3">
+<Exercise id="46303" :d="3" :w="3">
 
 在 `hello.bpf.c` 里再加一个程序，挂在 `syscalls/sys_exit_write` 上，打印这次 `write()` 的返回值。要求：
 
@@ -566,7 +566,7 @@ int handle_tp(void *ctx)
 
 </Exercise>
 
-<Exercise id="47304" :d="4" :w="3">
+<Exercise id="46304" :d="4" :w="3">
 
 把程序改成计数器：内核态每命中一次本进程的 `write()` 就把一个全局对象加 1，不再调用 `bpf_printk`；用户态每秒读一次这个全局对象，打印累计次数。
 
@@ -574,7 +574,7 @@ int handle_tp(void *ctx)
 
 </Exercise>
 
-<Exercise id="47305" :d="4" :w="4">
+<Exercise id="46305" :d="4" :w="4">
 
 改成按进程名过滤。内核态用 `const volatile char target_comm[16]` 保存目标进程名，用 `bpf_get_current_comm` 取当前进程名，再用 `bpf_strncmp` 比较；用户态在 `load` 之前把 `argv[1]` 复制进 `skel->rodata->target_comm`。
 
@@ -588,7 +588,7 @@ int handle_tp(void *ctx)
 
 </Exercise>
 
-<Exercise id="47306" :d="5" :w="4">
+<Exercise id="46306" :d="5" :w="4">
 
 用本页 4.4 节的 Makefile 做实验，回答并验证：
 
@@ -601,13 +601,13 @@ int handle_tp(void *ctx)
 
 </Exercise>
 
-<Exercise id="47307" :d="6" :w="4">
+<Exercise id="46307" :d="6" :w="4">
 
 写一份排查清单：程序启动成功、`trace_pipe` 也打开了，但是一行输出都没有。按可能性从高到低列出至少五条原因，每条给出一个可以当场执行的检查命令或判断方法。然后故意制造其中一种情形（例如把 `my_pid` 写成 1），打开 libbpf 的调试日志运行一次，从日志里找出能指向问题的那几行，抄下来并解释。
 
 </Exercise>
 
-<Exercise id="47308" :d="6" :w="5">
+<Exercise id="46308" :d="6" :w="5">
 
 把 `hello.bpf.c` 分别用 `-O2` 和 `-O0` 编译，用 `llvm-objdump -d` 对比两份反汇编：
 
@@ -620,7 +620,7 @@ int handle_tp(void *ctx)
 
 ### 8.3 综合与挑战
 
-<Exercise id="47309" :d="7" :w="5" scope="*">
+<Exercise id="46309" :d="7" :w="5" scope="*">
 
 不用骨架，改用 libbpf 的对象级 API 重写加载程序：`bpf_object__open_file`、`bpf_object__load`、`bpf_object__find_program_by_name`、`bpf_program__attach`、`bpf_object__close`，全局对象用 `bpf_object__find_map_by_name` 取到 `.bss` map，再用 `bpf_map__initial_value` 拿到那块内存的地址写入进程号。
 

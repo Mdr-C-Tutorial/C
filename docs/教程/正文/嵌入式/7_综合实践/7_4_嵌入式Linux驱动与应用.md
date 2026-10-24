@@ -1143,7 +1143,7 @@ printf("ax = %.3f g\n", (double)raw * scale_nano / 1e9);
 
 ### 8.1 巩固
 
-<Exercise id="67731" :d="2" :w="2">
+<Exercise id="60731" :d="2" :w="2">
 
 `/dev/mdr_imu` 的样本是 24 字节定长结构。下面是从设备读出的 31 个字节，一次读跨越了一个样本的边界：
 
@@ -1166,7 +1166,7 @@ printf("ax = %.3f g\n", (double)raw * scale_nano / 1e9);
 
 </Exercise>
 
-<Exercise id="67732" :d="3" :w="3">
+<Exercise id="60732" :d="3" :w="3">
 
 `code/嵌入式/7_综合实践/7_4_嵌入式Linux驱动与应用/scripts/run_demo.sh` 的一次运行发布了九条遥测：第一条水平，后八条对应 30° 倾斜，`pitch` 从 16.96 升到 29.91。
 
@@ -1184,7 +1184,7 @@ printf("ax = %.3f g\n", (double)raw * scale_nano / 1e9);
 
 ### 8.2 编程
 
-<Exercise id="67733" :d="3" :w="3">
+<Exercise id="60733" :d="3" :w="3">
 
 `sample_reader_feed()` 每取走一个样本就 `memmove` 一次剩余字节。数据量小时无所谓，但它是逐样本的线性搬移。写一个环形缓冲版本，并用差分测试证明两者等价。
 
@@ -1198,7 +1198,7 @@ printf("ax = %.3f g\n", (double)raw * scale_nano / 1e9);
 
 </Exercise>
 
-<Exercise id="67734" :d="4" :w="4">
+<Exercise id="60734" :d="4" :w="4">
 
 `attitude_update()` 的 `dt` 来自样本时间戳。`source_consume()` 里时间戳不递增时会发生什么，用一个小程序就能量出来，结果与 `imud/main.c` 的那行 `double dt = 1.0 / sample_rate;` 给人的印象不一样。
 
@@ -1214,7 +1214,7 @@ printf("ax = %.3f g\n", (double)raw * scale_nano / 1e9);
 
 </Exercise>
 
-<Exercise id="67735" :d="4" :w="4">
+<Exercise id="60735" :d="4" :w="4">
 
 `core_mqtt_config.h` 里的宏在库的 `.c` 文件里被使用，只在应用侧定义不起作用。用两个小实验把这件事做实。
 
@@ -1230,7 +1230,7 @@ printf("ax = %.3f g\n", (double)raw * scale_nano / 1e9);
 
 </Exercise>
 
-<Exercise id="67736" :d="4" :w="4">
+<Exercise id="60736" :d="4" :w="4">
 
 这一页的调试手段分三层：驱动的 dynamic debug、服务的 gdbserver、以及不接调试器时的字节级核对。
 
@@ -1252,7 +1252,7 @@ printf("ax = %.3f g\n", (double)raw * scale_nano / 1e9);
 
 ### 8.3 综合与挑战
 
-<Exercise id="67737" :d="5" :w="5">
+<Exercise id="60737" :d="5" :w="5">
 
 这一页的驱动有几处数值与语义只有对着内核源码才能确认。先算，再查，最后改。
 
@@ -1274,7 +1274,7 @@ printf("ax = %.3f g\n", (double)raw * scale_nano / 1e9);
 
 </Exercise>
 
-<Exercise id="67738" :d="5" :w="4">
+<Exercise id="60738" :d="5" :w="4">
 
 7.1 节说产品里更该用内核自带的 `inv_mpu6050`。这一题把那条路走完：写一个适配层，让 imud 不改一行就读到 IIO 驱动的数据。
 
@@ -1290,7 +1290,7 @@ printf("ax = %.3f g\n", (double)raw * scale_nano / 1e9);
 
 </Exercise>
 
-<Exercise id="67739" :d="6" :w="5">
+<Exercise id="60739" :d="6" :w="5">
 
 发布检查清单里有一条「断网 30 秒后恢复，服务能自己重连，遥测的 seq 连续」。这一题把这条验收做实，并找出一个只在断线时才暴露的缺陷。
 

@@ -1026,25 +1026,25 @@ $ sudo ip netns exec xdp_test ./xdp_count -i veth1
 
 ### 7.1 巩固
 
-<Exercise id="48201" :d="1" :w="2">
+<Exercise id="47201" :d="1" :w="2">
 
 把第 2 节最小的 XDP 程序改成 `return XDP_DROP;`，编译后用 `llvm-objdump -d` 看反汇编。改动前后指令数是否相同？返回值的数值是多少？
 
 </Exercise>
 
-<Exercise id="48202" :d="2" :w="3">
+<Exercise id="47202" :d="2" :w="3">
 
 `parse_test.c` 的 `build_frame` 只覆盖了 `ihl` 为 5 和 6 两种情况。把 `with_options` 改成接收任意 `ihl`（5～15），按 `ihl * 4 - 20` 填选项字段，并打印 `udp_off`。用 5、6、15 各跑一次，对照打印出来的偏移。再解释：`ihl` 最大是 15，`ihl * 4` 最大 60，为什么程序里仍然要检查 `ihl < 5`？
 
 </Exercise>
 
-<Exercise id="48203" :d="2" :w="3">
+<Exercise id="47203" :d="2" :w="3">
 
 tcx 示例只检查了 `ctx->protocol` 和两个头的边界，没有检查 `ihl`。给它加上 `ihl < 5` 的检查，并说明不加这个检查时，`bpf_ntohs(ip->tot_len)` 读到的值仍然可信、而一旦要按 `ihl` 找传输层头就不可信的原因。
 
 </Exercise>
 
-<Exercise id="48204" :d="3" :w="3">
+<Exercise id="47204" :d="3" :w="3">
 
 给 `xdp_count.bpf.c` 的计数 map 换一个键：不用 IP 协议号，改成「协议号 × 2 + 方向」，其中方向由 UDP 目的端口是否命中决定（命中记 1，未命中记 0）。写出新的键计算代码，并说明 `max_entries` 至少要多少。
 
@@ -1052,7 +1052,7 @@ tcx 示例只检查了 `ctx->protocol` 和两个头的边界，没有检查 `ihl
 
 ### 7.2 编程
 
-<Exercise id="48205" :d="4" :w="4">
+<Exercise id="47205" :d="4" :w="4">
 
 写一个 XDP 程序，按源 IP 地址统计 IPv4 报文数，只保留前 16 个不同来源，超出的不计数。要求：
 
@@ -1063,7 +1063,7 @@ tcx 示例只检查了 `ctx->protocol` 和两个头的边界，没有检查 `ihl
 
 </Exercise>
 
-<Exercise id="48206" :d="4" :w="5">
+<Exercise id="47206" :d="4" :w="5">
 
 把 `xdp_count` 改造成一个可配置的端口过滤器：命令行接受多个端口（`-p 20001 -p 20002`），内核态用一个数组 map 存放这些端口，程序里查表判断。要求：
 
@@ -1073,13 +1073,13 @@ tcx 示例只检查了 `ctx->protocol` 和两个头的边界，没有检查 `ihl
 
 </Exercise>
 
-<Exercise id="48207" :d="5" :w="4">
+<Exercise id="47207" :d="5" :w="4">
 
 为 `tcx_log.bpf.c` 写一个 `BPF_PROG_TEST_RUN` 测试程序，输入三帧：IPv4/UDP、IPv4/ICMP、ARP。要求程序对三帧都返回 `TCX_PASS`，其中前两帧应当触发 `bpf_printk`、ARP 帧不触发。用 `bpf_prog_test_run_opts` 取回返回值并断言。完成后回答：这个测试能验证返回值，那 `bpf_printk` 到底有没有执行，该用什么办法确认？
 
 </Exercise>
 
-<Exercise id="48208" :d="5" :w="5">
+<Exercise id="47208" :d="5" :w="5">
 
 写一个工具，同时附加一个 XDP 程序和一个 tcx 入口程序到同一张网卡，统计同一条报文在两个钩子上各被看到几次。要求：
 
@@ -1091,7 +1091,7 @@ tcx 示例只检查了 `ctx->protocol` 和两个头的边界，没有检查 `ihl
 
 ### 7.3 综合与挑战
 
-<Exercise id="48209" :d="7" :w="6" scope="*">
+<Exercise id="47209" :d="7" :w="6" scope="*">
 
 设计一个基于 XDP 的简单限速器：按源 IP 在 1 秒窗口内限制 UDP 报文数，超过阈值的报文丢弃。要求：
 

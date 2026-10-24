@@ -2,7 +2,7 @@
 
 ## 1. 习题
 
-<Exercise id="30013" :d="4" :w="4">
+<Exercise id="31901" :d="4" :w="4">
 
 实现支持前缀计数的字节 Trie。为控制接口范围，单词只包含 ASCII 小写字母 `a` 到 `z`，不包含结尾空字节：
 
@@ -44,7 +44,7 @@ bool lower_trie_count_prefix(
 
 </Exercise>
 
-<Exercise id="30014" :d="5" :w="4">
+<Exercise id="31902" :d="5" :w="4">
 
 在 Trie 上实现一个整数词典：每个单词关联一个 `uint64_t` 值，重复插入应更新旧值：
 

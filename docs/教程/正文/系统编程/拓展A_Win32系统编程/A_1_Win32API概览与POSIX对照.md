@@ -714,7 +714,7 @@ Windows 上写程序，可选的层次不止一个，选错了会在后面付出
 
 ### 8.1 巩固
 
-<Exercise id="45101" :d="1" :w="1">
+<Exercise id="43101" :d="1" :w="1">
 
 本页的 `failcheck.c` 打印了几个函数的失败值和两个属性值。不看代码，先写下你的预测，再运行对照：
 
@@ -726,7 +726,7 @@ Windows 上写程序，可选的层次不止一个，选错了会在后面付出
 
 </Exercise>
 
-<Exercise id="45102" :d="2" :w="1">
+<Exercise id="43102" :d="2" :w="1">
 
 下面的程序在两个编译器下表现不同，说明原因并给出修改。
 
@@ -750,13 +750,13 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="45103" :d="2" :w="1">
+<Exercise id="43103" :d="2" :w="1">
 
 `win32types.c` 打印了九个宽度。补上 `WPARAM`、`LPARAM`、`LRESULT`、`LSTATUS`、`HRESULT`、`DWORD_PTR` 六个类型，预测宽度后再运行验证。其中有几个类型在 x86 和 x64 上宽度不同？分别写出两个平台上的值（x86 的答案可以查 Microsoft Learn 的 Windows Data Types 页）。
 
 </Exercise>
 
-<Exercise id="45104" :d="3" :w="2">
+<Exercise id="43104" :d="3" :w="2">
 
 本页的 `winver3.c` 要用 `-D_WIN32_WINNT=0x0A00 -DNTDDI_VERSION=0x0A000006` 才能编译（源文件在 `code/系统编程/拓展A_Win32系统编程/A_1_Win32API概览与POSIX对照/winver3.c`）。写一个程序，不定义这两个宏，打印出当前工具链的默认值：
 
@@ -768,7 +768,7 @@ int main(void) {
 
 ### 8.2 编程
 
-<Exercise id="45105" :d="3" :w="2">
+<Exercise id="43105" :d="3" :w="2">
 
 写一个 `catw.c`：像 `cat` 一样，把命令行给出的每个文件内容原样写到标准输出。要求：
 
@@ -779,7 +779,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="45106" :d="3" :w="3">
+<Exercise id="43106" :d="3" :w="3">
 
 写一个 `cpw2.c`，在 `cpw.c` 的基础上加三个功能：
 
@@ -796,7 +796,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="45107" :d="4" :w="3">
+<Exercise id="43107" :d="4" :w="3">
 
 下面这段复制程序有几处缺陷。它只读一次、不检查返回值、用 `NULL` 判断 `CreateFileW`：
 
@@ -837,7 +837,7 @@ int wmain(int argc, wchar_t *argv[]) {
 
 </Exercise>
 
-<Exercise id="45108" :d="5" :w="4">
+<Exercise id="43108" :d="5" :w="4">
 
 写一个 `where.c`，在一个进程里回答「这些模块从哪来」：
 
@@ -852,7 +852,7 @@ int wmain(int argc, wchar_t *argv[]) {
 
 ### 8.3 综合与挑战
 
-<Exercise id="45109" :d="6" :w="4" scope="*">
+<Exercise id="43109" :d="6" :w="4" scope="*">
 
 把本页第 6 节的对照表做成一个可查询、可自检的小工具：
 

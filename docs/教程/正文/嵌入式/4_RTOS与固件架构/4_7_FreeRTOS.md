@@ -750,7 +750,7 @@ FreeRTOS 周边还有一批附加库，按需取用：
 
 ### 11.1 巩固
 
-<Exercise id="64458" :d="2" :w="3">
+<Exercise id="60453" :d="2" :w="3">
 
 本节的目标构建把 `code/嵌入式/4_RTOS与固件架构/4_7_FreeRTOS/FreeRTOSConfig.h` 原样编进去，`__ARM_ARCH` 已定义。回答下面的问题，每题写出依据的宏：
 
@@ -766,7 +766,7 @@ FreeRTOS 周边还有一批附加库，按需取用：
 
 </Exercise>
 
-<Exercise id="64459" :d="2" :w="2">
+<Exercise id="60454" :d="2" :w="2">
 
 某产品只用任务、队列与二值信号量：不用软件定时器、事件组、流缓冲区、互斥量、任务通知，也不需要 `vTaskList`。以本节的 `FreeRTOSConfig.h` 为起点改出一份专用配置。
 
@@ -784,7 +784,7 @@ FreeRTOS 周边还有一批附加库，按需取用：
 
 </Exercise>
 
-<Exercise id="64460" :d="3" :w="3">
+<Exercise id="60455" :d="3" :w="3">
 
 在 `code/嵌入式/4_RTOS与固件架构/4_7_FreeRTOS/sw_timer_sim.c` 的基础上实现长按判定：按住超过 800 ms 才算长按，短按与长按分别计数。
 
@@ -800,7 +800,7 @@ FreeRTOS 周边还有一批附加库，按需取用：
 
 ### 11.2 编程
 
-<Exercise id="64461" :d="3" :w="3">
+<Exercise id="60456" :d="3" :w="3">
 
 把心跳定时器的周期做成可切换的：每 2 秒在 100 ms、250 ms、500 ms 之间轮换。
 
@@ -814,7 +814,7 @@ FreeRTOS 周边还有一批附加库，按需取用：
 
 </Exercise>
 
-<Exercise id="64462" :d="3" :w="3">
+<Exercise id="60457" :d="3" :w="3">
 
 用节拍钩子做一个秒表：`vApplicationTickHook` 每 5000 个节拍释放一次二值信号量，一个任务收到信号量后打印累计秒数。
 
@@ -828,7 +828,7 @@ FreeRTOS 周边还有一批附加库，按需取用：
 
 </Exercise>
 
-<Exercise id="64463" :d="4" :w="4">
+<Exercise id="60458" :d="4" :w="4">
 
 `vTaskList` 的输出不能定制。改用 `uxTaskGetSystemState` 自己生成一张表。
 
@@ -842,7 +842,7 @@ FreeRTOS 周边还有一批附加库，按需取用：
 
 </Exercise>
 
-<Exercise id="64464" :d="4" :w="4">
+<Exercise id="60459" :d="4" :w="4">
 
 把内核接进一个只有 `main.c` 的新工程，不使用本节的 `emb_freertos_add_kernel()`，直接按 FreeRTOS-Kernel 自带的 CMake 接口写。
 
@@ -856,7 +856,7 @@ FreeRTOS 周边还有一批附加库，按需取用：
 
 </Exercise>
 
-<Exercise id="64465" :d="4" :w="4">
+<Exercise id="60460" :d="4" :w="4">
 
 阅读 `code/嵌入式/4_RTOS与固件架构/4_7_FreeRTOS/main_stm32.c` 的两个任务（`led` 翻转 PC13、`print` 打印节拍数），做下面几件事。
 
@@ -872,7 +872,7 @@ FreeRTOS 周边还有一批附加库，按需取用：
 
 ### 11.3 综合与挑战
 
-<Exercise id="64466" :d="5" :w="4">
+<Exercise id="60461" :d="5" :w="4">
 
 下面的 `vPortSuppressTicksAndSleep` 是一个学生照本节思路写的版本，编译通过，上板后出现「延时变长、偶发 HardFault」。其余函数与本节 `tickless_stop.c` 相同。
 
@@ -902,7 +902,7 @@ void vPortSuppressTicksAndSleep(TickType_t xExpectedIdleTime) {
 
 </Exercise>
 
-<Exercise id="64467" :d="6" :w="5" scope="*">
+<Exercise id="60462" :d="6" :w="5" scope="*">
 
 给 F103C8 设计一条完整的低功耗路径，做成可交付的工程方案。
 

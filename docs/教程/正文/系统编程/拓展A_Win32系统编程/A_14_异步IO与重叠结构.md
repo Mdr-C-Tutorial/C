@@ -800,7 +800,7 @@ server: done
 
 ### 8.1 巩固
 
-<Exercise id="46401" :d="2" :w="2" multi>
+<Exercise id="44401" :d="2" :w="2" multi>
 
 `ov_basic.c` 里有两处对 `ERROR_IO_PENDING` 的处理，`sync_complete.c` 里则完全没有走到这个分支。
 
@@ -812,13 +812,13 @@ server: done
 
 </Exercise>
 
-<Exercise id="46402" :d="2" :w="1">
+<Exercise id="44402" :d="2" :w="1">
 
 不看正文，写出 `OVERLAPPED` 里哪些成员由程序填写、哪些由系统改写，并说明 `Offset` 与 `SetFilePointerEx` 的关系。然后用 `offset_demo.c` 验证你的说法：把 `SetFilePointerEx` 的偏移改成 10，把 `ov.Offset` 改成 5，预测读回来的是哪四个字节。
 
 </Exercise>
 
-<Exercise id="46403" :d="3" :w="3">
+<Exercise id="44403" :d="3" :w="3">
 
 写一个 `ov_grep.exe <file> <pattern>`：把文件分成 8 块，每块用一次重叠读同时发起，等全部完成后在各块内查找 `pattern`（按字节匹配，不要求处理跨块的情况），最后打印每块的匹配次数与总数。
 
@@ -833,7 +833,7 @@ server: done
 
 ### 8.2 编程
 
-<Exercise id="46404" :d="3" :w="3">
+<Exercise id="44404" :d="3" :w="3">
 
 把 `readex_copy.c` 改成双缓冲：两个读缓冲区、两个写缓冲区，读完成例程把数据交给空闲的写缓冲，写完成例程把缓冲标记为空闲并立刻发起下一次读。要求任意时刻最多有一个读和一个写在途，但读与写可以重叠进行。
 
@@ -841,7 +841,7 @@ server: done
 
 </Exercise>
 
-<Exercise id="46405" :d="3" :w="3">
+<Exercise id="44405" :d="3" :w="3">
 
 把 `ov_pipe_server.c` 扩展到 4 个实例，并加一条规则：客户端发来的消息若以 `quit` 开头，服务器回一条 `bye` 后主动断开这个客户端，重新进入连接状态。
 
@@ -854,7 +854,7 @@ server: done
 
 </Exercise>
 
-<Exercise id="46406" :d="4" :w="3">
+<Exercise id="44406" :d="4" :w="3">
 
 写一个函数 `int ov_wait(HANDLE h, OVERLAPPED *ov, DWORD ms)`：等待 `ov->hEvent` 最多 `ms` 毫秒，超时则用 `CancelIoEx` 取消并等操作结束。返回值约定：1 表示操作完成（再用 `GetOverlappedResult` 判成败），0 表示超时并已取消，-1 表示等待本身出错。
 
@@ -868,7 +868,7 @@ server: done
 
 </Exercise>
 
-<Exercise id="46407" :d="5" :w="4">
+<Exercise id="44407" :d="5" :w="4">
 
 下面这个函数试图在主线程里读一个文件的两块，然后分别处理。它有三处与重叠 I/O 有关的缺陷：
 
@@ -904,7 +904,7 @@ void read_two(void) {
 
 ### 8.3 综合与挑战
 
-<Exercise id="46408" :d="6" :w="5">
+<Exercise id="44408" :d="6" :w="5">
 
 写一个 `ov_copy_many.exe <dest_dir> <file>...`：命令行给出若干源文件，程序用单线程同时复制所有文件，每个文件一个状态机（发起读、读完成后发起写、写完成后推进偏移），所有文件的事件放进同一个 `WaitForMultipleObjects` 数组，结束时打印文件数、总字节数，以及每个文件完成时相对开始的毫秒数。
 
@@ -917,7 +917,7 @@ void read_two(void) {
 
 </Exercise>
 
-<Exercise id="46409" :d="7" :w="5" scope="*">
+<Exercise id="44409" :d="7" :w="5" scope="*">
 
 同一份 256 MiB 文件，用四种方式完整读一遍并计算校验和：同步 `ReadFile` 循环、重叠分块（16 块并发，事件等待）、`ReadFileEx` 完成例程链式读取、以及 A.6 的内存映射逐块遍历。每种方式跑 5 次，报告平均耗时与四次校验和是否一致，并回答：
 

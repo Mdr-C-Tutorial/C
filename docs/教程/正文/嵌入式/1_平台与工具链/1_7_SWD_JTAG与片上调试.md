@@ -609,7 +609,7 @@ reset_config srst_only srst_nogate connect_assert_srst
 
 ### 9.1 巩固
 
-<Exercise id="61130" :d="1" :w="1">
+<Exercise id="60136" :d="1" :w="1">
 
 不接硬件，只用 `.elf` 里的信息回答：
 
@@ -625,7 +625,7 @@ reset_config srst_only srst_nogate connect_assert_srst
 
 </Exercise>
 
-<Exercise id="61131" :d="2" :w="2">
+<Exercise id="60137" :d="2" :w="2">
 
 本页 2.2 节的引脚表与 1.3 节的 SWJ_CFG 表要合起来看才能回答。
 
@@ -639,7 +639,7 @@ reset_config srst_only srst_nogate connect_assert_srst
 
 </Exercise>
 
-<Exercise id="61132" :d="2" :w="2">
+<Exercise id="60138" :d="2" :w="2">
 
 GDB 的命令分两类：一类只读本地 `.elf`，没有目标也能用；一类必须连上调试器。对下面每条命令，先判断它属于哪一类，再对 `debug_demo.elf` 实际执行一次（不接硬件），把结果填进表里：
 
@@ -665,7 +665,7 @@ GDB 的命令分两类：一类只读本地 `.elf`，没有目标也能用；一
 
 </Exercise>
 
-<Exercise id="61133" :d="2" :w="2">
+<Exercise id="60139" :d="2" :w="2">
 
 本页 7.1 节说半主机的代价是「库代码全跟着进来」。用 `code/嵌入式/1_平台与工具链/1_2_MCU_MPU_SoC与执行环境/hello.c` 亲手确认一遍：
 
@@ -689,7 +689,7 @@ arm-none-eabi-size hello_nosys.elf hello_semihost.elf
 
 ### 9.2 编程
 
-<Exercise id="61134" :d="3" :w="3">
+<Exercise id="60140" :d="3" :w="3">
 
 本页 5.1 节说条件断点「仍然只占一个比较器，每次命中后由 GDB 读对象判断条件」。这道题把「每次命中的代价」用能在主机上测的方式表达出来。
 
@@ -704,7 +704,7 @@ arm-none-eabi-size hello_nosys.elf hello_semihost.elf
 
 </Exercise>
 
-<Exercise id="61135" :d="3" :w="3">
+<Exercise id="60141" :d="3" :w="3">
 
 本页 6 节讲了如何用 `x/7wx 0x40011000` 直接读 GPIOC，也讲了用 `print/x GPIOC->ODR` 按名字读。写一个工具把两种方式对上。
 
@@ -729,7 +729,7 @@ LCKR  0x18  reset 0x00000000
 
 </Exercise>
 
-<Exercise id="61136" :d="3" :w="2">
+<Exercise id="60142" :d="3" :w="2">
 
 本页 3 节的 `emb-debug-bus-access` 讲的是读外设寄存器的副作用。写一个主机程序把这类副作用建模出来。
 
@@ -756,7 +756,7 @@ struct reg {
 
 ### 9.3 综合与挑战
 
-<Exercise id="61137" :d="4" :w="3">
+<Exercise id="60143" :d="4" :w="3">
 
 本页 7.2 节的 `trace_init`、`trace_puts` 只用到 ITM 的 0 号端口。把它做成一个能在真实目标上用的最小日志模块，而且调试器不在时不能把程序卡死。
 
@@ -777,7 +777,7 @@ void itm_log_printf(const char *fmt, ...);
 
 </Exercise>
 
-<Exercise id="61138" :d="5" :w="4">
+<Exercise id="60144" :d="5" :w="4">
 
 本页 5.2 节用 `watch g_mode` 抓到了 `record_sample` 的越界写。把这件事做成一次完整的缺陷定位演练，不依赖观察点也能得到同样的结论。
 
@@ -791,7 +791,7 @@ void itm_log_printf(const char *fmt, ...);
 
 </Exercise>
 
-<Exercise id="61139" :d="6" :w="4" scope="*">
+<Exercise id="60145" :d="6" :w="4" scope="*">
 
 本页讲了 `openocd -c "program ... verify reset exit"` 与 GDB 两条路径。把烧录这件事做成一个可以在 CI 里跑的检查工具。
 

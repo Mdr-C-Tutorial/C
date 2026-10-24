@@ -687,7 +687,7 @@ GetConsoleOutputCP() = 65001
 
 ### 8.1 巩固
 
-<Exercise id="45201" :d="1" :w="2" multi>
+<Exercise id="43201" :d="1" :w="2" multi>
 
 (1) _[1.1]_ `CreateFileW` 与 `CreateFileA` 谁的参数是 UTF-16？不写后缀的 `CreateFile` 在不定义 `UNICODE` 时指向哪一个？
 
@@ -697,7 +697,7 @@ GetConsoleOutputCP() = 65001
 
 </Exercise>
 
-<Exercise id="45202" :d="2" :w="2" multi>
+<Exercise id="43202" :d="2" :w="2" multi>
 
 (1) _[2.2]_ 下面这段代码在 936 的机器上会输出什么？逐字节说明原因。
 
@@ -716,7 +716,7 @@ printf("%d\n", (int)strlen(buf));
 
 ### 8.2 编程
 
-<Exercise id="45203" :d="3" :w="3">
+<Exercise id="43203" :d="3" :w="3">
 
 写一个 `u8len` 程序，用法 `u8len 文本...`：对每个命令行参数，按 UTF-8 规则数出它的字节数、码位数、UTF-16 代码单元数，再打印第一个码位的十六进制值。
 
@@ -730,7 +730,7 @@ printf("%d\n", (int)strlen(buf));
 
 </Exercise>
 
-<Exercise id="45204" :d="3" :w="3">
+<Exercise id="43204" :d="3" :w="3">
 
 写一个 `dump_names` 程序：遍历当前目录下所有 `.txt` 文件，对每个文件名同时打印窄字符形式（`FindFirstFileA`）与宽字符形式（`FindFirstFileW`），并标出两者不一致的条目。
 
@@ -745,7 +745,7 @@ printf("%d\n", (int)strlen(buf));
 
 </Exercise>
 
-<Exercise id="45205" :d="3" :w="3">
+<Exercise id="43205" :d="3" :w="3">
 
 给 `textconv.c` 加两个函数并写测试：
 
@@ -771,7 +771,7 @@ char *wide_to_utf8_n(const wchar_t *src, int n, int *out_len);
 
 ### 8.3 综合与挑战
 
-<Exercise id="45206" :d="4" :w="3" multi>
+<Exercise id="43206" :d="4" :w="3" multi>
 
 `args_main.c` 在空目录里丢掉表情符号参数，`wargs.exe` 的 `argc` 却是对的。
 
@@ -783,7 +783,7 @@ char *wide_to_utf8_n(const wchar_t *src, int n, int *out_len);
 
 </Exercise>
 
-<Exercise id="45207" :d="4" :w="4">
+<Exercise id="43207" :d="4" :w="4">
 
 写一个 `show` 小工具，用法 `show <文件>`：读入一个 UTF-8 文本文件，按行打印每行的字符数，并且在文件含非法 UTF-8 时报告第一个出错的行号与字节偏移。
 
@@ -797,7 +797,7 @@ char *wide_to_utf8_n(const wchar_t *src, int n, int *out_len);
 
 </Exercise>
 
-<Exercise id="45208" :d="5" :w="4">
+<Exercise id="43208" :d="5" :w="4">
 
 把 `utf8_manifest/` 的演示扩成一个对比实验：
 
@@ -812,12 +812,12 @@ char *wide_to_utf8_n(const wchar_t *src, int n, int *out_len);
 
 </Exercise>
 
-<Exercise id="45209" :d="6" :w="5" scope="*">
+<Exercise id="43209" :d="6" :w="5" scope="*">
 
 设计并实现一个小型文本处理工具 `u8cat`，用法 `u8cat [--to-utf8|--to-utf16] <输入> <输出>`，要求：
 
 - 输入输出都用 `CreateFileW` 打开，内部用 UTF-8 缓冲区处理，读写用 `ReadFile`/`WriteFile`，自己处理分块读取时被截断在多字节序列中间的情况（缓冲区尾部可能只剩半个字符）。
-- 转换用本页的 `textconv.c`，但分块时不能依赖以空字符结尾——需要你在第 45205 题的基础上扩展。
+- 转换用本页的 `textconv.c`，但分块时不能依赖以空字符结尾——需要你在第 43205 题的基础上扩展。
 - `--to-utf16` 时输出 UTF-16LE 带 BOM 的文件，`--to-utf8` 时输出不带 BOM 的 UTF-8 文件；用 `Format-Hex` 或 `xxd` 验证前几个字节。
 - 输入含非法序列时，报告第一处出错的偏移，并以非零退出码结束。
 

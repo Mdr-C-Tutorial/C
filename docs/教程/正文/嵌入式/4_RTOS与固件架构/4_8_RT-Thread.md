@@ -505,7 +505,7 @@ RT-Thread Studio 是基于 Eclipse 的图形 IDE，把 Env、构建、下载、�
 
 ### 10.1 巩固
 
-<Exercise id="64468" :d="1" :w="2">
+<Exercise id="60463" :d="1" :w="2">
 
 `rtconfig.h` 里 `RT_ALIGN_SIZE` 为 4、`RT_TICK_PER_SECOND` 为 1000。读下面两行创建代码，回答问题：
 
@@ -528,7 +528,7 @@ rt_thread_startup(b);
 
 </Exercise>
 
-<Exercise id="64469" :d="2" :w="3">
+<Exercise id="60464" :d="2" :w="3">
 
 在 `code/嵌入式/4_RTOS与固件架构/4_8_RT-Thread/producer_consumer_rtt.c` 里加一段消息队列的边界实验：
 
@@ -544,7 +544,7 @@ rt_thread_startup(b);
 
 </Exercise>
 
-<Exercise id="64470" :d="2" :w="3">
+<Exercise id="60465" :d="2" :w="3">
 
 扩展 `object_model.c`：在 `main` 里创建一个信号量、一个互斥量、一个消息队列，然后用 `rt_object_for_each` 遍历线程、信号量、互斥量、消息队列四类对象，各打印一条计数与对象名。
 
@@ -560,7 +560,7 @@ rt_thread_startup(b);
 
 ### 10.2 编程
 
-<Exercise id="64471" :d="3" :w="3">
+<Exercise id="60466" :d="3" :w="3">
 
 用事件集实现三路就绪才启动：三个采集线程分别在启动后 20 ms、40 ms、60 ms 置位自己的一位，一个处理线程等待三位全部到齐，记录从启动到齐的节拍差。
 
@@ -576,7 +576,7 @@ rt_thread_startup(b);
 
 </Exercise>
 
-<Exercise id="64472" :d="3" :w="3">
+<Exercise id="60467" :d="3" :w="3">
 
 用邮箱加内存池代替消息队列传大结构体。
 
@@ -592,7 +592,7 @@ rt_thread_startup(b);
 
 </Exercise>
 
-<Exercise id="64473" :d="3" :w="4">
+<Exercise id="60468" :d="3" :w="4">
 
 动手验证自动初始化的执行顺序。
 
@@ -606,7 +606,7 @@ rt_thread_startup(b);
 
 </Exercise>
 
-<Exercise id="64474" :d="4" :w="4">
+<Exercise id="60469" :d="4" :w="4">
 
 给 msh 增加一个带参数的命令 `mdr_stat`：
 
@@ -625,7 +625,7 @@ rt_thread_startup(b);
 
 </Exercise>
 
-<Exercise id="64475" :d="5" :w="4">
+<Exercise id="60470" :d="5" :w="4">
 
 串口按行接收。要求把行组装逻辑写成不依赖 RTOS 的纯函数，能在主机上用 gcc 测试：
 
@@ -644,7 +644,7 @@ int line_feed(struct line_asm *la, const char *data, size_t n, char *out, size_t
 
 </Exercise>
 
-<Exercise id="64476" :d="5" :w="4">
+<Exercise id="60471" :d="5" :w="4">
 
 把一段 FreeRTOS 程序移植到 RT-Thread，并量化两边的差异：
 
@@ -680,7 +680,7 @@ static void worker(void *p) {
 
 ### 10.3 综合与挑战
 
-<Exercise id="64477" :d="6" :w="5" scope="*">
+<Exercise id="60472" :d="6" :w="5" scope="*">
 
 把 4.9 的活动对象框架搬到 RT-Thread 上：每个对象一条邮箱、一个线程、一个处理函数，事件仍用 `{ sig, param }`。
 

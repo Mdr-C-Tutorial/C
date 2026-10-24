@@ -817,7 +817,7 @@ TIME     EVENT COMM             PID     PPID    FILENAME/EXIT CODE
 
 ### 8.1 巩固
 
-<Exercise id="47601" :d="1" :w="1" multi>
+<Exercise id="46601" :d="1" :w="1" multi>
 
 围绕本节示例中出现的三个显式 Map 声明与三个全局对象，整理一张对比表并回答以下问题：
 
@@ -829,7 +829,7 @@ TIME     EVENT COMM             PID     PPID    FILENAME/EXIT CODE
 
 </Exercise>
 
-<Exercise id="47602" :d="2" :w="1">
+<Exercise id="46602" :d="2" :w="1">
 
 下面展示的内核态与用户态代码片段中包含三处典型缺陷。请逐一指出它们分别违反了哪一项安全或生命周期准则（空指针解引用、多核并发竞争、只读参数注入时机），并给出修复后的完整代码实现。
 
@@ -862,7 +862,7 @@ skel->rodata->targ_pid = getpid();
 
 </Exercise>
 
-<Exercise id="47603" :d="2" :w="2">
+<Exercise id="46603" :d="2" :w="2">
 
 采用 `BPF_MAP_TYPE_PERCPU_ARRAY` 重构 `syscount.bpf.c`：不再按进程名划分维度，改为按逻辑 CPU 统计全系统的系统调用累计总数。该数组 Map 仅需配置 1 个槽位（下标固定为 0）；由于每个 CPU 核心上的普通自增操作均直接作用于当前核心专属的数据副本，代码中无需使用原子累加指令，也省去了哈希表首次插入时的 `BPF_NOEXIST` 竞争处理逻辑。用户态控制面则按照前文介绍的 8 字节对齐跨度，一次性取回 `libbpf_num_possible_cpus()` 份副本并求和打印。
 
@@ -870,7 +870,7 @@ skel->rodata->targ_pid = getpid();
 
 </Exercise>
 
-<Exercise id="47604" :d="3" :w="2">
+<Exercise id="46604" :d="3" :w="2">
 
 设计并实现一个支持抽样统计的 `exec` 事件计数器：在内核态声明只读配置对象 `const volatile __u32 sample_every`，借助一个每 CPU 数组维护当前核心已累计触发的 `exec` 次数，仅当累计次数达到 `sample_every` 的整数倍时，才向按进程名索引的哈希 Map 中累加一次计数。用户态程序利用 `getopt` 解析 `-n` 命令行参数以获取采样步长，并严格按照“在 `open` 之后、`load` 之前”的顺序将其注入只读映射区。
 
@@ -880,7 +880,7 @@ skel->rodata->targ_pid = getpid();
 
 ### 8.2 编程
 
-<Exercise id="47605" :d="3" :w="2">
+<Exercise id="46605" :d="3" :w="2">
 
 将 `proclife.bpf.c` 中发送 `EXEC` 事件的实现改造为调用 `bpf_ringbuf_output`：先在函数局部栈空间中声明并填充一个完整的 `struct event` 对象，再将其整体拷入环形缓冲区。通过 `clang -S` 导出汇编代码或对目标文件执行反汇编，验证底层调用的辅助函数编号已发生改变；同时查阅 `bpf_helper_defs.h` 头文件，核对 `bpf_ringbuf_output`、`bpf_ringbuf_reserve` 与 `bpf_ringbuf_submit` 各自对应的十进制编号，确保与汇编中的 `call` 指令一一吻合。
 
@@ -888,7 +888,7 @@ skel->rodata->targ_pid = getpid();
 
 </Exercise>
 
-<Exercise id="47606" :d="4" :w="3">
+<Exercise id="46606" :d="4" :w="3">
 
 基于 `BPF_MAP_TYPE_LRU_HASH` 构建一个“最近活跃进程”追踪工具：以进程 PID 为键，以最近一次触发 `exec` 的单调时间戳（由 `bpf_ktime_get_ns` 获取）为值，并将 `max_entries` 容量上限设为 1024。用户态程序每隔 5 秒对整个哈希表遍历一次，筛选出时间戳最早（即最久未发生新调用）的前 5 个条目，打印其 PID 以及距离当前时刻已静默的秒数。
 
@@ -896,7 +896,7 @@ skel->rodata->targ_pid = getpid();
 
 </Exercise>
 
-<Exercise id="47607" :d="5" :w="4">
+<Exercise id="46607" :d="5" :w="4">
 
 为 `proclife` 工具扩展两项实用工程特性：其一是支持 `--json` 命令行选项，将捕获到的每一条生命周期事件格式化为单行 JSON 文本输出；其二是引入丢包统计机制，每当内核态调用 `bpf_ringbuf_reserve` 返回空指针时，在每 CPU 数组 Map 中累加一次丢失计数，并在用户态程序收到退出信号终止前汇总打印累计丢失的事件总数。
 
@@ -910,7 +910,7 @@ skel->rodata->targ_pid = getpid();
 
 </Exercise>
 
-<Exercise id="47608" :d="6" :w="4">
+<Exercise id="46608" :d="6" :w="4">
 
 在同一实验环境中分别实现以下三种内核计数方案，统一挂载于 `raw_syscalls/sys_enter` 跟踪点统计全局系统调用次数：
 
@@ -924,7 +924,7 @@ skel->rodata->targ_pid = getpid();
 
 ### 8.3 综合与挑战
 
-<Exercise id="47609" :d="7" :w="5" scope="*">
+<Exercise id="46609" :d="7" :w="5" scope="*">
 
 为 `proclife` 监控工具扩展进程存活时长直方图统计功能：每当进程触发 `exit` 退出并计算出存活耗时后，按照以 2 为底的对数区间将其归入对应的统计桶中（例如小于 1 毫秒、1～2 毫秒、2～4 毫秒，依此类推，共设立 20 个区间桶），底层采用 `BPF_MAP_TYPE_PERCPU_ARRAY` 存储各桶频次，并在用户态按桶渲染打印为终端字符横条图。
 

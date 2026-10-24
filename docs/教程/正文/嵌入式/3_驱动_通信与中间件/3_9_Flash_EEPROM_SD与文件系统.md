@@ -685,7 +685,7 @@ ts_ms,temp_c
 
 ### 8.1 巩固
 
-<Exercise id="63373" :d="1" :w="2">
+<Exercise id="60372" :d="1" :w="2">
 
 按第 1、2 节的表估算三种数据的介质选择。
 
@@ -704,7 +704,7 @@ ts_ms,temp_c
 
 </Exercise>
 
-<Exercise id="63374" :d="2" :w="2">
+<Exercise id="60373" :d="2" :w="2">
 
 `flash_stm32_program_halfword` 写之前不检查目标半字是否是 `0xFFFF`，靠读回比较发现失败。
 
@@ -725,7 +725,7 @@ ts_ms,temp_c
 
 </Exercise>
 
-<Exercise id="63375" :d="2" :w="2">
+<Exercise id="60374" :d="2" :w="2">
 
 AT24C02 一页 8 字节，`at24c02_write` 用 `page_rem` 把长写拆成多次页写。
 
@@ -748,7 +748,7 @@ AT24C02 一页 8 字节，`at24c02_write` 用 `page_rem` 把长写拆成多次�
 
 ### 8.2 编程
 
-<Exercise id="63376" :d="3" :w="3">
+<Exercise id="60375" :d="3" :w="3">
 
 `code/嵌入式/3_驱动_通信与中间件/3_9_Flash_EEPROM_SD与文件系统/exercises/ex2_nor_write_starter.c` 里的 `nor_write` 还没有实现，模拟器已经按 W25Q64 的行为写好了 `mock_page_program`：跨页会回绕，编程后 WEL 自动清零。
 
@@ -762,7 +762,7 @@ AT24C02 一页 8 字节，`at24c02_write` 用 `page_rem` 把长写拆成多次�
 
 </Exercise>
 
-<Exercise id="63377" :d="3" :w="3">
+<Exercise id="60376" :d="3" :w="3">
 
 SD 卡初始化最后一步用 `CMD58` 读 OCR，第 6.1 节的代码取 `ocr[0] & 0x40` 判断卡类型。
 
@@ -781,7 +781,7 @@ C0 FF 80 00
 
 </Exercise>
 
-<Exercise id="63378" :d="4" :w="4">
+<Exercise id="60377" :d="4" :w="4">
 
 `exercises/ex1_dual_page_starter.c` 给了两页模拟 Flash、`crc32_calc` 与断点注入，`config_save`、`config_load` 是空的。
 
@@ -797,7 +797,7 @@ C0 FF 80 00
 
 ### 8.3 综合与挑战
 
-<Exercise id="63379" :d="5" :w="4">
+<Exercise id="60378" :d="5" :w="4">
 
 `fatfs_host_demo` 已经能在内存盘上格式化、写 CSV、`f_sync`、读回。给它加掉电注入，验证 `f_sync` 的作用。
 
@@ -816,7 +816,7 @@ C0 FF 80 00
 
 </Exercise>
 
-<Exercise id="63380" :d="5" :w="4">
+<Exercise id="60379" :d="5" :w="4">
 
 第 3.4 节的页内追加每 36 次保存擦一页，长期跑下来所有擦除都落在同一页上。给配置存储加磨损均衡。
 
@@ -830,7 +830,7 @@ C0 FF 80 00
 
 </Exercise>
 
-<Exercise id="63381" :d="6" :w="5" scope="*">
+<Exercise id="60380" :d="6" :w="5" scope="*">
 
 `exercises/ex3_lfs_powerloss_starter.c` 只有一个上下文结构。把它补成 littlefs 的掉电测试（需要按第 7.3 节的说明准备好 `deps/littlefs`）。
 

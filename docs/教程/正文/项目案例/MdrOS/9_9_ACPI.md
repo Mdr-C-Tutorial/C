@@ -47,7 +47,7 @@ APIC 架构由两类协同运转的核心部件构成：
 
 ### 3.1 巩固
 
-<Exercise id="50050" :d="2" :w="2">
+<Exercise id="50950" :d="2" :w="2">
 
 ACPI 的入口是 RSDP（Root System Description Pointer）。固件把它放在 `0xE0000`～`0xFFFFF` 之间的某处，每个 16 字节边界上都要查一遍。下面是从 `0xE0000` 起的 128 字节：
 
@@ -79,7 +79,7 @@ static const uint8_t rsdp_region[128] = {
 
 </Exercise>
 
-<Exercise id="50051" :d="3" :w="3">
+<Exercise id="50951" :d="3" :w="3">
 
 RSDT 是一张「表目录」：它的表头之后是一串 4 字节物理地址，每个指向另一张表。给定 RSDT 在 `0x1F400`，内容如下：
 
@@ -123,7 +123,7 @@ static const uint8_t rsdt_table[56] = {
 
 ### 3.2 编程
 
-<Exercise id="50052" :d="4" :w="4">
+<Exercise id="50952" :d="4" :w="4">
 
 解析 MADT，把它变成「这台机器有几个核、每个核的 APIC ID 是多少、中断怎么路由」。
 
@@ -151,7 +151,7 @@ MADT 在 `0x1F100`，108 字节。表头之后从偏移 44 开始是一串变长
 
 </Exercise>
 
-<Exercise id="50053" :d="5" :w="4">
+<Exercise id="50953" :d="5" :w="4">
 
 把 FADT 与 APIC 接到实际动作上，做两个能跑的实验。
 

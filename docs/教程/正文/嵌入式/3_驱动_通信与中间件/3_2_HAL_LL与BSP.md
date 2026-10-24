@@ -42,7 +42,7 @@ CMSIS 处于底座位置，由架构设计方 Arm 确立规范，抹平了不同
 
 ## 4. 习题
 
-<Exercise id="63311" :d="1" :w="1">
+<Exercise id="60310" :d="1" :w="1">
 
 下面四行代码分别属于哪一层（寄存器直写、LL、HAL、BSP），各写一句判断依据：
 
@@ -57,7 +57,7 @@ board_led_set(true);
 
 </Exercise>
 
-<Exercise id="63312" :d="3" :w="3">
+<Exercise id="60311" :d="3" :w="3">
 
 同一个功能写三份，比较生成代码的大小。新建三个文件，每个只含一个 `board_led_set(int on)`：
 
@@ -87,7 +87,7 @@ arm-none-eabi-gcc -std=c11 -mcpu=cortex-m3 -mthumb -O2 -Wall -Wextra \
 
 </Exercise>
 
-<Exercise id="63313" :d="5" :w="4">
+<Exercise id="60312" :d="5" :w="4">
 
 按 CMSIS-Driver 的思路，把 `uart` 驱动改造成函数表，让应用代码不出现 `USART_TypeDef`：
 
@@ -112,7 +112,7 @@ struct uart_driver {
 
 </Exercise>
 
-<Exercise id="63314" :d="5" :w="4" scope="*">
+<Exercise id="60313" :d="5" :w="4" scope="*">
 
 选一块与 Blue Pill 接线不同的板子（LED 接 PB0 高电平点亮、按键接 PB1 按下为低电平、控制台走 USART2），在 3.1 的工程上验证「换板只改板级」这个说法到底有多成立。
 

@@ -456,7 +456,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
 ### 10.1 巩固
 
-<Exercise id="62238" :d="1" :w="1">
+<Exercise id="60238" :d="1" :w="1">
 
 下面几个中断的中断号（IRQn）都来自 `IRQn_Type`：`TIM2_IRQn = 28`、`USART1_IRQn = 37`、`EXTI9_5_IRQn = 23`、`EXTI15_10_IRQn = 40`。
 
@@ -468,7 +468,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 
 </Exercise>
 
-<Exercise id="62239" :d="2" :w="1">
+<Exercise id="60239" :d="2" :w="1">
 
 按分组 3 配置，四个中断的优先级如下：
 
@@ -487,7 +487,7 @@ NVIC_SetPriority(USART1_IRQn, 7u);
 
 </Exercise>
 
-<Exercise id="62240" :d="2" :w="1">
+<Exercise id="60240" :d="2" :w="1">
 
 下面这段中断服务程序抄自某工程：
 
@@ -508,7 +508,7 @@ void EXTI0_IRQHandler(void) {
 
 ### 10.2 编程
 
-<Exercise id="62241" :d="3" :w="2">
+<Exercise id="60241" :d="3" :w="2">
 
 基于 `code/嵌入式/2_MCU裸机开发/2_5_中断与NVIC/exti_button/main.c`，把按键中断改成双沿触发，并分别计数。
 
@@ -526,7 +526,7 @@ void EXTI0_IRQHandler(void) {
 
 </Exercise>
 
-<Exercise id="62242" :d="3" :w="2">
+<Exercise id="60242" :d="3" :w="2">
 
 基于初始代码 `code/嵌入式/2_MCU裸机开发/2_5_中断与NVIC/exercises/shared_counter_starter.c`，补全两个函数：
 
@@ -543,7 +543,7 @@ void EXTI0_IRQHandler(void) {
 
 </Exercise>
 
-<Exercise id="62243" :d="3" :w="3">
+<Exercise id="60243" :d="3" :w="3">
 
 基于初始代码 `code/嵌入式/2_MCU裸机开发/2_5_中断与NVIC/exercises/exti9_5_dispatch_starter.c`，完成两个输入共用 `EXTI9_5_IRQn` 的处理：
 
@@ -563,7 +563,7 @@ void EXTI0_IRQHandler(void) {
 
 </Exercise>
 
-<Exercise id="62244" :d="4" :w="3">
+<Exercise id="60244" :d="4" :w="3">
 
 第 3 节说每层中断嵌套至少占 32 字节栈，链接脚本给栈留了 1 KB。写一个主机程序 `stack_budget.c` 估算：
 
@@ -579,7 +579,7 @@ void EXTI0_IRQHandler(void) {
 
 ### 10.3 综合与挑战
 
-<Exercise id="62245" :d="5" :w="3">
+<Exercise id="60245" :d="5" :w="3">
 
 把 2.5 的按键中断改成「中断只记事件、主循环做处理」的结构，并用一个可测试的状态机验证：
 
@@ -597,7 +597,7 @@ void EXTI0_IRQHandler(void) {
 
 </Exercise>
 
-<Exercise id="62246" :d="5" :w="4">
+<Exercise id="60246" :d="5" :w="4">
 
 写一个主机程序 `nvic_decode.c`，把 NVIC 的寄存器快照翻译成人类可读的中断状态表。输入是六行十六进制数，依次为 `ISER[0] ISER[1] ISPR[0] ISPR[1] IABR[0] IABR[1]`，每行 8 位十六进制。
 
@@ -624,7 +624,7 @@ void EXTI0_IRQHandler(void) {
 
 </Exercise>
 
-<Exercise id="62247" :d="6" :w="4" scope="**">
+<Exercise id="60247" :d="6" :w="4" scope="**">
 
 设计一个「中断延迟测量」的实验，不用示波器也能做：
 

@@ -765,7 +765,7 @@ $ echo $?
 
 ### 9.1 巩固
 
-<Exercise id="63301" :d="2" :w="3">
+<Exercise id="60301" :d="2" :w="3">
 
 在一个只放了 CMSIS 两个包的工程里，`probe.c` 只有一行 `#include "stm32f1xx.h"`。用编译器把包含关系打印出来：
 
@@ -785,7 +785,7 @@ arm-none-eabi-gcc -std=c11 -mcpu=cortex-m3 -mthumb -DSTM32F103xB \
 
 </Exercise>
 
-<Exercise id="63302" :d="3" :w="3">
+<Exercise id="60302" :d="3" :w="3">
 
 `code/嵌入式/3_驱动_通信与中间件/3_1_驱动接口_CMSIS与设备头文件/offset_check.c` 只核对了 `GPIO_TypeDef`。把检查扩展到 USART、RCC 与 DMA 通道，并加上结构体大小：
 
@@ -805,7 +805,7 @@ arm-none-eabi-gcc -std=c11 -mcpu=cortex-m3 -mthumb -DSTM32F103xB \
 
 </Exercise>
 
-<Exercise id="63303" :d="3" :w="3">
+<Exercise id="60303" :d="3" :w="3">
 
 `drivers/uart.c` 的 `uart_init` 只通过 `USART_TypeDef *` 访问寄存器，因此同一份代码可以在 PC 上用一个 RAM 中的结构体测试。写 `test_uart_init.c`：
 
@@ -839,7 +839,7 @@ too fast   -> -1
 
 </Exercise>
 
-<Exercise id="63304" :d="3" :w="2">
+<Exercise id="60304" :d="3" :w="2">
 
 `IRQn_Type` 把内核异常与外设中断排在同一张表里。
 
@@ -853,7 +853,7 @@ too fast   -> -1
 
 </Exercise>
 
-<Exercise id="63305" :d="4" :w="3">
+<Exercise id="60305" :d="4" :w="3">
 
 第 8.2 节说把型号宏写成 `xE` 时编译照样通过。亲手复现这个陷阱：
 
@@ -879,7 +879,7 @@ void enable_dma2(void) {
 
 ### 9.2 编程
 
-<Exercise id="63306" :d="5" :w="4">
+<Exercise id="60306" :d="5" :w="4">
 
 把第 1 节那段集中在一个 `main.c` 里的程序拆成应用、板级、驱动三层，目录结构与第 6、7 节一致：
 
@@ -922,7 +922,7 @@ blink/
 
 </Exercise>
 
-<Exercise id="63307" :d="5" :w="3">
+<Exercise id="60307" :d="5" :w="3">
 
 `SystemCoreClockUpdate` 从 `RCC->CFGR` 反推时钟频率。把它读 SWS、PLLSRC、PLLXTPRE、PLLMULL 与 HPRE 的逻辑写成两个纯函数：
 
@@ -951,7 +951,7 @@ uint32_t hclk_from_cfgr(uint32_t cfgr, uint32_t sysclk);
 
 </Exercise>
 
-<Exercise id="63308" :d="5" :w="3">
+<Exercise id="60308" :d="5" :w="3">
 
 `drivers/gpio.c` 直接操作 `GPIO_TypeDef` 的成员，所以可以用普通的 `GPIO_TypeDef` 对象代替硬件，在 PC 上测试引脚驱动。写 `test_gpio.c`，用下面的命令编译（`core_cm3.h` 在 64 位宿主机上会报两条指针转换警告，加 `-Wno-int-to-pointer-cast` 即可）：
 
@@ -975,7 +975,7 @@ gcc -std=c17 -Wall -Wextra -Wno-int-to-pointer-cast -DSTM32F103xB \
 
 ### 9.3 综合与挑战
 
-<Exercise id="63309" :d="6" :w="3">
+<Exercise id="60309" :d="6" :w="3">
 
 下面这段 `board_init` 能编译、能烧写，串口上也确实有波形，但 `printf` 出来全是乱码：
 

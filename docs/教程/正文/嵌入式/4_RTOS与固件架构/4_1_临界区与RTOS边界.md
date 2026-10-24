@@ -580,7 +580,7 @@ for (;;) { sample(); xTaskDelayUntil(&w, 10); }
 
 ### 8.1 巩固
 
-<Exercise id="64401" :d="1" :w="2" multi>
+<Exercise id="60401" :d="1" :w="2" multi>
 
 下面五段共享数据，写者与读者各不相同。
 
@@ -600,7 +600,7 @@ for (;;) { sample(); xTaskDelayUntil(&w, 10); }
 
 </Exercise>
 
-<Exercise id="64402" :d="2" :w="2">
+<Exercise id="60402" :d="2" :w="2">
 
 `cp64.c` 在 PRIMASK 临界区里复制 16 个 32 位字。
 
@@ -614,7 +614,7 @@ for (;;) { sample(); xTaskDelayUntil(&w, 10); }
 
 </Exercise>
 
-<Exercise id="64403" :d="3" :w="3">
+<Exercise id="60403" :d="3" :w="3">
 
 下面的三层嵌套全部用 `__set_BASEPRI()` 进入，阈值依次是 5、9、3（已按高 4 位左移对齐）：
 
@@ -648,7 +648,7 @@ __set_BASEPRI(a);
 
 ### 8.2 编程
 
-<Exercise id="64404" :d="3" :w="3">
+<Exercise id="60404" :d="3" :w="3">
 
 `exercises/clock64_starter.c` 里，64 位时钟由中断维护的高 32 位与硬件计数器的低 32 位拼成。起始代码的 `clock64_read()` 直接拼一次就返回。
 
@@ -670,7 +670,7 @@ extern void (*g_between_reads_hook)(void);
 
 </Exercise>
 
-<Exercise id="64405" :d="4" :w="4">
+<Exercise id="60405" :d="4" :w="4">
 
 `exercises/mpsc_ringbuf_starter.c` 是两个不同优先级中断写、主循环读的环形缓冲区骨架，`mpsc_rb_put()` 与 `mpsc_rb_get()` 待补全。
 
@@ -684,7 +684,7 @@ extern void (*g_between_reads_hook)(void);
 
 </Exercise>
 
-<Exercise id="64406" :d="4" :w="4">
+<Exercise id="60406" :d="4" :w="4">
 
 `superloop_vs_tasks/superloop.c` 用假时钟跑一个非阻塞超级循环。
 
@@ -700,7 +700,7 @@ extern void (*g_between_reads_hook)(void);
 
 ### 8.3 综合与挑战
 
-<Exercise id="64407" :d="5" :w="4">
+<Exercise id="60407" :d="5" :w="4">
 
 下面是一段多中断固件的关键部分，日志缓冲区由两个中断写入、主循环读出。代码里的同步缺陷至少有五处。
 
@@ -757,7 +757,7 @@ void app_task(void *param) {
 
 </Exercise>
 
-<Exercise id="64408" :d="5" :w="4">
+<Exercise id="60408" :d="5" :w="4">
 
 第 5 节给了任务之间保护共享数据的三种手段。用模拟器把它们各自的效果量出来。
 

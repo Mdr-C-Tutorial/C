@@ -809,7 +809,7 @@ $ llvm-objdump -d ci_v3.o
 
 ### 8.1 巩固
 
-<Exercise id="47401" :d="2" :w="1">
+<Exercise id="46401" :d="2" :w="1">
 
 下面这段程序编译后，`count`、`limit`、`table` 三个对象分别落在哪个节？用 `llvm-readelf -S` 验证你的答案。
 
@@ -826,7 +826,7 @@ int f(void *ctx) { return count + limit + table[0]; }
 
 </Exercise>
 
-<Exercise id="47402" :d="2" :w="2">
+<Exercise id="46402" :d="2" :w="2">
 
 下面是从 hello.bpf.o 里截出来的四条指令：
 
@@ -846,7 +846,7 @@ int f(void *ctx) { return count + limit + table[0]; }
 
 ### 8.2 编程
 
-<Exercise id="47403" :d="3" :w="3">
+<Exercise id="46403" :d="3" :w="3">
 
 `code/系统编程/拓展B_eBPF/B_4_程序的解剖_受限的C/stack_too_big.bpf.c` 里有两个错误：一个是栈超限，另一个在 license 那一行。分别改掉它们，让文件通过编译，并说明两个错误分别在编译的哪个阶段被发现。
 
@@ -854,7 +854,7 @@ int f(void *ctx) { return count + limit + table[0]; }
 
 </Exercise>
 
-<Exercise id="47404" :d="3" :w="3">
+<Exercise id="46404" :d="3" :w="3">
 
 写一个 `twoprog.bpf.c`，满足以下要求，编译后用 `llvm-objdump -h` 和 `llvm-readelf -S` 检查：
 
@@ -867,7 +867,7 @@ int f(void *ctx) { return count + limit + table[0]; }
 
 </Exercise>
 
-<Exercise id="47405" :d="4" :w="3">
+<Exercise id="46405" :d="4" :w="3">
 
 取本页的 `calc.bpf.c`，分别用 `-mcpu=v1` 和 `-mcpu=v3` 编译，把两份反汇编都保存下来做 diff：
 
@@ -877,7 +877,7 @@ int f(void *ctx) { return count + limit + table[0]; }
 
 </Exercise>
 
-<Exercise id="47406" :d="5" :w="4">
+<Exercise id="46406" :d="5" :w="4">
 
 本页的 `mini_vm.c` 只能跑 `-O2` 生成的 calc 字节码。把它扩展到能跑 `clang -O0 -c calc.bpf.c` 生成的那一份，需要补上四类指令：
 
@@ -894,7 +894,7 @@ int f(void *ctx) { return count + limit + table[0]; }
 
 ### 8.3 综合与挑战
 
-<Exercise id="47407" :d="6" :w="5" scope="*">
+<Exercise id="46407" :d="6" :w="5" scope="*">
 
 给 `mini_vm.c` 加一个最小的静态检查器，在真正执行之前拒绝明显非法的字节码。至少检查这四项，每项都要给出可读的报错信息：
 

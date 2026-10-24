@@ -975,7 +975,7 @@ IETF BPF 工作组的章程界限十分严明：聚焦于跨平台共性技术�
 
 ### 7.1 巩固
 
-<Exercise id="48601" :d="1" :w="1">
+<Exercise id="47601" :d="1" :w="1">
 
 编译第 4 节的 `bpf.c` 和 `bpf2.c`，用 `llvm-objdump --triple=bpf -h` 看节表，回答：
 
@@ -985,7 +985,7 @@ IETF BPF 工作组的章程界限十分严明：聚焦于跨平台共性技术�
 
 </Exercise>
 
-<Exercise id="48602" :d="2" :w="2">
+<Exercise id="47602" :d="2" :w="2">
 
 用 `helper_id.c` 做一组对照实验：
 
@@ -995,7 +995,7 @@ IETF BPF 工作组的章程界限十分严明：聚焦于跨平台共性技术�
 
 </Exercise>
 
-<Exercise id="48603" :d="2" :w="2">
+<Exercise id="47603" :d="2" :w="2">
 
 `ctx_layout.c` 只打印了三个字段。把它扩展成打印 `family`、`protocol`、`compartment_id` 三个字段在两边结构体里的偏移，然后回答：
 
@@ -1007,7 +1007,7 @@ IETF BPF 工作组的章程界限十分严明：聚焦于跨平台共性技术�
 
 ### 7.2 编程
 
-<Exercise id="48604" :d="3" :w="3">
+<Exercise id="47604" :d="3" :w="3">
 
 把 `connect_deny.bpf.c` 扩展成 IPv4 和 IPv6 两个版本，同一份源文件，两个平台都能编：
 
@@ -1020,7 +1020,7 @@ IETF BPF 工作组的章程界限十分严明：聚焦于跨平台共性技术�
 
 </Exercise>
 
-<Exercise id="48605" :d="4" :w="4">
+<Exercise id="47605" :d="4" :w="4">
 
 把策略从「写死的常数」改成「从 map 里查」，两个平台共用同一份逻辑：
 
@@ -1032,7 +1032,7 @@ IETF BPF 工作组的章程界限十分严明：聚焦于跨平台共性技术�
 
 </Exercise>
 
-<Exercise id="48606" :d="4" :w="3">
+<Exercise id="47606" :d="4" :w="3">
 
 写一份 `Makefile`，一条命令产出两个平台的目标文件：
 
@@ -1045,7 +1045,7 @@ Windows 的头文件可以从 eBPF for Windows 仓库的 `include` 目录取，�
 
 </Exercise>
 
-<Exercise id="48607" :d="4" :w="3">
+<Exercise id="47607" :d="4" :w="3">
 
 第 4 节用 `netsh ebpf show sections` 看到了程序节列表。用自己编出的目标文件走一遍同样的检查流程，把能做的部分做掉：
 
@@ -1055,7 +1055,7 @@ Windows 的头文件可以从 eBPF for Windows 仓库的 `include` 目录取，�
 
 </Exercise>
 
-<Exercise id="48608" :d="6" :w="5">
+<Exercise id="47608" :d="6" :w="5">
 
 给两个平台的 `bpf_sock_addr` 写一个编译期校验头文件 `ctx_check.h`：
 
@@ -1069,7 +1069,7 @@ Windows 的头文件可以从 eBPF for Windows 仓库的 `include` 目录取，�
 
 ### 7.3 综合与挑战
 
-<Exercise id="48609" :d="7" :w="6" scope="*">
+<Exercise id="47609" :d="7" :w="6" scope="*">
 
 设计一个跨平台的连接策略组件，要求同一份策略源码同时服务 Linux 与 Windows，并给出可执行的项目骨架：
 

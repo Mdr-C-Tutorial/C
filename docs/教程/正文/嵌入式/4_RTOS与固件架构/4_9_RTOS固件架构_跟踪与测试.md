@@ -568,7 +568,7 @@ TEST_ASSERT_EQUAL(LED_OFF, led_ao_state().state);
 
 ### 8.1 巩固
 
-<Exercise id="64478" :d="1" :w="3">
+<Exercise id="60473" :d="1" :w="3">
 
 一个数据记录仪要同时做四件事：每 5 ms 读一次 SPI Flash 的写状态寄存器（一次约 20 μs）；每 100 ms 从 I²C 传感器读一组数据（转换需要 30 ms，期间 CPU 可以等待）；收到一帧 LoRa 数据后解析并回一个 ACK（帧长不定，等完整帧可能几百毫秒）；每 1 s 把一行日志写进文件系统（写一次可能几十毫秒）。
 
@@ -582,7 +582,7 @@ TEST_ASSERT_EQUAL(LED_OFF, led_ao_state().state);
 
 </Exercise>
 
-<Exercise id="64479" :d="2" :w="2">
+<Exercise id="60474" :d="2" :w="2">
 
 本节 `ao_demo` 的输出里，`[button] press #1 -> post to led` 与 `[led] state=ON lamp=on` 分属两个活动对象。回答：
 
@@ -596,7 +596,7 @@ TEST_ASSERT_EQUAL(LED_OFF, led_ao_state().state);
 
 </Exercise>
 
-<Exercise id="64480" :d="2" :w="2">
+<Exercise id="60475" :d="2" :w="2">
 
 `supervisor.c` 里 `CHECK_PERIOD_MS` 为 100，`TIMEOUT_MS` 为 300，三个任务分别在 50 ms、80 ms、60 ms 周期打卡。
 
@@ -612,7 +612,7 @@ TEST_ASSERT_EQUAL(LED_OFF, led_ao_state().state);
 
 ### 8.2 编程
 
-<Exercise id="64481" :d="3" :w="3">
+<Exercise id="60476" :d="3" :w="3">
 
 给 `led_fsm.c` 增加第四个状态 `LED_DOUBLE_BLINK`：进入后每 5 个 TICK 翻转一次，翻满 4 次（两个完整周期）后回到 `LED_OFF`。按键仍按 `OFF -> ON -> BLINK -> DOUBLE_BLINK -> OFF` 循环。
 
@@ -626,7 +626,7 @@ TEST_ASSERT_EQUAL(LED_OFF, led_ao_state().state);
 
 </Exercise>
 
-<Exercise id="64482" :d="3" :w="3">
+<Exercise id="60477" :d="3" :w="3">
 
 活动对象的事件里只有 `intptr_t param`，放不下一条四通道采样。给 `ao` 增加一个固定块数的样本池，用「所有权转移」传递数据：
 
@@ -642,7 +642,7 @@ TEST_ASSERT_EQUAL(LED_OFF, led_ao_state().state);
 
 </Exercise>
 
-<Exercise id="64483" :d="4" :w="4">
+<Exercise id="60478" :d="4" :w="4">
 
 把 `supervisor.c` 改造成可注册的通用监视器。
 
@@ -658,7 +658,7 @@ TEST_ASSERT_EQUAL(LED_OFF, led_ao_state().state);
 
 </Exercise>
 
-<Exercise id="64484" :d="4" :w="4">
+<Exercise id="60479" :d="4" :w="4">
 
 本节 `trace_buf.c` 的记录是 `{ uint64_t time; const char *name; }`，一条 12 或 16 字节，48 条就占掉几百字节。改写成真实跟踪库的紧凑格式：
 
@@ -674,7 +674,7 @@ TEST_ASSERT_EQUAL(LED_OFF, led_ao_state().state);
 
 </Exercise>
 
-<Exercise id="64485" :d="4" :w="3">
+<Exercise id="60480" :d="4" :w="3">
 
 正文的运行时统计表如下：
 
@@ -701,7 +701,7 @@ Tmr Svc        	2427		<1%
 
 ### 8.3 综合与挑战
 
-<Exercise id="64486" :d="5" :w="5">
+<Exercise id="60481" :d="5" :w="5">
 
 把 `ao_demo` 从「演示程序」改造成能进 CI 的集成测试，并补一个主机单元测试与一个链接替换测试。
 

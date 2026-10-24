@@ -724,7 +724,7 @@ epoll 是就绪通知：`epoll_wait` 告诉你某个描述符现在可读，接�
 
 ### 7.1 巩固
 
-<Exercise id="46501" :d="2" :w="2">
+<Exercise id="44501" :d="2" :w="2">
 
 `concurrency_probe.c` 在并发值为 1 时，忙等版本 6 个任务用了 656 ms，`Sleep` 版本只用了 219 ms。把两个 `run` 调用的并发值分别改成 2 和 0，先写下你预计的总时间，再运行验证。
 
@@ -732,7 +732,7 @@ epoll 是就绪通知：`epoll_wait` 告诉你某个描述符现在可读，接�
 
 </Exercise>
 
-<Exercise id="46502" :d="3" :w="3">
+<Exercise id="44502" :d="3" :w="3">
 
 `iocp_echo.c` 的 `struct conn` 把 `OVERLAPPED ov` 放在第一个成员。把 `ov` 移到结构体末尾，改用 `CONTAINING_RECORD` 从完成包里的指针求回 `conn`，重新编译，用三个客户端验证输出与改动前一致。
 
@@ -740,7 +740,7 @@ epoll 是就绪通知：`epoll_wait` 告诉你某个描述符现在可读，接�
 
 </Exercise>
 
-<Exercise id="46503" :d="3" :w="3">
+<Exercise id="44503" :d="3" :w="3">
 
 用完成端口做一个任务队列：主线程投递 20 个「计算」任务，每个任务把编号的平方累加进一个全局结果；3 个工作线程取任务，处理完用 `InterlockedIncrement` 更新完成计数；主线程等计数到 20 后打印总和并投递退出包。
 
@@ -753,7 +753,7 @@ epoll 是就绪通知：`epoll_wait` 告诉你某个描述符现在可读，接�
 
 ### 7.2 编程
 
-<Exercise id="46504" :d="4" :w="3">
+<Exercise id="44504" :d="4" :w="3">
 
 把 `iocp_echo.c` 改成大写回声服务器：收到一行就转成大写回送，收到 `quit` 时关闭这个连接。
 
@@ -765,7 +765,7 @@ epoll 是就绪通知：`epoll_wait` 告诉你某个描述符现在可读，接�
 
 </Exercise>
 
-<Exercise id="46505" :d="4" :w="4">
+<Exercise id="44505" :d="4" :w="4">
 
 用线程池 I/O 对象写一个 `tp_cat.c`：异步读命令行给出的文件，把内容写到标准输出，读到文件末尾为止。
 
@@ -777,7 +777,7 @@ epoll 是就绪通知：`epoll_wait` 告诉你某个描述符现在可读，接�
 
 </Exercise>
 
-<Exercise id="46506" :d="4" :w="3">
+<Exercise id="44506" :d="4" :w="3">
 
 用线程池等待对象接上 [A.10](/教程/正文/系统编程/拓展A_Win32系统编程/A_10_同步原语_等待函数与内核对象) 的命名事件 `Local\MdrTutorial.Ready`：写两个程序，一个 `CreateEventW` 创建这个命名事件并在 2 秒后 `SetEvent`，另一个用 `CreateThreadpoolWait` 等它，回调里打印经过的毫秒数。
 
@@ -788,7 +788,7 @@ epoll 是就绪通知：`epoll_wait` 告诉你某个描述符现在可读，接�
 
 </Exercise>
 
-<Exercise id="46507" :d="5" :w="4">
+<Exercise id="44507" :d="5" :w="4">
 
 给 `iocp_echo.c` 加空闲超时：每个连接记录最后一次收到数据的时刻，另一个线程每 2 秒扫描一次连接表，超过 10 秒没有数据的连接调用 `CancelIoEx` 并标记关闭。
 
@@ -802,7 +802,7 @@ epoll 是就绪通知：`epoll_wait` 告诉你某个描述符现在可读，接�
 
 ### 7.3 综合与挑战
 
-<Exercise id="46508" :d="6" :w="5">
+<Exercise id="44508" :d="6" :w="5">
 
 用完成端口写一个并行文件复制器 `iocp_copy.c`：命令行给出若干「源文件 目标文件」对，全部复制完成后退出。
 
@@ -815,7 +815,7 @@ epoll 是就绪通知：`epoll_wait` 告诉你某个描述符现在可读，接�
 
 </Exercise>
 
-<Exercise id="46509" :d="7" :w="4" scope="*">
+<Exercise id="44509" :d="7" :w="4" scope="*">
 
 阅读[第 12 章](/教程/正文/系统编程/12_事件循环)的 `lecho_evl.c` 与本页的 `iocp_echo.c`，写一份对照说明，回答三个问题：
 

@@ -495,7 +495,7 @@ case OP_If: {
 
 ### 9.1 巩固
 
-<Exercise id="50656" :d="2" :w="2">
+<Exercise id="50607" :d="2" :w="2">
 
 不运行程序，按 §7 的方法逐条走一遍下面这段字节码（`users` 表的三行是 (1, Alice, 25)、(2, Bob, 35)、(3, Charlie, 40)，`name` 是第 1 列，`age` 是第 2 列）：
 
@@ -526,7 +526,7 @@ addr  opcode         p1    p2    p3    p4
 
 </Exercise>
 
-<Exercise id="50657" :d="3" :w="2">
+<Exercise id="50608" :d="3" :w="2">
 
 六个比较运算符编译出来的指令与源码里的运算符并不相同。对同一张 `users` 表分别执行 `EXPLAIN`，填一张表：
 
@@ -547,7 +547,7 @@ addr  opcode         p1    p2    p3    p4
 
 </Exercise>
 
-<Exercise id="50658" :d="3" :w="3">
+<Exercise id="50609" :d="3" :w="3">
 
 `sqlite3_stmt_status(stmt, SQLITE_STMTSTATUS_VM_STEP, reset)` 返回这条语句执行过的 VDBE 指令数。用它观察 §7 那条查询：
 
@@ -562,7 +562,7 @@ addr  opcode         p1    p2    p3    p4
 
 ### 9.2 编程
 
-<Exercise id="50659" :d="4" :w="3">
+<Exercise id="50610" :d="4" :w="3">
 
 实现一个 6 条指令的迷你虚拟机，体会 §5 的主循环。指令与语义自己定，但必须包含加载常量、加法、比较跳转、无条件跳转、输出一行、停机六种。把它跑通下面这段程序，输出应当是 `55`：
 
@@ -591,7 +591,7 @@ addr  opcode         p1    p2    p3    p4
 
 </Exercise>
 
-<Exercise id="50660" :d="4" :w="3">
+<Exercise id="50611" :d="4" :w="3">
 
 `Mem` 的 `flags` 与 `zMalloc`/`xDel` 决定了寄存器里的值由谁释放。把 `sqlite3.c` 直接 `#include` 进自己的程序（不要链接它），然后：
 
@@ -604,7 +604,7 @@ addr  opcode         p1    p2    p3    p4
 
 </Exercise>
 
-<Exercise id="50661" :d="5" :w="4">
+<Exercise id="50612" :d="5" :w="4">
 
 写一个字节码静态分析器 `vdbedump.c`：输入一条 SQL，用 `EXPLAIN` 取出指令表，输出按基本块划分的清单。
 
@@ -619,9 +619,9 @@ addr  opcode         p1    p2    p3    p4
 
 ### 9.3 综合与挑战
 
-<Exercise id="50662" :d="5" :w="4">
+<Exercise id="50613" :d="5" :w="4">
 
-在 50659 的迷你虚拟机上做一次常量折叠，观察代码生成、跳转与执行三者的关系。
+在 50610 的迷你虚拟机上做一次常量折叠，观察代码生成、跳转与执行三者的关系。
 
 1. 用 `EXPLAIN SELECT 1+2*3` 拿到真实的字节码，把它抄成你自己的指令数组：`Init` 跳到常量区，常量区依次 `Integer 1`、`Integer 2`、`Integer 3`、`Multiply`、`Add`，最后 `Goto` 回主程序。
 2. 写一个 `fold()`：扫描连续的「两个 `Integer` 加一条二元运算」，把结果算出来替换成一条 `Integer`，并让后续指令不再依赖被删除的寄存器。
@@ -633,7 +633,7 @@ addr  opcode         p1    p2    p3    p4
 
 </Exercise>
 
-<Exercise id="50663" :d="6" :w="5" scope="*">
+<Exercise id="50614" :d="6" :w="5" scope="*">
 
 用 `VM_STEP` 与 `EXPLAIN QUERY PLAN` 量化一次查询的执行代价，回答「索引一定更省吗」。
 

@@ -855,7 +855,7 @@ libbpf 在底层仅检索节名称来识别许可证，符号名称的选取完�
 
 ### 9.1 巩固
 
-<Exercise id="48401" :d="1" :w="1">
+<Exercise id="47401" :d="1" :w="1">
 
 在某台机器上运行 `sudo bpftrace -e 'tracepoint:raw_syscalls:sys_enter { @[comm] = count(); }'`，十秒后按 Ctrl-C，得到下面几行：
 
@@ -873,7 +873,7 @@ libbpf 在底层仅检索节名称来识别许可证，符号名称的选取完�
 
 </Exercise>
 
-<Exercise id="48402" :d="2" :w="2">
+<Exercise id="47402" :d="2" :w="2">
 
 写一条命令或一个短脚本：只统计 PID 为 1234 的进程发出的 `openat`，并且只统计路径里含 `/etc` 的调用；每 5 秒打印一次结果并清空，按 Ctrl-C 退出。
 
@@ -887,7 +887,7 @@ libbpf 在底层仅检索节名称来识别许可证，符号名称的选取完�
 
 ### 9.2 编程
 
-<Exercise id="48403" :d="3" :w="3">
+<Exercise id="47403" :d="3" :w="3">
 
 写一个 `vfslat.bt`，测量 `vfs_read` 的耗时，按进程名分别给出直方图，单位纳秒。要求：
 
@@ -900,7 +900,7 @@ libbpf 在底层仅检索节名称来识别许可证，符号名称的选取完�
 
 </Exercise>
 
-<Exercise id="48404" :d="4" :w="3">
+<Exercise id="47404" :d="4" :w="3">
 
 用 `stats()` 写一个脚本，每 2 秒打印一次各进程 `read` 的字节数统计（次数、平均值、总和），打印后清空，退出时再打印一次总计。
 
@@ -920,9 +920,9 @@ tracepoint:syscalls:sys_exit_read { @bytes[comm] = stats(args.ret); }
 
 </Exercise>
 
-<Exercise id="48405" :d="5" :w="4">
+<Exercise id="47405" :d="5" :w="4">
 
-把 48402 的过滤条件搬进 libbpf 程序。以 `code/系统编程/拓展B_eBPF/B_14_bpftrace与编程工具链/` 下的 `openstat.bpf.c` 与 `openstat.c` 为基础，增加两个选项：
+把 47402 的过滤条件搬进 libbpf 程序。以 `code/系统编程/拓展B_eBPF/B_14_bpftrace与编程工具链/` 下的 `openstat.bpf.c` 与 `openstat.c` 为基础，增加两个选项：
 
 - `-p PID`：只统计该进程；
 - `-n PREFIX`：只统计路径以 PREFIX 开头的调用，判断放在内核态。
@@ -950,7 +950,7 @@ Tracing openat for pid 12345...
 
 ### 9.3 综合与挑战
 
-<Exercise id="48406" :d="5" :w="3">
+<Exercise id="47406" :d="5" :w="3">
 
 `code/系统编程/拓展B_eBPF/B_14_bpftrace与编程工具链/exercises/` 下有两个故意写错的内核态程序：`bad_name.bpf.c` 与 `bad_section.bpf.c`。
 
@@ -967,7 +967,7 @@ Tracing openat for pid 12345...
 
 </Exercise>
 
-<Exercise id="48407" :d="5" :w="3">
+<Exercise id="47407" :d="5" :w="3">
 
 写一个 `check.sh`，在普通用户下完成前文 8.1 节列出的四项检查，任何一步失败都以非零退出。
 
@@ -983,7 +983,7 @@ Tracing openat for pid 12345...
 
 </Exercise>
 
-<Exercise id="48408" :d="6" :w="4">
+<Exercise id="47408" :d="6" :w="4">
 
 用 `bpftool gen object` 把 `openstat.bpf.o` 与 `syscallstat.bpf.o` 链接成一个目标文件，然后：
 
@@ -997,7 +997,7 @@ Tracing openat for pid 12345...
 
 </Exercise>
 
-<Exercise id="48409" :d="7" :w="5" scope="*">
+<Exercise id="47409" :d="7" :w="5" scope="*">
 
 有人写了下面这段脚本，想统计「哪些进程打开文件失败最多」。
 

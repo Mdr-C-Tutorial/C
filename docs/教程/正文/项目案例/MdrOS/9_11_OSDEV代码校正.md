@@ -78,7 +78,7 @@ cmdtbl->prdt_entry[i].dbau = phys_buf >> 32;
 
 ### 2.1 巩固
 
-<Exercise id="50005" :d="2" :w="2">
+<Exercise id="50905" :d="2" :w="2">
 
 OSDEV 的端口初始化把三块区域按固定算式排在 `AHCI_BASE` 之后，端口号记为 `portno`：
 
@@ -98,7 +98,7 @@ cmdheader[i].ctba = AHCI_BASE + (40 << 10) + (portno << 13) + (i << 8);
 
 </Exercise>
 
-<Exercise id="50006" :d="3" :w="3">
+<Exercise id="50906" :d="3" :w="3">
 
 正文把 32 位的 `ctba` 写法改成了 64 位。写一个只在主机上运行的小程序，验证地址的拆分与拼回：
 
@@ -139,7 +139,7 @@ uint64_t get_ctba(const struct hba_cmd_header *h);
 
 ### 2.2 编程
 
-<Exercise id="50007" :d="4" :w="4">
+<Exercise id="50907" :d="4" :w="4">
 
 PRDT（Physical Region Descriptor Table）用来描述一次传输涉及的物理页。每个表项 16 字节：偏移 `0x00` 是数据基址低 32 位，`0x04` 是高 32 位，`0x08` 保留，`0x0C` 的低 22 位是字节数减一，第 31 位是完成中断标志。命令表从 `0x80` 起放 PRDT，256 字节的命令表最多放 8 项。
 
@@ -176,7 +176,7 @@ int build_prdt(struct prdt_entry *entries, uint64_t phys, size_t len, int irq);
 
 ### 2.3 综合与挑战
 
-<Exercise id="50008" :d="5" :w="5">
+<Exercise id="50908" :d="5" :w="5">
 
 把写死的 `AHCI_BASE` 换成一个运行时分配的 1 MiB 区域。要求整套布局都在这个区域内，且各段的起始地址满足硬件对齐要求：命令表 128 字节对齐且不跨 4 KiB，命令头列表 1 KiB 对齐，FIS 接收区 256 字节对齐。
 

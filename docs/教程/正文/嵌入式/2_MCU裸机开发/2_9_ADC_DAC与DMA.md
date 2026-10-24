@@ -614,7 +614,7 @@ HAL 的轮询版在超时之后返回 `HAL_TIMEOUT`，代码里照常检查。�
 
 ### 9.1 巩固
 
-<Exercise id="62278" :d="1" :w="2">
+<Exercise id="60278" :d="1" :w="2">
 
 第 2.2 节的转换时间表给出了 ADCCLK 为 12 MHz 与 14 MHz 时八档采样时间的结果。不运行程序，回答：
 
@@ -628,7 +628,7 @@ HAL 的轮询版在超时之后返回 `HAL_TIMEOUT`，代码里照常检查。�
 
 </Exercise>
 
-<Exercise id="62279" :d="2" :w="2">
+<Exercise id="60279" :d="2" :w="2">
 
 下面的初始化函数是照着第 3.1 节抄下来的，实际运行时读出的电压比万用表低一截，读数还会随手指靠近引脚而乱跳：
 
@@ -662,7 +662,7 @@ static void adc1_init_broken(void) {
 
 </Exercise>
 
-<Exercise id="62280" :d="2" :w="2">
+<Exercise id="60280" :d="2" :w="2">
 
 第 4 节的换算函数都做整数运算。不写程序，按代码逐行计算：
 
@@ -695,7 +695,7 @@ int32_t adc_temp_decic(uint16_t raw_temp, uint32_t vdda_mv) {
 
 ### 9.2 编程
 
-<Exercise id="62281" :d="3" :w="3">
+<Exercise id="60281" :d="3" :w="3">
 
 在主机上写 `adc_conv.c`，把第 4 节的换算做成一个可以单独测试的小模块。
 
@@ -722,7 +722,7 @@ int32_t adc_temp_decic(uint16_t raw_temp, uint32_t vdda_mv) {
 
 </Exercise>
 
-<Exercise id="62282" :d="3" :w="3">
+<Exercise id="60282" :d="3" :w="3">
 
 下面是 `dma_mem2mem` 的一个改写版。第一次调用正常，第二次调用时程序卡在等待循环里：
 
@@ -758,7 +758,7 @@ static void dma1_mem2mem_copy(volatile uint32_t *dst, const uint32_t *src,
 
 </Exercise>
 
-<Exercise id="62283" :d="4" :w="4">
+<Exercise id="60283" :d="4" :w="4">
 
 把 `adc_scan_dma` 扩展成四通道扫描：在 IN1（PA1 电位器）、IN16（温度）、IN17（VREFINT）之外加入 IN4（PA4）。PA4 用两个 10 kΩ 电阻从 3.3 V 分压，理论电压 1650 mV。
 
@@ -774,7 +774,7 @@ static void dma1_mem2mem_copy(volatile uint32_t *dst, const uint32_t *src,
 
 ### 9.3 综合与挑战
 
-<Exercise id="62284" :d="5" :w="4">
+<Exercise id="60284" :d="5" :w="4">
 
 用第 7 节的 PWM 加 RC 输出一个 50 Hz 正弦波。TIM3 仍以 20 kHz、ARR = 3599 输出 PWM，在更新中断里每 4 个 PWM 周期换一次 CCR3，一个正弦周期 100 个点。
 
@@ -790,7 +790,7 @@ static void dma1_mem2mem_copy(volatile uint32_t *dst, const uint32_t *src,
 
 </Exercise>
 
-<Exercise id="62285" :d="5" :w="4">
+<Exercise id="60285" :d="5" :w="4">
 
 `pwm_dac` 用固定 200 ms 等待 RC 稳定。把这个程序改成带标定的版本。
 
@@ -804,7 +804,7 @@ static void dma1_mem2mem_copy(volatile uint32_t *dst, const uint32_t *src,
 
 </Exercise>
 
-<Exercise id="62286" :d="6" :w="5">
+<Exercise id="60286" :d="6" :w="5">
 
 做一个电池电压监测模块，把本页的 ADC、DMA、定时器触发和第 2.5 节的中断串起来。
 
@@ -822,7 +822,7 @@ static void dma1_mem2mem_copy(volatile uint32_t *dst, const uint32_t *src,
 
 </Exercise>
 
-<Exercise id="62287" :d="6" :w="3">
+<Exercise id="60287" :d="6" :w="3">
 
 一个用 C8T6 的数据采集节点要做三件事：电位器位置以 1 kHz 连续采样、每批 64 点求平均；电池电压每秒读一次；按键按下时软件触发一次 PA1 的读数，用于自检。
 

@@ -567,7 +567,7 @@ CubeMX 生成的 `syscalls.c` 通过 `__io_putchar` 重定向：`_write` 逐字�
 
 ### 9.1 巩固
 
-<Exercise id="62258" :d="1" :w="2">
+<Exercise id="60258" :d="1" :w="2">
 
 8N1、无校验、115200 bps，线上依次传送三个字节 `0x00`、`0xAA`、`0x0D`。画出每一个字节的位序列（起始位、8 个数据位、停止位，低位先发），并回答：
 
@@ -577,7 +577,7 @@ CubeMX 生成的 `syscalls.c` 通过 `__io_putchar` 重定向：`_write` 逐字�
 
 </Exercise>
 
-<Exercise id="62259" :d="2" :w="2">
+<Exercise id="60259" :d="2" :w="2">
 
 某工程把 `clock_init_72mhz()` 换成了 HSI 8 MHz 的初始化，但 `console_init` 的调用仍是 `console_init(72000000u, 115200u)`。
 
@@ -588,7 +588,7 @@ CubeMX 生成的 `syscalls.c` 通过 `__io_putchar` 重定向：`_write` 逐字�
 
 </Exercise>
 
-<Exercise id="62260" :d="2" :w="2">
+<Exercise id="60260" :d="2" :w="2">
 
 下面是四个发送/接收片段，判断各自的问题并改正：
 
@@ -633,7 +633,7 @@ void USART1_IRQHandler(void) {
 
 ### 9.2 编程
 
-<Exercise id="62261" :d="2" :w="2">
+<Exercise id="60261" :d="2" :w="2">
 
 `console.h` 声明了 `uart_puts`、`uart_write` 和 `uart_flush`，但正文只给出了 `uart_putc`、`uart_getc` 与 `uart_flush` 的实现。先不要看 `code/嵌入式/2_MCU裸机开发/2_7_UART/console.c` 里的现成版本，自己写一遍再对照。
 
@@ -646,7 +646,7 @@ void USART1_IRQHandler(void) {
 
 </Exercise>
 
-<Exercise id="62262" :d="3" :w="3">
+<Exercise id="60262" :d="3" :w="3">
 
 基于 `code/嵌入式/2_MCU裸机开发/2_7_UART/exercises/line_edit_starter.c`，补全 `line_editor_feed`，让命令行支持退格：
 
@@ -659,7 +659,7 @@ void USART1_IRQHandler(void) {
 
 </Exercise>
 
-<Exercise id="62263" :d="3" :w="3">
+<Exercise id="60263" :d="3" :w="3">
 
 给命令行加参数解析。现在 `cli_handle_line` 只认整行固定字符串，要支持：
 
@@ -680,7 +680,7 @@ status
 
 </Exercise>
 
-<Exercise id="62264" :d="3" :w="3">
+<Exercise id="60264" :d="3" :w="3">
 
 把接收改成环形缓冲区，去掉“上一行未处理完就丢字符”的限制。
 
@@ -695,7 +695,7 @@ status
 
 ### 9.3 综合与挑战
 
-<Exercise id="62265" :d="4" :w="4">
+<Exercise id="60265" :d="4" :w="4">
 
 写一个不依赖 `printf` 的轻量格式化函数，覆盖调试输出九成的需求：
 
@@ -714,7 +714,7 @@ int mini_format(char *out, size_t cap, const char *fmt, ...);
 
 </Exercise>
 
-<Exercise id="62266" :d="4" :w="4">
+<Exercise id="60266" :d="4" :w="4">
 
 做一个串口协议解析器，帧格式为 `0xAA`、长度（1 字节）、数据（1～32 字节）、校验和（前面所有字节之和的低 8 位）。
 
@@ -727,7 +727,7 @@ int mini_format(char *out, size_t cap, const char *fmt, ...);
 
 </Exercise>
 
-<Exercise id="62267" :d="5" :w="4" scope="*">
+<Exercise id="60267" :d="5" :w="4" scope="*">
 
 写一个串口日志模块，要求主循环里调用 `log_printf` 不阻塞在波特率上。
 

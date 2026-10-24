@@ -775,7 +775,7 @@ $ ls -l /tmp/t
 
 ### 8.1 巩固
 
-<Exercise id="47701" :d="2" :w="2">
+<Exercise id="46701" :d="2" :w="2">
 
 在示例 `raw_load.c` 中，手写的套接字过滤器在退出前将返回值 R0 置为 `0`，导致流经套接字的数据报被全部丢弃。请修改这段字节码的返回值，使其放行数据报并让用户态的 `recv()` 调用能够顺利收到那三个测试报文，同时保持 Map 计数器的累加逻辑不变。
 
@@ -785,7 +785,7 @@ $ ls -l /tmp/t
 
 </Exercise>
 
-<Exercise id="47702" :d="2" :w="1">
+<Exercise id="46702" :d="2" :w="1">
 
 请写出完成以下各项运维操作的具体 `bpftool` 命令，并分别指出每条命令在底层操作的是哪一类内核对象：
 
@@ -799,7 +799,7 @@ $ ls -l /tmp/t
 
 </Exercise>
 
-<Exercise id="47703" :d="2" :w="1">
+<Exercise id="46703" :d="2" :w="1">
 
 在 `raw_load.c` 的封装函数 `bpf_sys()` 中，我们将 `sizeof(*attr)` 作为第三个参数传递给内核。请围绕该参数的设计机制回答以下问题：
 
@@ -813,7 +813,7 @@ $ ls -l /tmp/t
 
 ### 8.2 编程
 
-<Exercise id="47704" :d="3" :w="3">
+<Exercise id="46704" :d="3" :w="3">
 
 不链接 libbpf 库，仅使用 `<linux/bpf.h>` 与 `syscall(__NR_bpf, ...)` 编写一个独立程序 `raw_map.c`，针对内核哈希 Map 完成一轮完整的增删改查与遍历操作：
 
@@ -831,7 +831,7 @@ $ ls -l /tmp/t
 
 </Exercise>
 
-<Exercise id="47705" :d="4" :w="3">
+<Exercise id="46705" :d="4" :w="3">
 
 编写一对协同工作的用户态程序，演示通过 bpffs 固定机制在两个无亲缘关系的进程之间传递并共享同一个内核 Map 对象：
 
@@ -853,7 +853,7 @@ $ sudo ./pin_reader      # 打开失败，errno = ENOENT
 
 </Exercise>
 
-<Exercise id="47706" :d="4" :w="4">
+<Exercise id="46706" :d="4" :w="4">
 
 在 [B.6](/教程/正文/系统编程/拓展B_eBPF/B_6_Map与数据交换) 的 `syscount` 工具中，每次重启进程都会新建空表，且每轮打印时都会删除已读取的键。请将其改造为支持跨进程持久化累加的版本：
 
@@ -869,7 +869,7 @@ $ sudo ./pin_reader      # 打开失败，errno = ENOENT
 
 ### 8.3 综合与挑战
 
-<Exercise id="47707" :d="5" :w="4">
+<Exercise id="46707" :d="5" :w="4">
 
 基于 libbpf 骨架编写一个控制面程序 `pinlink.c`，在将 [B.3](/教程/正文/系统编程/拓展B_eBPF/B_3_第一个eBPF程序) 的 `hello` 探针附加到跟踪点之后，进一步将其生成的 **`bpf_link`** 对象固定到 bpffs 文件系统中：
 
@@ -885,7 +885,7 @@ $ sudo ./pin_reader      # 打开失败，errno = ENOENT
 
 </Exercise>
 
-<Exercise id="47708" :d="6" :w="5">
+<Exercise id="46708" :d="6" :w="5">
 
 设计并实现一套支持“在线无损热升级”的探针程序：准备两个版本的内核态程序（版本 A 在递增 Map 计数器后丢弃/拦截事件，版本 B 在递增同一计数器后正常放行），首先使用 `BPF_LINK_CREATE` 将版本 A 挂载运行，持续工作一段时间后调用 `BPF_LINK_UPDATE` 原地原子替换为版本 B，验证切换全过程中数据包或事件计数连续不中断。
 
@@ -903,7 +903,7 @@ $ sudo ./pin_reader      # 打开失败，errno = ENOENT
 
 </Exercise>
 
-<Exercise id="47709" :d="7" :w="6" scope="*">
+<Exercise id="46709" :d="7" :w="6" scope="*">
 
 编写一个不依赖 libbpf 的轻量级通用 ELF 加载器 `mini_loader.c`，直接解析编译器生成的 `.bpf.o` 目标文件并将其中包含的 Map 与程序加载进内核：
 

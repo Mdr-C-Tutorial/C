@@ -711,7 +711,7 @@ AF_UNIX 的意义在于它是本机 IPC 里少有的能同时用在 Windows 和 
 
 ### 8.1 巩固
 
-<Exercise id="46301" :d="2" :w="2" multi>
+<Exercise id="44301" :d="2" :w="2" multi>
 
 (1) _[1.1]_ 下面这段代码在 Windows 上编译运行，`socket` 一定失败。指出它缺了什么，并写出补上之后的最小改动。
 
@@ -729,7 +729,7 @@ if (s < 0) {
 
 </Exercise>
 
-<Exercise id="46302" :d="2" :w="2" multi>
+<Exercise id="44302" :d="2" :w="2" multi>
 
 (1) _[2.2]_ 把下面这段 POSIX 代码逐行改写成 Winsock，保持功能完全一致（包括非阻塞和 1 秒接收超时）：
 
@@ -754,7 +754,7 @@ close(fd);
 
 ### 8.2 编程
 
-<Exercise id="46303" :d="3" :w="3">
+<Exercise id="44303" :d="3" :w="3">
 
 写一个两平台通用的 `echo_client`，用法 `echo_client HOST PORT [消息...]`：
 
@@ -767,7 +767,7 @@ close(fd);
 
 </Exercise>
 
-<Exercise id="46304" :d="4" :w="4">
+<Exercise id="44304" :d="4" :w="4">
 
 写一个 `poll_echo PORT`，用 `WSAPoll` 单线程服务至少 3 个并发客户端，要求：
 
@@ -780,7 +780,7 @@ close(fd);
 
 </Exercise>
 
-<Exercise id="46305" :d="4" :w="4">
+<Exercise id="44305" :d="4" :w="4">
 
 把上面的服务器改成 `event_echo PORT SECONDS`，用 `WSAEventSelect` 而不是 `WSAPoll`：
 
@@ -793,7 +793,7 @@ close(fd);
 
 </Exercise>
 
-<Exercise id="46306" :d="4" :w="3">
+<Exercise id="44306" :d="4" :w="3">
 
 写一对 AF_UNIX 程序 `unix_server PATH` 和 `unix_client PATH`：
 
@@ -807,7 +807,7 @@ close(fd);
 
 ### 8.3 综合与挑战
 
-<Exercise id="46307" :d="6" :w="5">
+<Exercise id="44307" :d="6" :w="5">
 
 设计一个小头文件 `sockcompat.h`，把本页讲的平台差异封装起来，要求：
 
@@ -820,7 +820,7 @@ close(fd);
 
 </Exercise>
 
-<Exercise id="46308" :d="6" :w="4">
+<Exercise id="44308" :d="6" :w="4">
 
 本页的 `reuse_hijack.c` 在同一进程里演示了抢绑。把它扩展成两个独立进程的版本：
 
@@ -832,7 +832,7 @@ close(fd);
 
 </Exercise>
 
-<Exercise id="46309" :d="7" :w="5" scope="*">
+<Exercise id="44309" :d="7" :w="5" scope="*">
 
 在 `echo_portable.c` 的基础上做一个「同时等套接字、管道和定时器」的进程内服务：
 

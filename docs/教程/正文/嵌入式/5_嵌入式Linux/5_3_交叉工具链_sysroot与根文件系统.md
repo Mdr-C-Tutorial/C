@@ -565,7 +565,7 @@ initramfs 是内存文件系统：内核启动时把整个 cpio 解开到内存�
 
 ### 7.1 巩固
 
-<Exercise id="65527" :d="1" :w="2">
+<Exercise id="60527" :d="1" :w="2">
 
 先把手上的工具链身份查清楚。没有 Linux 交叉工具链时，用 Arm GNU Toolchain 的 `arm-none-eabi-gcc` 做完全部四问，第四问按裸机工具链回答。
 
@@ -579,7 +579,7 @@ initramfs 是内存文件系统：内核启动时把整个 cpio 解开到内存�
 
 </Exercise>
 
-<Exercise id="65528" :d="2" :w="2">
+<Exercise id="60528" :d="2" :w="2">
 
 给正文的 Makefile 加一个可选的 `SYSROOT`，不设置时行为与正文完全一致，设置时把 `--sysroot=$(SYSROOT)` 同时加进编译和链接命令。
 
@@ -593,7 +593,7 @@ initramfs 是内存文件系统：内核启动时把整个 cpio 解开到内存�
 
 </Exercise>
 
-<Exercise id="65529" :d="3" :w="2">
+<Exercise id="60529" :d="3" :w="2">
 
 浮点 ABI 在编译期就写进了目标文件。用 `arm-none-eabi-gcc` 观察它。
 
@@ -607,7 +607,7 @@ initramfs 是内存文件系统：内核启动时把整个 cpio 解开到内存�
 
 </Exercise>
 
-<Exercise id="65530" :d="3" :w="3">
+<Exercise id="60530" :d="3" :w="3">
 
 `pkg-config` 的两个环境配置参数各自负责什么，用一组最小文件做实验。
 
@@ -623,7 +623,7 @@ initramfs 是内存文件系统：内核启动时把整个 cpio 解开到内存�
 
 ### 7.2 编程
 
-<Exercise id="65531" :d="3" :w="3">
+<Exercise id="60531" :d="3" :w="3">
 
 CMake 的 `FIND_ROOT_PATH_MODE` 与 `CMAKE_SYSROOT` 可以脱离交叉编译单独观察，用宿主机 gcc 加一棵假根目录就能做完。
 
@@ -637,7 +637,7 @@ CMake 的 `FIND_ROOT_PATH_MODE` 与 `CMAKE_SYSROOT` 可以脱离交叉编译单�
 
 </Exercise>
 
-<Exercise id="65532" :d="4" :w="4">
+<Exercise id="60532" :d="4" :w="4">
 
 写一个 `checkrootfs.sh`，在打包 initramfs 之前检查一棵根文件系统目录，列出问题并以非零状态退出。
 
@@ -655,7 +655,7 @@ CMake 的 `FIND_ROOT_PATH_MODE` 与 `CMAKE_SYSROOT` 可以脱离交叉编译单�
 
 </Exercise>
 
-<Exercise id="65533" :d="5" :w="4">
+<Exercise id="60533" :d="5" :w="4">
 
 把正文第 6 节的手工步骤做成可重复执行的 `initramfs.sh`，比 `mkrootfs.sh` 多三件事：
 
@@ -669,7 +669,7 @@ CMake 的 `FIND_ROOT_PATH_MODE` 与 `CMAKE_SYSROOT` 可以脱离交叉编译单�
 
 ### 7.3 综合与挑战
 
-<Exercise id="65534" :d="6" :w="5">
+<Exercise id="60534" :d="6" :w="5">
 
 下面四段错误分别来自工具链、根文件系统、链接方式与 C 库版本四个层次。为每一段写出：故障在哪一层、用什么命令确认、怎么修。
 

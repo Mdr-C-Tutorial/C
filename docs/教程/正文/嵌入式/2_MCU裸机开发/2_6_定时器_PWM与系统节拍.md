@@ -588,7 +588,7 @@ HAL 的定时器句柄把 `PSC`、`ARR` 和四个通道的配置都包进 `TIM_B
 
 ### 9.1 巩固
 
-<Exercise id="62248" :d="2" :w="2">
+<Exercise id="60248" :d="2" :w="2">
 
 取 f_TIM = 72 MHz，为下面三组需求求 PSC 与 ARR，并写一个宿主程序把结果打印出来核对。
 
@@ -602,7 +602,7 @@ HAL 的定时器句柄把 `PSC`、`ARR` 和四个通道的配置都包进 `TIM_B
 
 </Exercise>
 
-<Exercise id="62249" :d="2" :w="2">
+<Exercise id="60249" :d="2" :w="2">
 
 周期任务有两种记上次时刻的写法：
 
@@ -628,7 +628,7 @@ if ((uint32_t)(now - last_ms) >= period_ms) {
 
 </Exercise>
 
-<Exercise id="62250" :d="2" :w="2">
+<Exercise id="60250" :d="2" :w="2">
 
 下面是本节的寄存器写法和对应的 HAL 写法。只写函数名、参数与调用顺序，不要求编译。
 
@@ -642,7 +642,7 @@ if ((uint32_t)(now - last_ms) >= period_ms) {
 
 ### 9.2 编程
 
-<Exercise id="62251" :d="3" :w="3">
+<Exercise id="60251" :d="3" :w="3">
 
 把下面的阻塞式主循环改成单节拍、非阻塞的超级循环：
 
@@ -669,7 +669,7 @@ for (;;) {
 
 </Exercise>
 
-<Exercise id="62252" :d="3" :w="3">
+<Exercise id="60252" :d="3" :w="3">
 
 写一个软件定时器模块，用 1 ms 节拍驱动，不再占用额外的硬件定时器。接口如下：
 
@@ -701,7 +701,7 @@ void sw_timer_poll(sw_timer *t, uint32_t now);
 
 </Exercise>
 
-<Exercise id="62253" :d="3" :w="3">
+<Exercise id="60253" :d="3" :w="3">
 
 用 TIM3_CH3（PB0）驱动一个舵机。舵机要求 50 Hz，脉宽 0.5～2.5 ms 对应 0°～180°。
 
@@ -714,7 +714,7 @@ void sw_timer_poll(sw_timer *t, uint32_t now);
 
 </Exercise>
 
-<Exercise id="62254" :d="3" :w="2">
+<Exercise id="60254" :d="3" :w="2">
 
 用 DWT 标定一个空转延时循环。
 
@@ -729,7 +729,7 @@ void sw_timer_poll(sw_timer *t, uint32_t now);
 
 ### 9.3 综合与挑战
 
-<Exercise id="62255" :d="4" :w="3">
+<Exercise id="60255" :d="4" :w="3">
 
 有些产品要求系统节拍不受调试器和低优先级中断影响，会把节拍源从 SysTick 换成通用定时器。
 
@@ -742,7 +742,7 @@ void sw_timer_poll(sw_timer *t, uint32_t now);
 
 </Exercise>
 
-<Exercise id="62256" :d="5" :w="4">
+<Exercise id="60256" :d="5" :w="4">
 
 一块 F103C8 控制板要同时运行：
 
@@ -761,7 +761,7 @@ void sw_timer_poll(sw_timer *t, uint32_t now);
 
 </Exercise>
 
-<Exercise id="62257" :d="6" :w="4" scope="*">
+<Exercise id="60257" :d="6" :w="4" scope="*">
 
 TIM2 以 1 MHz 计数、ARR = 0xFFFF 时，16 位计数器每 65.536 ms 回绕一次。测 1 Hz 的慢信号时，两次捕获之间会回绕约 15 次，单次 `uint16_t` 差值不再够用。
 

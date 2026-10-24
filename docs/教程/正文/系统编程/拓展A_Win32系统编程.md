@@ -163,7 +163,7 @@ gcc -std=c17 -Wall -Wextra -o 程序.exe 程序.c
 
 四道题按顺序做，最后一道要求把主线的一页搬过来。前两题只用本页与各页开头的环境说明，第三题开始需要装好 MinGW-w64。
 
-<Exercise id="45001" :d="1" :w="1">
+<Exercise id="43001" :d="1" :w="1">
 
 把本页的 `envcheck.c` 抄下来编译运行（源码就在第 2.3 节），然后回答：
 
@@ -174,7 +174,7 @@ gcc -std=c17 -Wall -Wextra -o 程序.exe 程序.c
 
 </Exercise>
 
-<Exercise id="45002" :d="3" :w="2">
+<Exercise id="43002" :d="3" :w="2">
 
 写一个 `sysprobe.exe`，一次打印六个数字或字符串，每个都对应本拓展的一页：
 
@@ -190,7 +190,7 @@ gcc -std=c17 -Wall -Wextra -o 程序.exe 程序.c
 
 </Exercise>
 
-<Exercise id="45003" :d="3" :w="2">
+<Exercise id="43003" :d="3" :w="2">
 
 本页 2.3 节的 tip 列了六个「按需追加的命令行选项」。逐条验证，每条记下不加时的错误原文：
 
@@ -210,7 +210,7 @@ gcc -std=c17 -Wall -Wextra -o 程序.exe 程序.c
 
 </Exercise>
 
-<Exercise id="45004" :d="5" :w="3">
+<Exercise id="43004" :d="5" :w="3">
 
 把主线[第 2 章](/教程/正文/系统编程/2_文件描述符与非缓冲IO)的 `code/系统编程/2_文件描述符与非缓冲IO/copybuf.c` 搬到 Windows。第一遍什么也不改，直接 `gcc -std=c17 -Wall -Wextra copybuf.c -o copybuf.exe`，记下报错；把两处 `O_CLOEXEC` 删掉再编译，这次能链接，但结果不对。
 

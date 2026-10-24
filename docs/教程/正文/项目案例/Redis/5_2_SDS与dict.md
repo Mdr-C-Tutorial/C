@@ -514,7 +514,7 @@ void *dictGetKey(const dictEntry *de) {
 
 ### 3.1 巩固
 
-<Exercise id="50520" :d="2" :w="3" multi>
+<Exercise id="50510" :d="2" :w="3" multi>
 
 (1) _[2.3]_ 下表中每一行是一个刚由 `sdsnewlen` 建出、还没追加过的 SDS。把 SDS 类型、header 字节数、传给 `s_malloc_usable` 的请求字节数、`sdslen`、`sdsavail` 填出来。再写一个二十行的小程序，把 `sdsReqType` 与 `sizeof(struct sdshdrN)` 抄进去验证类型与 header 两列。
 
@@ -548,7 +548,7 @@ $ ./src/redis-cli -p 24730 DEBUG SDSLEN k
 
 ### 3.2 编程
 
-<Exercise id="50521" :d="4" :w="4">
+<Exercise id="50511" :d="4" :w="4">
 
 写一份自己的 SDS，只实现 TYPE_5、TYPE_8、TYPE_16 三种 header，接口如下：
 
@@ -574,7 +574,7 @@ size_t sdsavail(const sds s);
 
 </Exercise>
 
-<Exercise id="50522" :d="5" :w="4">
+<Exercise id="50512" :d="5" :w="4">
 
 写一个最小 dict，把正文 2.1～2.7 的机制落到代码里：
 
@@ -609,7 +609,7 @@ int mdict_is_rehashing(const mdict *d);
 
 ### 3.3 综合与挑战
 
-<Exercise id="50523" :d="6" :w="5" multi>
+<Exercise id="50513" :d="6" :w="5" multi>
 
 (1) _[6.5]_ 写一个 `dictScan` 模拟器，不依赖 Redis。桶数组是 16 个，每个元素记为「桶下标加序号」，实现 `rev()`、`v |= ~m0`、`rev(v)++`、`rev(v)` 这一串。
 

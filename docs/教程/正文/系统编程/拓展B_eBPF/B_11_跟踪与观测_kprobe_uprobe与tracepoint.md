@@ -1258,13 +1258,13 @@ flowchart TD
 
 ### 9.1 巩固
 
-<Exercise id="48101" :d="1" :w="1">
+<Exercise id="47101" :d="1" :w="1">
 
 `tp_openat.bpf.c` 打印的是 `ctx->args[1]`。改成同时打印目录描述符 `args[0]` 和标志 `args[2]`，并说明为什么 `openat` 的第一个参数正好落在 `args[0]`、而不是从 `args[1]` 开始。
 
 </Exercise>
 
-<Exercise id="48102" :d="2" :w="2">
+<Exercise id="47102" :d="2" :w="2">
 
 尝试把 `unlink_kprobe.bpf.c` 的 kretprobe 版改成和入口版一样的两个参数：`BPF_KRETPROBE(do_unlinkat_exit, int dfd, long ret)`。先看编译器报什么，再改用 `PT_REGS_PARM1(ctx)` 取出 `dfd`，让程序编译通过。回答两个问题：
 
@@ -1275,7 +1275,7 @@ flowchart TD
 
 ### 9.2 编程
 
-<Exercise id="48103" :d="3" :w="3">
+<Exercise id="47103" :d="3" :w="3">
 
 用 `SEC("kretsyscall/unlinkat")` 加 `BPF_KSYSCALL` 写一个程序，在 `unlinkat` 系统调用返回时打印调用者的命令名（`bpf_get_current_comm`）和返回值。要求：
 
@@ -1285,13 +1285,13 @@ flowchart TD
 
 </Exercise>
 
-<Exercise id="48104" :d="4" :w="3">
+<Exercise id="47104" :d="4" :w="3">
 
 给 `calc.c` 加上第三个函数 `uprobed_mul`（同样加 `noinline` 和空汇编），在 `calc_uprobe.bpf.c` 里为它写一组 uprobe 与 uretprobe 程序，打印两个参数和返回值。要求两种附加方式各用一次：一组写全 SEC 名称交给 `__attach`，一组只写 `uprobe`/`uretprobe` 交给 `bpf_program__attach_uprobe_opts`。改完后用 `nm -S calc` 核对新符号确实存在，并说明如果忘了写 `noinline` 会发生什么。
 
 </Exercise>
 
-<Exercise id="48105" :d="4" :w="3">
+<Exercise id="47105" :d="4" :w="3">
 
 把 `perf_sample` 改成按命令名聚合：在 BPF 侧用一张哈希 map，以 `comm` 为键累计样本数；用户态每 2 秒打印一次样本最多的前 5 个命令名和次数，按 Ctrl-C 退出时再打印一次。要求：
 
@@ -1301,7 +1301,7 @@ flowchart TD
 
 </Exercise>
 
-<Exercise id="48106" :d="4" :w="4">
+<Exercise id="47106" :d="4" :w="4">
 
 用 fexit 统计一次 `do_unlinkat` 的耗时。要求：
 
@@ -1318,7 +1318,7 @@ flowchart TD
 
 ### 9.3 综合与挑战
 
-<Exercise id="48107" :d="5" :w="4">
+<Exercise id="47107" :d="5" :w="4">
 
 写一个同时用 tracepoint 和 kprobe 观测 `openat` 的工具：tracepoint 版挂在 `sys_enter_openat`，kprobe 版挂在 `do_sys_openat2`。两边都打印 PID 和路径，运行 `cat /etc/hostname` 之类的命令，对照两份输出。
 
@@ -1330,7 +1330,7 @@ flowchart TD
 
 </Exercise>
 
-<Exercise id="48108" :d="6" :w="4" scope="*">
+<Exercise id="47108" :d="6" :w="4" scope="*">
 
 把 `usdt_setjmp` 改成观测 `python3` 的 `python:gc__start` 探针。要求：
 
@@ -1340,7 +1340,7 @@ flowchart TD
 
 </Exercise>
 
-<Exercise id="48109" :d="7" :w="5" scope="*">
+<Exercise id="47109" :d="7" :w="5" scope="*">
 
 写一个「钩子可用性检查器」：给定一组函数名（例如 `do_unlinkat`、`vfs_read`、`schedule`、`do_sys_openat2`、`__x64_sys_kill`），对每个名字依次尝试 `fentry` 与 `kprobe` 两种附加方式，把结果整理成一张表：能挂、挂不上（附错误码）。
 

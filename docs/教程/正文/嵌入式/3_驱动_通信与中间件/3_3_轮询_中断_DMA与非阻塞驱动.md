@@ -771,7 +771,7 @@ $ arm-none-eabi-size uart_nonblock_demo.elf
 
 ### 10.1 巩固
 
-<Exercise id="63315" :d="1" :w="1">
+<Exercise id="60314" :d="1" :w="1">
 
 第 1、2 节用 115200 bps 与 921600 bps 估算了阻塞与中断的代价。把常用的四档波特率都算出来，填成一张表，保留两位小数：
 
@@ -792,7 +792,7 @@ $ arm-none-eabi-size uart_nonblock_demo.elf
 
 </Exercise>
 
-<Exercise id="63316" :d="2" :w="2">
+<Exercise id="60315" :d="2" :w="2">
 
 `code/嵌入式/3_驱动_通信与中间件/3_3_轮询_中断_DMA与非阻塞驱动/exercises/dma_table_starter.c` 是一个表驱动测试的骨架，目前只有一条用例。补全到七条，每条给出 `dma_rx_diff` 的输入 `old_pos`、`cndtr` 与期望的 `new_pos`、`total_len`、`span_count`、两段 span 的偏移与长度：
 
@@ -825,7 +825,7 @@ gcc -std=c17 -Wall -Wextra exercises/dma_table_starter.c dma_rx_pos.c -o test_dm
 
 </Exercise>
 
-<Exercise id="63317" :d="3" :w="3">
+<Exercise id="60316" :d="3" :w="3">
 
 下面是某同学写的中断发送服务程序，启动函数与中断服务程序各有一处以上的问题：
 
@@ -871,7 +871,7 @@ static void uart_it_irq_handler_bad(struct uart_it_handle *h) {
 
 ### 10.2 编程
 
-<Exercise id="63318" :d="3" :w="3">
+<Exercise id="60317" :d="3" :w="3">
 
 补全 `code/嵌入式/3_驱动_通信与中间件/3_3_轮询_中断_DMA与非阻塞驱动/exercises/uart_write_async_starter.c`。这个骨架用 `struct mock_usart` 模拟状态寄存器与数据寄存器，要求：
 
@@ -898,7 +898,7 @@ restart rc=0
 
 </Exercise>
 
-<Exercise id="63319" :d="3" :w="3">
+<Exercise id="60318" :d="3" :w="3">
 
 临界区代码经常写成无条件开关中断：
 
@@ -925,7 +925,7 @@ static void frame_take(void) {
 
 </Exercise>
 
-<Exercise id="63320" :d="4" :w="3">
+<Exercise id="60319" :d="4" :w="3">
 
 `uart_dma1_poll_rx` 依赖 `dma_rx_diff` 算出的两段 span。有人把它改写成了下面这样，只用一个连续的区间：
 
@@ -953,7 +953,7 @@ void uart_dma1_poll_rx_bad(struct uart_dma_handle *h) {
 
 </Exercise>
 
-<Exercise id="63321" :d="4" :w="3">
+<Exercise id="60320" :d="4" :w="3">
 
 下面的 DMA 发送函数漏掉了第 6 节强调的两步：
 
@@ -981,7 +981,7 @@ enum uart_dma_status uart_dma1_send_async_bad(struct uart_dma_handle *h,
 
 </Exercise>
 
-<Exercise id="63322" :d="5" :w="4">
+<Exercise id="60321" :d="5" :w="4">
 
 把本页的两套驱动合成一个模块 `uart_async`，对外只暴露一组接口：
 
@@ -1017,7 +1017,7 @@ bool uart_async_tx_busy(void);
 
 ### 10.3 综合与挑战
 
-<Exercise id="63323" :d="5" :w="4">
+<Exercise id="60322" :d="5" :w="4">
 
 第 9 节提到 `HAL_UARTEx_ReceiveToIdle_DMA` 在普通模式下回调返回后必须重新启动，否则第一批之后再也收不到数据。用一份宿主机上的仿 HAL 验证这个说法。
 
@@ -1033,7 +1033,7 @@ bool uart_async_tx_busy(void);
 
 </Exercise>
 
-<Exercise id="63324" :d="6" :w="5" scope="*">
+<Exercise id="60323" :d="6" :w="5" scope="*">
 
 为一块以 500 Hz 采样、每帧 32 字节、连续输出的传感器节点选传输方式，并用实测数据支撑结论。
 

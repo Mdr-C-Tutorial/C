@@ -760,7 +760,7 @@ systemd 的 `SocketBindDeny=` 和 `SocketBindAllow=` 就是用 `cgroup/bind4`、
 
 ### 6.1 巩固
 
-<Exercise id="48301" :d="1" :w="1">
+<Exercise id="47301" :d="1" :w="1">
 
 `seccomp_deny.c` 里第 1 条指令是 `BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K, t_arch, 0, 5)`。回答：
 
@@ -770,7 +770,7 @@ systemd 的 `SocketBindDeny=` 和 `SocketBindAllow=` 就是用 `cgroup/bind4`、
 
 </Exercise>
 
-<Exercise id="48302" :d="2" :w="1">
+<Exercise id="47302" :d="2" :w="1">
 
 读下面这段过滤器，说出系统调用号为 1、59、295 时各自的返回值，并说明 `whoami` 会不会打印出用户名：
 
@@ -787,7 +787,7 @@ BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_KILL_PROCESS),
 
 </Exercise>
 
-<Exercise id="48303" :d="2" :w="2">
+<Exercise id="47303" :d="2" :w="2">
 
 用 `seccomp_deny` 做三组实验，记录每次的实际输出：
 
@@ -801,7 +801,7 @@ BPF_STMT(BPF_RET | BPF_K, SECCOMP_RET_KILL_PROCESS),
 
 ### 6.2 编程
 
-<Exercise id="48304" :d="3" :w="2">
+<Exercise id="47304" :d="3" :w="2">
 
 改写 `install_filter()`，让它一次拒绝多个系统调用，每个带自己的 `errno`。接口用：
 
@@ -825,7 +825,7 @@ static int install_filter(const struct rule *rules, size_t n, unsigned int arch)
 
 </Exercise>
 
-<Exercise id="48305" :d="3" :w="3">
+<Exercise id="47305" :d="3" :w="3">
 
 写一个 `seccomp_strict_plus.c`，用过滤器模式实现比严格模式稍宽的白名单：只允许 `read`、`write`、`exit_group`、`rt_sigreturn`、`brk`、`mmap`、`munmap`、`fstat`，其余一律 `SECCOMP_RET_KILL_PROCESS`。要求：
 
@@ -839,7 +839,7 @@ static int install_filter(const struct rule *rules, size_t n, unsigned int arch)
 
 </Exercise>
 
-<Exercise id="48306" :d="4" :w="3">
+<Exercise id="47306" :d="4" :w="3">
 
 把 `lsm_bpf.bpf.c` 改成按命令号过滤：只在 `cmd` 为 `BPF_MAP_CREATE`（0）和 `BPF_PROG_LOAD`（5）时拒绝，其余命令放行，并打印命令号。
 
@@ -852,7 +852,7 @@ static int install_filter(const struct rule *rules, size_t n, unsigned int arch)
 
 </Exercise>
 
-<Exercise id="48307" :d="4" :w="4">
+<Exercise id="47307" :d="4" :w="4">
 
 写一个 LSM 程序，挂在 `lsm/file_open` 上，拒绝打开文件名以 `.secret` 结尾的文件。
 
@@ -868,7 +868,7 @@ static int install_filter(const struct rule *rules, size_t n, unsigned int arch)
 
 </Exercise>
 
-<Exercise id="48308" :d="5" :w="4">
+<Exercise id="47308" :d="5" :w="4">
 
 把 `connect_deny.bpf.c` 扩展成按「地址 + 端口」拒绝：只拦 `127.0.0.1` 上端口在 20002～20010 范围内的连接，其他地址和端口放行。
 
@@ -884,7 +884,7 @@ static int install_filter(const struct rule *rules, size_t n, unsigned int arch)
 
 ### 6.3 综合与挑战
 
-<Exercise id="48309" :d="7" :w="6" scope="*">
+<Exercise id="47309" :d="7" :w="6" scope="*">
 
 设计一个「服务加固」方案，同时用上三种机制，并写出一份可以照着做的部署步骤和验证方法。
 

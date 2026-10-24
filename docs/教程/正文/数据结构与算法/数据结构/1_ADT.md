@@ -142,7 +142,7 @@ int main(void) {
 
 ## 9. 习题
 
-<Exercise id="30001" :d="4" :w="4">
+<Exercise id="31101" :d="4" :w="4">
 
 使用不透明类型实现整数栈 ADT。公开头文件只能包含以下接口，不得暴露栈的表示：
 
@@ -177,7 +177,7 @@ size_t int_stack_size(const IntStack *stack);
 
 </Exercise>
 
-<Exercise id="30004" :d="6" :w="5" scope="**">
+<Exercise id="31102" :d="6" :w="5" scope="**">
 
 实现采用开放寻址和线性探测的字符串集合。公开接口不得暴露槽数组：
 
@@ -213,7 +213,7 @@ size_t string_set_size(const StringSet *set);
 
 </Exercise>
 
-<Exercise id="30005" :d="6" :w="5" scope="**">
+<Exercise id="31103" :d="6" :w="5" scope="**">
 
 为同一个整数序列 ADT 编写动态数组和双向链表两种可替换实现。公开头文件固定为：
 

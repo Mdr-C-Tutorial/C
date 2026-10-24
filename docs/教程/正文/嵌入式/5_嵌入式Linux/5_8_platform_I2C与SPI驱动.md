@@ -873,7 +873,7 @@ mdr,serial
 
 ### 8.1 巩固
 
-<Exercise id="65572" :d="1" :w="2">
+<Exercise id="60572" :d="1" :w="2">
 
 第 2 节的发送循环用 UARTFR 的 TXFF 位决定能不能写 UARTDR。
 
@@ -889,7 +889,7 @@ mdr,serial
 
 </Exercise>
 
-<Exercise id="65573" :d="2" :w="2">
+<Exercise id="60573" :d="2" :w="2">
 
 下面五段代码各自有一处与第 1 节的表格或 concept 块对不上。
 
@@ -929,7 +929,7 @@ readl(s->base + 0x10);
 
 </Exercise>
 
-<Exercise id="65574" :d="2" :w="2">
+<Exercise id="60574" :d="2" :w="2">
 
 第 4 节的驱动把 6 个字节拼成三个 16 位数，再换算成 mg。用下面这组字节手算一遍：
 
@@ -949,7 +949,7 @@ readl(s->base + 0x10);
 
 </Exercise>
 
-<Exercise id="65575" :d="3" :w="3">
+<Exercise id="60575" :d="3" :w="3">
 
 第 7 节给出三步排查。下面四份配置各不相同，驱动都是本页的 `mdr_mpu6050`。
 
@@ -983,7 +983,7 @@ imu@68 { compatible = "mdr,mpu6050"; reg = <0x68>; };
 
 ### 8.2 编程
 
-<Exercise id="65576" :d="3" :w="3">
+<Exercise id="60576" :d="3" :w="3">
 
 给第 2 节的 `mdr_serial` 补上接收方向，只用轮询，不用中断（中断在 [5.9](/教程/正文/嵌入式/5_嵌入式Linux/5_9_中断_DMA与并发)）。
 
@@ -1003,7 +1003,7 @@ imu@68 { compatible = "mdr,mpu6050"; reg = <0x68>; };
 
 </Exercise>
 
-<Exercise id="65577" :d="3" :w="3">
+<Exercise id="60577" :d="3" :w="3">
 
 用户态也能直接操作 I²C 总线。写一个工具 `i2c_tool`。
 
@@ -1023,7 +1023,7 @@ imu@68 { compatible = "mdr,mpu6050"; reg = <0x68>; };
 
 </Exercise>
 
-<Exercise id="65578" :d="4" :w="3">
+<Exercise id="60578" :d="4" :w="3">
 
 用 i2c-stub 给 `mdr_mpu6050` 做一次数值链路的验证，并补上调试用的 sysfs 属性。
 
@@ -1039,7 +1039,7 @@ imu@68 { compatible = "mdr,mpu6050"; reg = <0x68>; };
 
 </Exercise>
 
-<Exercise id="65579" :d="4" :w="4">
+<Exercise id="60579" :d="4" :w="4">
 
 第 6 节的 `mdr_w25q` 只用 `spi_write_then_read` 读了 JEDEC ID。扩成能读状态寄存器，并改用消息级接口。
 
@@ -1061,7 +1061,7 @@ W25Q64 的两条命令：`0x9F` 读 JEDEC ID（3 字节），`0x05` 读状态寄
 
 ### 8.3 综合与挑战
 
-<Exercise id="65580" :d="6" :w="5" scope="*">
+<Exercise id="60580" :d="6" :w="5" scope="*">
 
 给 `mdr_mpu6050` 建一套能在没有硬件的机器上自动跑的回归测试，并让它在出错时指出是哪一层坏了。
 

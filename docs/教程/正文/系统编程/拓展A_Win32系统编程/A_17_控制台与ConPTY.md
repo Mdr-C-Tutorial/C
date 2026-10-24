@@ -706,7 +706,7 @@ return 0;
 
 ### 8.1 巩固
 
-<Exercise id="46701" :d="1" :w="1">
+<Exercise id="44701" :d="1" :w="1">
 
 下面这个函数想判断标准输出是不是控制台，但它有错。指出错误，给出改正后的版本，并说明在什么情况下它会误判。
 
@@ -720,7 +720,7 @@ int stdout_is_console(void) {
 
 </Exercise>
 
-<Exercise id="46702" :d="2" :w="1">
+<Exercise id="44702" :d="2" :w="1">
 
 某个控制台输入缓冲区的模式值是 0x01F7。依次回答：
 
@@ -732,7 +732,7 @@ int stdout_is_console(void) {
 
 </Exercise>
 
-<Exercise id="46703" :d="2" :w="2">
+<Exercise id="44703" :d="2" :w="2">
 
 写一个 `read_password.c`：从标准输入读一行口令，读的时候不回显。
 
@@ -749,7 +749,7 @@ int stdout_is_console(void) {
 
 ### 8.2 编程
 
-<Exercise id="46704" :d="3" :w="2">
+<Exercise id="44704" :d="3" :w="2">
 
 写一个 `progress.c`，用虚拟终端序列在终端里画进度条，共 20 步，每步间隔 50 毫秒。
 
@@ -765,7 +765,7 @@ int stdout_is_console(void) {
 
 </Exercise>
 
-<Exercise id="46705" :d="3" :w="3">
+<Exercise id="44705" :d="3" :w="3">
 
 写一个 `keys2.c`，用 `ReadConsoleInputW` 做一个按键计数器，同时响应窗口大小变化。
 
@@ -780,7 +780,7 @@ int stdout_is_console(void) {
 
 </Exercise>
 
-<Exercise id="46706" :d="4" :w="3">
+<Exercise id="44706" :d="4" :w="3">
 
 写一个 `ctrl_cleanup.c`：程序在终端里循环打印计数，用户按 Ctrl+C 时先把输出模式恢复成启动时的值，打印一行统计，再以退出码 0 结束。
 
@@ -795,7 +795,7 @@ int stdout_is_console(void) {
 
 </Exercise>
 
-<Exercise id="46707" :d="5" :w="4" multi>
+<Exercise id="44707" :d="5" :w="4" multi>
 
 写一对程序 `group_parent.c` 与 `group_child.c`，演示怎样停掉一整棵子进程树。
 
@@ -809,7 +809,7 @@ int stdout_is_console(void) {
 
 ### 8.3 综合与挑战
 
-<Exercise id="46708" :d="6" :w="5" scope="*">
+<Exercise id="44708" :d="6" :w="5" scope="*">
 
 写一个交互式伪终端驱动 `ptyrelay.c`：它把宿主自己的标准输入转发进伪控制台的输入管道，把伪控制台的输出管道原样写到宿主的标准输出，并且响应宿主窗口的尺寸变化。
 
@@ -827,7 +827,7 @@ int stdout_is_console(void) {
 
 </Exercise>
 
-<Exercise id="46709" :d="7" :w="6" scope="*">
+<Exercise id="44709" :d="7" :w="6" scope="*">
 
 把本页的零件组装成一个 `mdr_run` 工具：带超时地运行任意命令行程序，超时先礼后兵。
 

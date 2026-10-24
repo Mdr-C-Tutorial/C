@@ -762,7 +762,7 @@ DLL 的接口要能被任何调用方使用，包括用别的编译器、别的�
 
 ### 8.1 巩固
 
-<Exercise id="45701" :d="1" :w="1">
+<Exercise id="43701" :d="1" :w="1">
 
 用本页的 `Makefile` 构建全部示例，然后回答并验证：
 
@@ -772,7 +772,7 @@ DLL 的接口要能被任何调用方使用，包括用别的编译器、别的�
 
 </Exercise>
 
-<Exercise id="45702" :d="2" :w="2">
+<Exercise id="43702" :d="2" :w="2">
 
 下面三种做法都会出问题，各写一句原因，然后实际做一遍，贴出错误信息：
 
@@ -784,7 +784,7 @@ DLL 的接口要能被任何调用方使用，包括用别的编译器、别的�
 
 </Exercise>
 
-<Exercise id="45703" :d="2" :w="2">
+<Exercise id="43703" :d="2" :w="2">
 
 `mdrmath.dll` 里的 `mdr_greet` 返回的是堆上的字符串，调用方必须调用 `mdr_buffer_free`。把返回类型改成调用方提供缓冲区：
 
@@ -798,7 +798,7 @@ MDR_API int mdr_greet_into(const char *name, char *buf, size_t cap);
 
 ### 8.2 编程
 
-<Exercise id="45704" :d="3" :w="3">
+<Exercise id="43704" :d="3" :w="3">
 
 写一个统计用的 DLL `mdrstats.dll` 和两个使用者：
 
@@ -818,7 +818,7 @@ MDR_API int stats_max(const int *a, size_t n);
 
 </Exercise>
 
-<Exercise id="45705" :d="3" :w="3">
+<Exercise id="43705" :d="3" :w="3">
 
 给 `plugin_host.c` 加三项：
 
@@ -830,7 +830,7 @@ MDR_API int stats_max(const int *a, size_t n);
 
 </Exercise>
 
-<Exercise id="45706" :d="4" :w="4">
+<Exercise id="43706" :d="4" :w="4">
 
 用 `DllMain` 记录线程通知，验证两件事：
 
@@ -841,7 +841,7 @@ MDR_API int stats_max(const int *a, size_t n);
 
 </Exercise>
 
-<Exercise id="45707" :d="4" :w="4">
+<Exercise id="43707" :d="4" :w="4">
 
 写一对程序：`victim.exe` 按名字加载 `version.dll`，`attacker.exe` 把一份伪造的 `version.dll` 复制到 `victim.exe` 所在目录。
 
@@ -857,7 +857,7 @@ MDR_API int stats_max(const int *a, size_t n);
 
 ### 8.3 综合与挑战
 
-<Exercise id="45708" :d="6" :w="5">
+<Exercise id="43708" :d="6" :w="5">
 
 把插件宿主改成一个会热重载的加载器 `plugin_reload.exe`：
 
@@ -870,7 +870,7 @@ MDR_API int stats_max(const int *a, size_t n);
 
 </Exercise>
 
-<Exercise id="45709" :d="6" :w="5" scope="*">
+<Exercise id="43709" :d="6" :w="5" scope="*">
 
 设计一个跨模块的字符串接口，把所有权完全封在 DLL 里：
 

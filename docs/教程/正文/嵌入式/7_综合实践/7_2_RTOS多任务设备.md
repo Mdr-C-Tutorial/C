@@ -624,7 +624,7 @@ cmake --build build_stm
 
 ### 9.1 巩固
 
-<Exercise id="67711" :d="2" :w="2">
+<Exercise id="60711" :d="2" :w="2">
 
 本页的任务表里 sample 优先级 4、process 与 record 同为 3、console 2、monitor 1。
 
@@ -638,7 +638,7 @@ cmake --build build_stm
 
 </Exercise>
 
-<Exercise id="67712" :d="3" :w="2">
+<Exercise id="60712" :d="3" :w="2">
 
 采样任务每轮做 0.6 ms 的活，之后调 `xTaskDelayUntil(&last, pdMS_TO_TICKS(10))`。
 
@@ -650,7 +650,7 @@ cmake --build build_stm
 
 </Exercise>
 
-<Exercise id="67713" :d="3" :w="3">
+<Exercise id="60713" :d="3" :w="3">
 
 `log.c` 把 littlefs 的 `lock`/`unlock` 接到递归互斥量上，并打开 `LFS_THREADSAFE`。
 
@@ -666,7 +666,7 @@ cmake --build build_stm
 
 ### 9.2 编程
 
-<Exercise id="67714" :d="3" :w="3">
+<Exercise id="60714" :d="3" :w="3">
 
 正文说本页用互斥量，习题要改成守门任务并比较。
 
@@ -682,7 +682,7 @@ cmake --build build_stm
 
 </Exercise>
 
-<Exercise id="67715" :d="3" :w="4">
+<Exercise id="60715" :d="3" :w="4">
 
 把目标板的阻塞式 HAL 读换成 DMA + 任务通知（第 3.2 节）。
 
@@ -698,7 +698,7 @@ cmake --build build_stm
 
 </Exercise>
 
-<Exercise id="67716" :d="4" :w="4">
+<Exercise id="60716" :d="4" :w="4">
 
 `log_init()` 用“编号最大且非空的文件”接着写：
 
@@ -719,7 +719,7 @@ if (lfs_stat(&g_lfs, name, &info) == LFS_ERR_OK && info.size > 0) {
 
 </Exercise>
 
-<Exercise id="67717" :d="4" :w="3">
+<Exercise id="60717" :d="4" :w="3">
 
 `print_status()` 的速率与计数器有几处经不起推敲。
 
@@ -733,7 +733,7 @@ if (lfs_stat(&g_lfs, name, &info) == LFS_ERR_OK && info.size > 0) {
 
 </Exercise>
 
-<Exercise id="67718" :d="4" :w="4" math="M">
+<Exercise id="60718" :d="4" :w="4" math="M">
 
 用 `code/嵌入式/4_RTOS与固件架构/4_6_优先级反转_死锁与实时性/rta.c` 复核本页的任务集。
 
@@ -751,7 +751,7 @@ if (lfs_stat(&g_lfs, name, &info) == LFS_ERR_OK && info.size > 0) {
 
 ### 9.3 综合与挑战
 
-<Exercise id="67719" :d="5" :w="4">
+<Exercise id="60719" :d="5" :w="4">
 
 在 20 KB SRAM 上把 RAM 账算平。`sample_t` 在 Cortex-M3 上是 16 字节。
 
@@ -767,7 +767,7 @@ if (lfs_stat(&g_lfs, name, &info) == LFS_ERR_OK && info.size > 0) {
 
 </Exercise>
 
-<Exercise id="67720" :d="6" :w="5" scope="*">
+<Exercise id="60720" :d="6" :w="5" scope="*">
 
 把两个构建目标接进 CI：同一份 `app/`，模拟器上跑集成测试，目标板上只做链接与尺寸检查。
 

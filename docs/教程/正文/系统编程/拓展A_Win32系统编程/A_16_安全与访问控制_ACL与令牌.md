@@ -1045,7 +1045,7 @@ AdjustTokenPrivileges -> 1, GetLastError -> 1300
 
 ### 8.1 巩固
 
-<Exercise id="46601" :d="1" :w="1">
+<Exercise id="44601" :d="1" :w="1">
 
 编译运行本页的 `tokeninfo.c` 与 `token_member.c`，然后回答：
 
@@ -1057,7 +1057,7 @@ AdjustTokenPrivileges -> 1, GetLastError -> 1300
 
 </Exercise>
 
-<Exercise id="46602" :d="2" :w="2">
+<Exercise id="44602" :d="2" :w="2">
 
 下面三份 SDDL 都用来创建文件，创建者都是当前用户。先写下你对「以 `GENERIC_READ | GENERIC_WRITE` 打开」的预测，再写一个小程序逐份验证：
 
@@ -1069,7 +1069,7 @@ AdjustTokenPrivileges -> 1, GetLastError -> 1300
 
 </Exercise>
 
-<Exercise id="46603" :d="2" :w="2">
+<Exercise id="44603" :d="2" :w="2">
 
 找一个你自己的普通文件，分别运行 `sddl_show.exe` 和 `icacls`，把 SDDL 里的每个字段与 `icacls` 输出逐项对应起来，做成一张表。然后回答：
 
@@ -1081,7 +1081,7 @@ AdjustTokenPrivileges -> 1, GetLastError -> 1300
 
 ### 8.2 编程
 
-<Exercise id="46604" :d="3" :w="3">
+<Exercise id="44604" :d="3" :w="3">
 
 写一个 `fileacl.exe 路径...` 工具，对每个路径打印：
 
@@ -1093,7 +1093,7 @@ AdjustTokenPrivileges -> 1, GetLastError -> 1300
 
 </Exercise>
 
-<Exercise id="46605" :d="3" :w="4">
+<Exercise id="44605" :d="3" :w="4">
 
 写一个 `private_dir.exe 目录名` 工具：创建一个只有当前用户与 SYSTEM 能访问的目录，并把完全控制权限按 `(OI)(CI)` 继承给子对象；再提供 `private_dir.exe --restore 目录名`，把目录的 DACL 恢复成从父目录继承。
 
@@ -1106,7 +1106,7 @@ AdjustTokenPrivileges -> 1, GetLastError -> 1300
 
 </Exercise>
 
-<Exercise id="46606" :d="4" :w="4">
+<Exercise id="44606" :d="4" :w="4">
 
 写一个 `privtool.exe [--enable 名称 | --disable 名称 | --list]` 工具：
 
@@ -1128,7 +1128,7 @@ privtool.exe --enable SeDebugPrivilege        -> 打印 1300，返回 1
 
 ### 8.3 综合与挑战
 
-<Exercise id="46607" :d="5" :w="4">
+<Exercise id="44607" :d="5" :w="4">
 
 写一个 `acl_audit.exe 目录` 工具，递归扫描目录树，列出「本机普通用户可写」的文件与子目录。判断标准是不能靠字符串比对 DACL，要用 `AccessCheck`：
 
@@ -1141,7 +1141,7 @@ privtool.exe --enable SeDebugPrivilege        -> 打印 1300，返回 1
 
 </Exercise>
 
-<Exercise id="46608" :d="6" :w="5">
+<Exercise id="44608" :d="6" :w="5">
 
 在 A.12 的 `pipe_echo_server.c` 基础上写一个 `secured_pipe_server.exe`，做三件事：
 
@@ -1153,7 +1153,7 @@ privtool.exe --enable SeDebugPrivilege        -> 打印 1300，返回 1
 
 </Exercise>
 
-<Exercise id="46609" :d="7" :w="5" scope="*">
+<Exercise id="44609" :d="7" :w="5" scope="*">
 
 设计并实现一个最小权限沙箱 `sandbox.exe [--check] -- 命令行`：
 

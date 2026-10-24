@@ -525,7 +525,7 @@ OK
 
 ### 8.1 巩固
 
-<Exercise id="63364" :d="1" :w="2">
+<Exercise id="60363" :d="1" :w="2">
 
 下面是一段从 USART3 收到的字节流（`\r\n` 已标出）：
 
@@ -541,7 +541,7 @@ OK
 
 </Exercise>
 
-<Exercise id="63365" :d="2" :w="2">
+<Exercise id="60364" :d="2" :w="2">
 
 `code/嵌入式/3_驱动_通信与中间件/3_8_BLE_WiFi与通信模块/exercises/adv_mfg_starter.c` 已经能解 Flags、设备名、16 位 UUID 与厂商数据。编译运行，它会输出：
 
@@ -560,7 +560,7 @@ Manufacturer: company=0x02E5 payload=011964
 
 </Exercise>
 
-<Exercise id="63366" :d="2" :w="2">
+<Exercise id="60365" :d="2" :w="2">
 
 `exercises/wifi_backoff_starter.c` 实现断线后的指数退避重连。
 
@@ -576,7 +576,7 @@ Manufacturer: company=0x02E5 payload=011964
 
 ### 8.2 编程
 
-<Exercise id="63367" :d="3" :w="3">
+<Exercise id="60366" :d="3" :w="3">
 
 `exercises/ipd_mux_starter.c` 已能同时解析单连接 `+IPD,<len>:` 与多连接 `+IPD,<id>,<len>:`，但 `RX_IPD_HEADER` 分支里丢了 TODO 之外的检查。先运行现有版本，确认输出：
 
@@ -596,7 +596,7 @@ link=2 len=6 data="sensor"
 
 </Exercise>
 
-<Exercise id="63368" :d="3" :w="3">
+<Exercise id="60367" :d="3" :w="3">
 
 给 `test_at_parser.c` 增加一组用例：`AT+CIPSEND` 的 `OK` 与 `>` 之间插入一条 URC。
 
@@ -610,7 +610,7 @@ link=2 len=6 data="sensor"
 
 </Exercise>
 
-<Exercise id="63369" :d="4" :w="3">
+<Exercise id="60368" :d="4" :w="3">
 
 在 `exercises/adv_mfg_starter.c` 上扩展广播解码：
 
@@ -630,7 +630,7 @@ link=2 len=6 data="sensor"
 
 ### 8.3 综合与挑战
 
-<Exercise id="63370" :d="5" :w="4">
+<Exercise id="60369" :d="5" :w="4">
 
 用第 4 节的 `at_client` 与 `ringbuf` 写一个完整的联网状态机，在 PC 上喂字节测试。
 
@@ -644,7 +644,7 @@ link=2 len=6 data="sensor"
 
 </Exercise>
 
-<Exercise id="63371" :d="5" :w="4" scope="*">
+<Exercise id="60370" :d="5" :w="4" scope="*">
 
 BLE 默认 MTU 只有 23 字节，一条通知最多 20 字节应用数据。把 2.9 节的温度采样打包成通知流：
 
@@ -658,7 +658,7 @@ BLE 默认 MTU 只有 23 字节，一条通知最多 20 字节应用数据。把
 
 </Exercise>
 
-<Exercise id="63372" :d="6" :w="5" scope="**">
+<Exercise id="60371" :d="6" :w="5" scope="**">
 
 写一个模块自检工具 `at_selftest`，在设备出厂或现场排查时运行。需要真实模块，没有模块时只做编译检查并在报告里说明。
 

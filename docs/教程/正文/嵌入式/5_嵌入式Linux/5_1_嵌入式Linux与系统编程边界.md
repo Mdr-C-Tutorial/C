@@ -303,7 +303,7 @@ $ echo $?
 
 ### 7.1 巩固
 
-<Exercise id="65510" :d="1" :w="2">
+<Exercise id="60510" :d="1" :w="2">
 
 用 `code/嵌入式/5_嵌入式Linux/5_1_嵌入式Linux与系统编程边界/hello.c` 把第 6 节的命令重做一遍。
 
@@ -319,7 +319,7 @@ $ echo $?
 
 </Exercise>
 
-<Exercise id="65511" :d="2" :w="2">
+<Exercise id="60511" :d="2" :w="2">
 
 交叉编译器的预定义宏能直接看出目标 ABI，比读文档快。
 
@@ -333,7 +333,7 @@ $ echo $?
 
 </Exercise>
 
-<Exercise id="65512" :d="2" :w="2">
+<Exercise id="60512" :d="2" :w="2">
 
 写一个 `readattr` 程序，参数是一个路径，行为是打开、读一次、打印读到的字节数和内容。用它读下面四个文件：
 
@@ -356,7 +356,7 @@ $ echo $?
 
 ### 7.2 编程
 
-<Exercise id="65513" :d="3" :w="3">
+<Exercise id="60513" :d="3" :w="3">
 
 系统调用的边界可以用 `strace` 直接看见。
 
@@ -370,7 +370,7 @@ $ echo $?
 
 </Exercise>
 
-<Exercise id="65514" :d="3" :w="3">
+<Exercise id="60514" :d="3" :w="3">
 
 写一个 `sysinfo` 小工具，作为选型时的第一手数据。
 
@@ -387,7 +387,7 @@ $ echo $?
 
 </Exercise>
 
-<Exercise id="65515" :d="4" :w="3">
+<Exercise id="60515" :d="4" :w="3">
 
 模拟一次「能链接、一运行就找不到库」的故障，弄清 sysroot 与运行时搜索路径的关系。
 
@@ -405,7 +405,7 @@ mkdir -p lib app
 
 </Exercise>
 
-<Exercise id="65516" :d="5" :w="4">
+<Exercise id="60516" :d="5" :w="4">
 
 写一个统一的传感器读取函数，把第 2 节的三条路合成一个接口。
 
@@ -435,7 +435,7 @@ int sensor_read(const char *path, double *out);
 
 ### 7.3 综合与挑战
 
-<Exercise id="65517" :d="6" :w="5" scope="*">
+<Exercise id="60517" :d="6" :w="5" scope="*">
 
 把一份依赖 glibc 扩展的小程序移植到只依赖 POSIX 的写法，为换成 musl 做准备。
 

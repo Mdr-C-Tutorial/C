@@ -756,7 +756,7 @@ HAL_StatusTypeDef eeprom_hal_write_and_read(uint16_t word_addr,
 
 ### 9.1 巩固
 
-<Exercise id="62268" :d="2" :w="2">
+<Exercise id="60268" :d="2" :w="2">
 
 写一个宿主机程序 `spi_bits.c`，把字节流按 SPI 模式 0 的时序展开。
 
@@ -769,7 +769,7 @@ HAL_StatusTypeDef eeprom_hal_write_and_read(uint16_t word_addr,
 
 </Exercise>
 
-<Exercise id="62269" :d="2" :w="2">
+<Exercise id="60269" :d="2" :w="2">
 
 下面四段 SPI 代码各有一处问题。指出问题、说明芯片上的现象，并给出改法。
 
@@ -818,7 +818,7 @@ void send_two_d(uint8_t a, uint8_t b) {
 
 </Exercise>
 
-<Exercise id="62270" :d="2" :w="2">
+<Exercise id="60270" :d="2" :w="2">
 
 扩展 `code/嵌入式/2_MCU裸机开发/2_8_SPI与I2C/host/spi_br_calc.c`，为给定的目标速率挑分频档。
 
@@ -833,7 +833,7 @@ void send_two_d(uint8_t a, uint8_t b) {
 
 ### 9.2 编程
 
-<Exercise id="62271" :d="3" :w="3">
+<Exercise id="60271" :d="3" :w="3">
 
 不接硬件，在宿主机上给 W25Q64 写一个器件模型，验证第 4 节的三个函数。
 
@@ -849,7 +849,7 @@ void send_two_d(uint8_t a, uint8_t b) {
 
 </Exercise>
 
-<Exercise id="62272" :d="3" :w="3">
+<Exercise id="60272" :d="3" :w="3">
 
 补全软件 I²C 的读字节函数，并在 PC 上核对时序。
 
@@ -866,7 +866,7 @@ uint8_t i2c_read_byte(bool ack);
 
 </Exercise>
 
-<Exercise id="62273" :d="3" :w="3">
+<Exercise id="60273" :d="3" :w="3">
 
 给 AT24C02 写一个带写周期模型的宿主机测试。
 
@@ -880,7 +880,7 @@ uint8_t i2c_read_byte(bool ack);
 
 </Exercise>
 
-<Exercise id="62274" :d="3" :w="2">
+<Exercise id="60274" :d="3" :w="2">
 
 写一个宿主机程序 `i2c_timing.c`，按第 7 节的公式算 CCR 与 TRISE。
 
@@ -895,7 +895,7 @@ uint8_t i2c_read_byte(bool ack);
 
 ### 9.3 综合与挑战
 
-<Exercise id="62275" :d="4" :w="3">
+<Exercise id="60275" :d="4" :w="3">
 
 用 I2C1 的寄存器（不调 HAL）向 AT24C02 的地址 0x10 写一个字节，按第 7.3 节的事件顺序实现：
 
@@ -911,7 +911,7 @@ bool i2c1_write_byte_polled(uint8_t dev_addr, uint8_t word_addr, uint8_t data);
 
 </Exercise>
 
-<Exercise id="62276" :d="4" :w="4">
+<Exercise id="60276" :d="4" :w="4">
 
 用一根杜邦线把 PA7（MOSI）与 PA6（MISO）短接，给 SPI1 写自检固件。
 
@@ -925,7 +925,7 @@ bool i2c1_write_byte_polled(uint8_t dev_addr, uint8_t word_addr, uint8_t data);
 
 </Exercise>
 
-<Exercise id="62277" :d="5" :w="4" scope="*">
+<Exercise id="60277" :d="5" :w="4" scope="*">
 
 给一块同时挂多种器件的板子做总线规划与时间预算。
 

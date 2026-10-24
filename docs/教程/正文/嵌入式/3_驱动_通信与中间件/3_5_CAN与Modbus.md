@@ -745,7 +745,7 @@ Modbus TCP 把同一套 PDU 放到 TCP 上，端口 502。报文外面套一个 
 
 ### 10.1 巩固
 
-<Exercise id="63335" :d="1" :w="2">
+<Exercise id="60334" :d="1" :w="2">
 
 四个节点在同一时刻开始发送，标识符分别是 `0x120`、`0x0A5`、`0x1FF`、`0x080`，都是标准数据帧。
 
@@ -756,7 +756,7 @@ Modbus TCP 把同一套 PDU 放到 TCP 上，端口 502。报文外面套一个 
 
 </Exercise>
 
-<Exercise id="63336" :d="2" :w="2">
+<Exercise id="60335" :d="2" :w="2">
 
 `bit_timing_calc.c` 只算了 500k、250k、125k 三档，采样点筛选范围写死为 85%～90%。
 
@@ -770,7 +770,7 @@ Modbus TCP 把同一套 PDU 放到 TCP 上，端口 502。报文外面套一个 
 
 </Exercise>
 
-<Exercise id="63337" :d="2" :w="2">
+<Exercise id="60336" :d="2" :w="2">
 
 下面四帧都是 Modbus RTU 请求，CRC 均已正确：
 
@@ -791,7 +791,7 @@ D: 01 06 00 01 00 03 98 0B
 
 ### 10.2 编程
 
-<Exercise id="63338" :d="3" :w="3">
+<Exercise id="60337" :d="3" :w="3">
 
 CAN 过滤器配置，起始代码在 `code/嵌入式/3_驱动_通信与中间件/3_5_CAN与Modbus/exercises/can_filter_starter.c`。
 
@@ -803,7 +803,7 @@ CAN 过滤器配置，起始代码在 `code/嵌入式/3_驱动_通信与中间�
 
 </Exercise>
 
-<Exercise id="63339" :d="3" :w="3">
+<Exercise id="60338" :d="3" :w="3">
 
 实现 Modbus 功能码 0x10（写多个保持寄存器），起始代码是 `.../exercises/modbus_fc10_starter.c`，要改的是 `modbus/rtu_slave.c`。
 
@@ -815,7 +815,7 @@ CAN 过滤器配置，起始代码在 `code/嵌入式/3_驱动_通信与中间�
 
 </Exercise>
 
-<Exercise id="63340" :d="4" :w="4">
+<Exercise id="60339" :d="4" :w="4">
 
 Modbus RTU 的接收定时状态机，起始代码是 `.../exercises/rtu_timer_fsm_starter.c`。
 
@@ -828,7 +828,7 @@ Modbus RTU 的接收定时状态机，起始代码是 `.../exercises/rtu_timer_f
 
 </Exercise>
 
-<Exercise id="63341" :d="4" :w="4">
+<Exercise id="60340" :d="4" :w="4">
 
 给从站加功能码 0x04（读输入寄存器）。输入寄存器是只读的 ADC 结果，用 `uint16_t input_regs[8]` 表示，初值取 100、200、300 直到 800。
 
@@ -842,7 +842,7 @@ Modbus RTU 的接收定时状态机，起始代码是 `.../exercises/rtu_timer_f
 
 ### 10.3 综合与挑战
 
-<Exercise id="63342" :d="5" :w="4">
+<Exercise id="60341" :d="5" :w="4">
 
 Modbus TCP 与 RTU 之间的网关，起始代码是 `.../exercises/modbus_gateway_starter.c`。
 
@@ -855,7 +855,7 @@ Modbus TCP 与 RTU 之间的网关，起始代码是 `.../exercises/modbus_gatew
 
 </Exercise>
 
-<Exercise id="63343" :d="5" :w="4">
+<Exercise id="60342" :d="5" :w="4">
 
 RS-485 方向控制的缺陷定位。下面三个发送函数，只有一个是正确的：
 
@@ -905,7 +905,7 @@ static void send_c(const uint8_t *buf, size_t len) {
 
 </Exercise>
 
-<Exercise id="63344" :d="6" :w="5" scope="**">
+<Exercise id="60343" :d="6" :w="5" scope="**">
 
 bxCAN 回环自测固件（需要 Blue Pill 与下载器，没有硬件时至少编译通过）。
 

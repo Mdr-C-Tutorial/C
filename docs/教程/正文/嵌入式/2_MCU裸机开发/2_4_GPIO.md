@@ -503,7 +503,7 @@ HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 
 ### 9.1 巩固
 
-<Exercise id="62228" :d="1" :w="1">
+<Exercise id="60228" :d="1" :w="1">
 
 启动后有人把两个配置寄存器写成了下面的值：
 
@@ -520,7 +520,7 @@ GPIOB->CRH = 0x4B444444u;
 
 </Exercise>
 
-<Exercise id="62229" :d="2" :w="1">
+<Exercise id="60229" :d="2" :w="1">
 
 `GPIOA->BSRR` 与 `GPIOB->BSRR` 的初值都是 0，PA0～PA7、PB0～PB7 全部输出低电平。依次执行：
 
@@ -539,7 +539,7 @@ GPIOB->BRR  = 0x00000030u;
 
 </Exercise>
 
-<Exercise id="62230" :d="2" :w="2">
+<Exercise id="60230" :d="2" :w="2">
 
 按键一端接 GND、另一端接 PB5，要求松开时读到高电平、按下时读到低电平。
 
@@ -551,7 +551,7 @@ GPIOB->BRR  = 0x00000030u;
 
 </Exercise>
 
-<Exercise id="62231" :d="2" :w="2">
+<Exercise id="60231" :d="2" :w="2">
 
 板载 LED 接在 PC13 上，这颗 LED 的正向压降约 1.9 V，希望灌入约 2 mA。第 6 节说 PC13～PC15 属于备份域，灌电流与拉电流都限制在 3 mA，输出速度限制在 2 MHz。
 
@@ -567,7 +567,7 @@ GPIOB->BRR  = 0x00000030u;
 
 ### 9.2 编程
 
-<Exercise id="62232" :d="3" :w="2">
+<Exercise id="60232" :d="3" :w="2">
 
 `code/嵌入式/2_MCU裸机开发/2_4_GPIO/gpio/gpio.c` 里已有 `gpio_config`、`gpio_write`、`gpio_read` 三个函数。给这个模块补两个函数：
 
@@ -594,7 +594,7 @@ void gpio_config_mask(GPIO_TypeDef *port, uint16_t pins, uint32_t cfg);
 
 </Exercise>
 
-<Exercise id="62233" :d="3" :w="2">
+<Exercise id="60233" :d="3" :w="2">
 
 开漏输出可以接在同一根线上做「线与」。用一个主机程序 `wired_and.c` 模拟三个开漏引脚接到同一条总线：
 
@@ -620,7 +620,7 @@ int bus_level(const struct od_pin *pins, int n);
 
 </Exercise>
 
-<Exercise id="62234" :d="3" :w="3">
+<Exercise id="60234" :d="3" :w="3">
 
 第 4 节的 `button_read_debounced()` 会阻塞到电平稳定。写一个不阻塞的版本，接口为：
 
@@ -654,7 +654,7 @@ int debounce_scan(debounce_t *d, int raw);
 
 </Exercise>
 
-<Exercise id="62235" :d="3" :w="3">
+<Exercise id="60235" :d="3" :w="3">
 
 第 8 节给出了 HAL 的 `GPIO_InitTypeDef` 写法。完成下面四项：
 
@@ -675,7 +675,7 @@ GPIOA->BSRR = GPIO_BSRR_BR0;
 
 ### 9.3 综合与挑战
 
-<Exercise id="62236" :d="4" :w="3">
+<Exercise id="60236" :d="4" :w="3">
 
 写一个主机程序 `pin_plan.c`，检查一组外设的引脚分配是否冲突。输入从标准输入读，每行格式：
 
@@ -709,7 +709,7 @@ SWD A 13
 
 </Exercise>
 
-<Exercise id="62237" :d="5" :w="4" scope="*">
+<Exercise id="60237" :d="5" :w="4" scope="*">
 
 给 GPIO 模块加一层「安全配置」：改任何一个引脚之前先确认它没有被 `LCKR` 锁住，改完之后能按需要锁住配置。
 
