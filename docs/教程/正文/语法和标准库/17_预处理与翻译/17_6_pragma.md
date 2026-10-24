@@ -161,11 +161,10 @@ int main(void) {
 
 `#pragma STDC FP_CONTRACT` 说「允许把 `a * b + c` 收缩成一条融合乘加」。这句话的实际效果取决于编译器与命令行选项，这一题用实验把它量出来。
 
-1. 写一个 `f(double a, double b) { return a * b - 1.0; }`，主程序取 `a = 1.0 + 0x1p-27`、`b = 1.0 - 0x1p-27`（两者都是 `volatile`，防止常量折叠），用 `printf("%a")` 打印 `f(a, b)`。三条命令各跑一次：`gcc -std=c17 -O2 -mfma`、`gcc -std=gnu17 -O2 -mfma`、`clang -std=c17 -O2 -mfma`。三次结果是否相同？`-std=c17` 与 `-std=gnu17` 的差别说明 GCC 的默认值是什么。
-2. 在 `f` 前面加 `#pragma STDC FP_CONTRACT OFF`，把第 1 步的三条命令各再跑一遍。结果有变化吗？GCC 13.2 加 `-Wall -Wextra` 时对这个 pragma 报什么？Clang 19 呢？这决定了后面读表时该怎么理解 GCC 的结果。
-3. 对同一份代码用 `-S` 生成汇编，找融合乘加的助记符 `vfmadd`（x86-64 上需要 `-mfma` 才会生成）。做一张表：行是「pragma 缺省 / OFF / ON」，列是「`-ffp-contract` 缺省 / off / on / fast」，每格填有没有 `vfmadd`。GCC 与 Clang 各做一张，都加 `-std=c17`。
-4. 比较两张表。GCC 的四列在 pragma 缺省、OFF、ON 三行里完全一样，说明它对这个 pragma 是什么态度？Clang 的表里，「pragma ON 配 `-ffp-contract=off`」与「pragma OFF 配 `-ffp-contract=fast`」两格都有 `vfmadd`，看起来既像 pragma 优先又像命令行优先。把别的格子一起看，写出一条能同时解释这两格的规则：`fast` 与 pragma 的 `ON` 各有什么特权，`off` 在什么情况下才管用。
-5. 用 `fma` 函数（`<math.h>`）算出同一次运算的「真」融合结果，与第 1 步的分离结果比较。两个值差多少？这个差从哪来？
-6. `#pragma STDC FENV_ACCESS ON` 的效果同理：没有它，编译器可以假设计算不关心舍入模式，把常量除法在编译期算掉。写一个 `fesetround(FE_UPWARD)` 后计算 `double third = 1.0 / 3.0;` 的程序，用 `printf("%a")` 打印，分别在 `-O0` 与 `-O2` 下用 Clang 运行；再在 `main` 的花括号之后、第一条语句之前加 `#pragma STDC FENV_ACCESS ON` 跑一次。`FE_UPWARD` 的结果应当是 `0x1.5555555555556p-2`，哪几次输出的不是它？GCC 加同样的 pragma 又输出什么？
+1. 写一个 `f(double a, double b) { return a * b - 1.0; }`，主程序取 `a = 1.0 + 0x1p-27`、`b = 1.0 - 0x1p-27`（两者都是 `volatile`，防止常量折叠），用 `printf("%a")` 打印 `f(a, b)`。分别用 GCC 与 Clang 各编译运行一次，记录结果。再换成 `-std=gnu17` 编译一次。三次结果是否相同？`-std=c17` 与 `-std=gnu17` 的差别说明 GCC 的默认值是什么。
+2. 在 `f` 前面加 `#pragma STDC FP_CONTRACT OFF`，把第 1 步的几条命令各再跑一遍。结果有变化吗？GCC 13.2 加 `-Wall -Wextra` 时对这个 pragma 报什么？Clang 19 呢？这决定了后面读结果时该怎么理解 GCC 的输出。
+3. 用 `-S` 生成汇编，看 `f` 里乘法与减法是否被合并成一条融合乘加指令（x86-64 上需要打开 `-mfma` 才会出现，GCC 与 Clang 各试一次）。把第 1、2 步的结果与这条指令出现与否对应起来：pragma 和命令行分别起了什么作用。
+4. 用 `fma` 函数（`<math.h>`）算出同一次运算的「真」融合结果，与第 1 步的分离结果比较。两个值差多少？这个差从哪来？
+5. `#pragma STDC FENV_ACCESS ON` 的效果同理：没有它，编译器可以假设计算不关心舍入模式，把常量除法在编译期算掉。写一个 `fesetround(FE_UPWARD)` 后计算 `double third = 1.0 / 3.0;` 的程序，用 `printf("%a")` 打印，用 Clang 运行；再在 `main` 的花括号之后、第一条语句之前加 `#pragma STDC FENV_ACCESS ON` 跑一次。`FE_UPWARD` 的结果应当是 `0x1.5555555555556p-2`，哪几次输出的不是它？GCC 加同样的 pragma 又输出什么？
 
 </Exercise>

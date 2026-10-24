@@ -108,7 +108,7 @@ int main(void) {
 ```
 
 1. 用 `gcc -std=c17 -Wall -Wextra` 构建，抄下警告，指出它对应哪个函数、哪一行。编译能通过吗？
-2. 运行并记录三行输出。再用 `-O1` 和 `-O2` 各构建一次，记录第二行的变化。三次结果哪一次可以当作 `grade(50)` 的值？
+2. 运行并记录三行输出。第二行打印的值可以当作 `grade(50)` 的值吗？为什么？
 3. 补上缺的返回语句，使 `grade(50)` 为 `1`，重新构建。`-Wall -Wextra` 必须无输出，三行输出变成 `0 100`、`1`、`grade 4`。
 4. 把 `report` 里的 `return;` 改成 `break;`，构建并抄下 error。说明 `return` 与 `break` 各自作用在什么范围内。
 5. 删掉 `main` 末尾的 `return 0;`，重新构建运行。用 `echo $?`（bash）或 `$LASTEXITCODE`（PowerShell）查看退出状态，说明执行到 `main` 的 `}` 相当于什么。
