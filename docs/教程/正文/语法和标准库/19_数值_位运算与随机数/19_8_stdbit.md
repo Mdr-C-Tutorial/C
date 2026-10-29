@@ -18,11 +18,38 @@
 3. 位宽与取整：`stdc_bit_width` / `stdc_bit_floor` / `stdc_bit_ceil`
 4. 单比特判断：`stdc_has_single_bit`
 
-它们还提供按类型区分的版本，例如：
+它们还提供按类型区分的后缀版本：
 
-- `stdc_count_ones_ui`：形参类型为 `unsigned int`
-- `stdc_count_ones_ul`：形参类型为 `unsigned long`
-- `stdc_count_ones_ull`：形参类型为 `unsigned long long`
+- `_uc`：形参类型为 `unsigned char`
+- `_us`：形参类型为 `unsigned short`
+- `_ui`：形参类型为 `unsigned int`
+- `_ul`：形参类型为 `unsigned long`
+- `_ull`：形参类型为 `unsigned long long`
+
+不带类型后缀的同名标识符（如 `stdc_count_ones(x)`）是类型泛型宏，除了接受上述 5 种标准无符号整数类型外，还接受扩展无符号整数类型以及 C23 无符号位精确整数 `unsigned _BitInt(N)`。
+
+### 1.1 14 组位操作接口与边界约定
+
+设实参 `value` 的位宽为 $W$，`<stdbit.h>` 提供的 14 组操作及其对 `value == 0`（或全 1）的边界返回值如下：
+
+| 泛型宏名 | 功能说明 | `value == 0` 时的返回值 |
+| --- | --- | --- |
+| `stdc_leading_zeros(v)` | 从最高有效位起连续 0 的个数 | $W$ |
+| `stdc_leading_ones(v)` | 从最高有效位起连续 1 的个数 | `0` |
+| `stdc_trailing_zeros(v)` | 从最低有效位起连续 0 的个数 | $W$ |
+| `stdc_trailing_ones(v)` | 从最低有效位起连续 1 的个数 | `0` |
+| `stdc_first_leading_zero(v)` | 从最高位起第一个 0 的位置（从 1 开始编号；无则返回 0） | `1`（全 1 时返回 `0`） |
+| `stdc_first_leading_one(v)` | 从最高位起第一个 1 的位置（从 1 开始编号；无则返回 0） | `0` |
+| `stdc_first_trailing_zero(v)` | 从最低位起第一个 0 的位置（从 1 开始编号；无则返回 0） | `1`（全 1 时返回 `0`） |
+| `stdc_first_trailing_one(v)` | 从最低位起第一个 1 的位置（从 1 开始编号；无则返回 0） | `0` |
+| `stdc_count_zeros(v)` | 所有二进制位中 0 的总个数 | $W$ |
+| `stdc_count_ones(v)` | 所有二进制位中 1 的总个数（popcount） | `0` |
+| `stdc_has_single_bit(v)` | 是否恰好只有一个二进制位为 1（即是否为 2 的幂，返回 `bool`） | `false` |
+| `stdc_bit_width(v)` | 表示该值所需的最少位数（即 $1 + \lfloor\log_2 v\rfloor$） | `0` |
+| `stdc_bit_floor(v)` | 不大于 `v` 的最大 2 的整数次幂 | `0` |
+| `stdc_bit_ceil(v)` | 不小于 `v` 的最小 2 的整数次幂（若结果超出类型可表示范围则行为未定义） | `1` |
+
+与编译器内建函数 `__builtin_clz(0)` / `__builtin_ctz(0)` 在输入为 `0` 时产生未定义行为不同，`<stdbit.h>` 中的所有前导/尾随计数与查找函数对 `0` 都有良定义返回值。
 
 ## 2. 示例：统计二进制 1 的个数
 

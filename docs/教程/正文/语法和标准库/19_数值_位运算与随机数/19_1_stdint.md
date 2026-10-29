@@ -58,7 +58,9 @@ uintptr_t addr = (uintptr_t)ptr;  // 将指针转换为整数
 
 `<limits.h>` 给出的是 `int`、`long` 等标准整数类型的极限（见 19.2），二者的宏名并不重叠。
 
-## 7. 其他宏
+## 7. 其他宏与整数常量宏
+
+`<stdint.h>` 还定义了标准库其他头文件中常见整数类型的极限宏：
 
 - `PTRDIFF_MIN`、`PTRDIFF_MAX`：`ptrdiff_t` 的极限。
 - `SIZE_MAX`：`size_t` 的最大值。
@@ -66,9 +68,58 @@ uintptr_t addr = (uintptr_t)ptr;  // 将指针转换为整数
 - `WCHAR_MIN`、`WCHAR_MAX`：`wchar_t` 的极限。
 - `WINT_MIN`、`WINT_MAX`：`wint_t` 的极限。
 
-## 8. 格式化输出
+### 7.1 整数常量宏（Integer constant macros）
 
-这些类型的格式化输出需配合 `<inttypes.h>` 中的宏（如 `PRId32` 用于 `printf("%" PRId32, x);`）。
+在源代码中直接书写十进制或十六进制整数字面量时，其类型取决于字面量的值以及当前平台的 `int`、`long`、`long long` 宽度。为了构造类型恰好对应 `int_leastN_t`、`uint_leastN_t` 或 `intmax_t`、`uintmax_t`（经整数提升后）的整型常量表达式，`<stdint.h>` 提供了函数式宏：
+
+- 有符号常量宏：`INT8_C(v)`、`INT16_C(v)`、`INT32_C(v)`、`INT64_C(v)`、`INTMAX_C(v)`
+- 无符号常量宏：`UINT8_C(v)`、`UINT16_C(v)`、`UINT32_C(v)`、`UINT64_C(v)`、`UINTMAX_C(v)`
+
+实现会根据目标平台为字面量拼接恰当的后缀（例如在 `long` 为 64 位的 LP64 平台上，`UINT64_C(1)` 展开为 `1UL`；而在 `long` 为 32 位的 Windows LLP64 平台上展开为 `1ULL`）：
+
+```c
+uint64_t mask = UINT64_C(1) << 40; // 避免 1 << 40 因按 int 求值而发生移位溢出
+uint64_t fnv_basis = UINT64_C(14695981039346656037);
+```
+
+## 8. 格式化输入输出与位精确整数
+
+### 8.1 `<inttypes.h>` 格式宏
+
+由于 `int32_t`、`int64_t`、`intptr_t` 等 typedef 名称在不同平台上可能映射为 `int`、`long` 或 `long long`，在 `printf` / `scanf` 中硬编码 `%d`、`%ld` 或 `%lld` 会在跨平台编译时触发 `-Wformat` 警告甚至导致未定义行为。
+
+标准头文件 `<inttypes.h>`（它会自动包含 `<stdint.h>`）提供了一组展开为字符串字面量的格式说明符宏，利用相邻字符串字面量自动拼接的语法特性嵌入格式串中：
+
+- **`printf` 族输出宏**：前缀 `PRI` + 转换说明符（`d`、`i`、`u`、`o`、`x`、`X`）+ 类型标识（`8`、`16`、`32`、`64`、`LEASTN`、`FASTN`、`MAX`、`PTR`）。例如 `PRId32`、`PRIu64`、`PRIxPTR`、`PRIdMAX`。
+- **`scanf` 族输入宏**：前缀 `SCN` + 转换说明符（`d`、`i`、`u`、`o`、`x`）+ 类型标识。例如 `SCNd32`、`SCNu64`、`SCNdMAX`、`SCNiMAX`。
+
+```c
+#include <inttypes.h>
+#include <stdio.h>
+
+int main(void) {
+    uint64_t v = UINT64_C(0x123456789abcdef0);
+    uintptr_t addr = (uintptr_t)&v;
+    printf("v = %" PRIu64 " (0x%" PRIx64 ")\n", v, v);
+    printf("addr = 0x%" PRIxPTR "\n", addr);
+    return 0;
+}
+```
+
+### 8.2 位精确整数类型 `_BitInt(N)`（C23）
+
+C23 引入了内建关键字 `_BitInt(N)`，用于声明恰好包含 $N$ 个二进制位（有符号类型含 1 个符号位与 $N - 1$ 个数值位，$N \ge 2$；无符号类型 `unsigned _BitInt(N)` 含 $N$ 个数值位，$N \ge 1$）的**位精确整数类型 (bit-precise integer types)**：
+
+```c
+signed _BitInt(24) audio_sample = -100000wb; // 24 位有符号整数
+unsigned _BitInt(12) adc_raw = 0xFFFuwb;     // 12 位无符号整数（范围 0..4095）
+unsigned _BitInt(128) wide_counter = 0uwb;   // 128 位无符号整数
+```
+
+使用 `_BitInt(N)` 时需注意以下规则：
+
+1. **字面量后缀与最大宽度**：C23 新增了整数字面量后缀 `wb` / `WB`（有符号 `_BitInt`）与 `uwb` / `UWB`（无符号 `unsigned _BitInt`），编译器会根据字面量数值自动推导所需的最小位宽。实现支持的最大位宽由 `<limits.h>` 中的宏 `BITINT_MAXWIDTH` 给出（标准要求至少支持到 `ULLONG_WIDTH`，许多实现支持更高位宽）。
+2. **不发生向 `int` 的整数提升**：与 `char`、`short` 不同，宽度小于 `int` 的 `_BitInt(N)`（如 `unsigned _BitInt(4)`）在参与表达式运算时**不会**被整数提升为 `int`，而是保持其原有的 $N$ 位精度。当两个不同宽度的 `_BitInt` 混合运算时，较窄的一方会转换为较宽一方的 `_BitInt` 类型；与标准整数类型混合运算时，则按各自的位宽与整数转换等级规则转换。这一性质使模拟特定位宽的硬件寄存器或密码学算术更加直观。
 
 ## 9. 习题
 
