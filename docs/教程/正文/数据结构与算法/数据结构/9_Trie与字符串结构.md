@@ -146,9 +146,9 @@ prefix("app") = 3, prefix("appl") = 2, total = 3
 
 ## 4. 习题
 
-<Exercise id="31901" :d="4" :w="4">
+<Exercise id="31901" :d="3">
 
-实现支持前缀计数的字节 Trie。为控制接口范围，单词只包含 ASCII 小写字母 `a` 到 `z`，不包含结尾空字节：
+实现基于固定 26 路 ASCII 小写字母（`'a'` 到 `'z'`）分支数组的字典树（Trie / 前缀树）`LowerTrie`，支持单词插入、精确匹配以及前缀存在性检索：
 
 ```c
 #include <stdbool.h>
@@ -158,76 +158,150 @@ typedef struct LowerTrie LowerTrie;
 
 LowerTrie *lower_trie_create(void);
 void lower_trie_destroy(LowerTrie *trie);
-bool lower_trie_insert(
-    LowerTrie *trie,
-    const unsigned char *word,
-    size_t length,
-    bool *out_inserted
-);
-bool lower_trie_contains(
-    const LowerTrie *trie,
-    const unsigned char *word,
-    size_t length,
-    bool *out_found
-);
-bool lower_trie_count_prefix(
-    const LowerTrie *trie,
-    const unsigned char *prefix,
-    size_t length,
-    size_t *out_count
-);
+bool lower_trie_insert(LowerTrie *trie, const char *word, bool *out_inserted);
+bool lower_trie_contains(const LowerTrie *trie, const char *word, bool *out_found);
+bool lower_trie_starts_with(const LowerTrie *trie, const char *prefix, bool *out_starts);
 ```
 
 要求：
 
-1. `insert` 复制并拥有节点存储；重复单词成功返回并设置 `*out_inserted = false`。
-2. 每个节点维护经过该节点的单词数量，使前缀查询时间复杂度为 $O(|prefix|)$。
-3. 字符非法、参数无效、分配失败或大小计算溢出时返回 `false`；失败时不得修改 Trie 和输出对象。
-4. 空单词可以插入并参与计数；长度为 0 时对应指针可以为 `NULL`。
-5. `destroy(NULL)` 安全，必须释放所有节点。
+1. 单词仅包含 ASCII 小写字母 `'a'` 到 `'z'`，以空字符 `'\0'` 结尾。若字符非法或指针参数为 `NULL`，操作返回 `false` 且不修改输出对象与树结构。
+2. 每个树节点维护大小为 26 的子指针静态数组 `children[26]` 以及词尾布尔标记 `is_word`。
+3. `lower_trie_insert` 将新单词录入树中：若该单词此前已存在，设置 `*out_inserted = false`；若为全新录入，设置 `*out_inserted = true`。中途若发生内存分配失败，树结构必须保持一致性。
+4. `lower_trie_contains` 进行单词全字匹配；`lower_trie_starts_with` 检验是否存在以 `prefix` 为前缀的任何有效单词。
+5. 检索与插入的时间复杂度严格由字符串长度 $O(L)$ 决定，与树中已存储的单词总数 $N$ 完全无关。
 
 </Exercise>
 
-<Exercise id="31902" :d="5" :w="4">
+<Exercise id="31902" :d="3">
 
-在 Trie 上实现一个整数词典：每个单词关联一个 `uint64_t` 值，重复插入应更新旧值：
+当字符集扩大为全量 256 字节（甚至 Unicode 字符集）时，若每个节点仍分配大小为 256 的静态指针数组，将引发巨大的内存浪费（每个节点占用 $256 \times 8 = 2048$ 字节，其中绝大多数槽位为空指针）。实现基于**动态子节点单向链表**的稀疏字典树 `SparseTrie`：
+
+```c
+#include <stdbool.h>
+#include <stddef.h>
+
+typedef struct SparseTrie SparseTrie;
+
+SparseTrie *sparse_trie_create(void);
+void sparse_trie_destroy(SparseTrie *trie);
+bool sparse_trie_insert(SparseTrie *trie, const unsigned char *bytes, size_t len, bool *out_inserted);
+bool sparse_trie_contains(const SparseTrie *trie, const unsigned char *bytes, size_t len, bool *out_found);
+```
+
+要求：
+
+1. 能够存储包含任意 256 种字节（$[0, 255]$）的任意二进制数据序列，允许字节值为 `0x00`。
+2. 每个树节点严禁分配固定大小的 256 槽位数组，维护动态单向链表 `ChildLink`，仅为真实存在的分支分配子节点与关联指针。
+3. `sparse_trie_insert` 将长度为 `len` 的字节串插入树中，若已存在设置 `*out_inserted = false`；若出现新分支则动态追加链接节点。
+4. `sparse_trie_contains` 进行精确字节串匹配查询。
+5. 从空间占用与查找效率两个维度，深入量化对比“固定静态数组 Trie”与“动态链表 Trie”的工程权衡。
+
+</Exercise>
+
+<Exercise id="31903" :d="4">
+
+在字典树上实现单词前缀出现频次的高效聚合统计，并支持包含单个字符通配符 `.`（匹配任意一个有效小写字母）的模糊模式串检索：
+
+```c
+#include <stdbool.h>
+#include <stddef.h>
+
+typedef struct WildcardTrie WildcardTrie;
+
+WildcardTrie *wildcard_trie_create(void);
+void wildcard_trie_destroy(WildcardTrie *trie);
+bool wildcard_trie_insert(WildcardTrie *trie, const char *word);
+size_t wildcard_trie_prefix_count(const WildcardTrie *trie, const char *prefix);
+bool wildcard_trie_search(const WildcardTrie *trie, const char *pattern);
+```
+
+要求：
+
+1. 单词由 ASCII 小写字母 `'a'` 到 `'z'` 组成。每个节点维护字段 `prefix_count`，记录有多少个已插入单词的前缀经过该节点。
+2. `wildcard_trie_insert`：将新单词插入树中，沿途每个节点的 `prefix_count` 均自增 1，词尾节点标记为单词结尾。
+3. `wildcard_trie_prefix_count`：在严格 $O(|prefix|)$ 时间内直接返回以 `prefix` 为前缀的已录入单词总数；若前缀在树中不存在则返回 0。
+4. `wildcard_trie_search`：模式串 `pattern` 中除小写字母外还可包含字符 `.`（点号）。点号可通配任意一个存在的分支。利用深度优先回溯遍历（DFS）进行多路分支探索，若存在任何一条完全匹配的单词路径则返回 `true`。
+5. 说明深度优先搜索在通配符递归剪枝中的终止条件与正确性保障。
+
+</Exercise>
+
+<Exercise id="31904" :d="4">
+
+给定一个包含非负 32 位整数的无序数组，求数组中任意两个数按位异或（XOR）运算所能达到的最大值。实现基于二进制位分支的 **01-Trie（位前缀树）**，将暴力枚举的二次方时间复杂度 $O(n^2)$ 降低至线性时间 $O(32 \cdot n) = O(n)$：
 
 ```c
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct LowerDictionary LowerDictionary;
+typedef struct BitTrie BitTrie;
 
-LowerDictionary *lower_dictionary_create(void);
-void lower_dictionary_destroy(LowerDictionary *dictionary);
-bool lower_dictionary_put(
-    LowerDictionary *dictionary,
-    const unsigned char *word,
-    size_t length,
-    uint64_t value,
-    bool *out_replaced
-);
-bool lower_dictionary_get(
-    const LowerDictionary *dictionary,
-    const unsigned char *word,
-    size_t length,
-    uint64_t *out_value
-);
-bool lower_dictionary_remove(
-    LowerDictionary *dictionary,
-    const unsigned char *word,
-    size_t length,
-    bool *out_removed
-);
+BitTrie *bit_trie_create(void);
+void bit_trie_destroy(BitTrie *t);
+bool bit_trie_insert(BitTrie *t, uint32_t val);
+uint32_t bit_trie_query_max_xor(const BitTrie *t, uint32_t val);
+bool find_maximum_xor_pair(const uint32_t *nums, size_t count, uint32_t *out_max_xor);
 ```
 
 要求：
 
-1. 键仍限于 ASCII 小写字母；词典拥有节点，删除后应回收不再需要的尾部节点。
-2. `put` 的新键插入失败时不得留下半条路径；更新已有键时不得改变节点结构。
-3. `get` 找不到键时成功返回并将 `*out_value` 保持不变；参数无效或字符非法时返回 `false`。
-4. `remove` 删除不存在的键时成功返回并设置 `*out_removed = false`；所有输出对象在失败时保持不变。
-5. 查找、插入和删除的时间复杂度为 $O(|word|)$。
+1. 01-Trie 的字母表大小固定为 2（分支仅包含二进制位 `0` 与 `1`）。
+2. 树的高度严格固定为 32 层。插入数值时，必须从最高有效位（第 31 位 MSB）向下逐位扫描至最低位（第 0 位 LSB）。
+3. `bit_trie_query_max_xor` 采用贪心策略：对于待查询数 `val` 的当前第 $i$ 位二进制位 $b \in \{0, 1\}$，优先尝试走向相反位 $1 - b$ 的分支；若相反分支存在，异或结果的第 $i$ 位可置为 1；否则只能顺着相同位 $b$ 分支下行。
+4. `find_maximum_xor_pair` 处理输入数组：当 `count < 2` 或指针非法时返回 `false`。
+5. 详细推导为什么贪心选择“从最高位向最低位优先走相反分支”能够严格保证得到全局最大的异或结果。
+
+</Exercise>
+
+<Exercise id="31905" :d="5">
+
+给定一个非负整数数组，求解其所有非空连续子数组中，元素异或和（Subarray XOR Sum）的最大值。结合异或前缀和（Prefix XOR）的数学性质与 01-Trie 检索，实现在 $O(n)$ 时间内求解该问题：
+
+```c
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+
+bool max_subarray_xor(const uint32_t *nums, size_t count, uint32_t *out_max_xor);
+```
+
+要求：
+
+1. 必须将任意连续区间 $[l, r]$ 的异或和：
+   $$\text{XOR}(l, r) = \bigoplus_{i=l}^r nums[i]$$
+   通过异或前缀和数学恒等式转化为两个前缀异或值之间的异或运算。
+2. 内部构建 01-Trie，支持 32 位无符号整数的高位贪心查询。
+3. 必须在插入任何前缀之前，首先向 01-Trie 中插入初始哨兵值 $0$（对应空前缀）；解释若缺少前缀 0 会导致何种边缘区间计算错误。
+4. 算法时间复杂度严格为 $O(32 \cdot n) = O(n)$，空间复杂度严格为 $O(32 \cdot n) = O(n)$。若输入数组为空或指针参数非法，返回 `false`。
+
+</Exercise>
+
+<Exercise id="31906" :d="5">
+
+实现将单分支链条压缩为字符串标签的紧凑字典树——**基数树（Radix Tree / 压缩前缀树 / Compact Trie）**：
+
+```c
+#include <stdbool.h>
+#include <stddef.h>
+
+typedef struct RadixTree RadixTree;
+
+RadixTree *radix_tree_create(void);
+void radix_tree_destroy(RadixTree *tree);
+bool radix_tree_insert(RadixTree *tree, const char *word);
+bool radix_tree_contains(const RadixTree *tree, const char *word);
+```
+
+要求：
+
+1. 树中的每条边不再只保存单一字符，而是保存一个以 `'\0'` 结尾的动态字符串标签 `label`。
+2. 插入新单词时，若与某条既有边的标签发生部分匹配，必须执行边分裂（Edge Splitting）：
+   - 将公共前缀部分留在原边，目标指向新分裂节点；
+   - 将旧边的剩余后缀剥离为一条新边挂在分裂节点之下；
+   - 将待插入单词的剩余后缀作为另一条分支挂在分裂节点之下。
+3. `radix_tree_contains` 沿边标签前缀逐段匹配，检索单词是否存在。
+4. 析构时必须递归释放所有节点及其持有的动态字符串标签，杜绝内存泄漏。
+5. 阐述 Linux 内核页缓存（Page Cache）、IP 路由表查找（LPM）等工业系统为什么普遍采用基数树而非普通 Trie。
 
 </Exercise>
