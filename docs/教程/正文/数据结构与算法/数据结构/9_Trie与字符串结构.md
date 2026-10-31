@@ -146,9 +146,9 @@ prefix("app") = 3, prefix("appl") = 2, total = 3
 
 ## 4. 习题
 
-<Exercise id="31901" :d="3">
+<Exercise id="31901" :d="4" :w="4">
 
-实现基于固定 26 路 ASCII 小写字母（`'a'` 到 `'z'`）分支数组的字典树（Trie / 前缀树）`LowerTrie`，支持单词插入、精确匹配以及前缀存在性检索：
+实现支持前缀计数的字节 Trie。为控制接口范围，单词只包含 ASCII 小写字母 `a` 到 `z`，不包含结尾空字节：
 
 ```c
 #include <stdbool.h>
@@ -158,44 +158,77 @@ typedef struct LowerTrie LowerTrie;
 
 LowerTrie *lower_trie_create(void);
 void lower_trie_destroy(LowerTrie *trie);
-bool lower_trie_insert(LowerTrie *trie, const char *word, bool *out_inserted);
-bool lower_trie_contains(const LowerTrie *trie, const char *word, bool *out_found);
-bool lower_trie_starts_with(const LowerTrie *trie, const char *prefix, bool *out_starts);
+bool lower_trie_insert(
+    LowerTrie *trie,
+    const unsigned char *word,
+    size_t length,
+    bool *out_inserted
+);
+bool lower_trie_contains(
+    const LowerTrie *trie,
+    const unsigned char *word,
+    size_t length,
+    bool *out_found
+);
+bool lower_trie_count_prefix(
+    const LowerTrie *trie,
+    const unsigned char *prefix,
+    size_t length,
+    size_t *out_count
+);
 ```
 
 要求：
 
-1. 单词仅包含 ASCII 小写字母 `'a'` 到 `'z'`，以空字符 `'\0'` 结尾。若字符非法或指针参数为 `NULL`，操作返回 `false` 且不修改输出对象与树结构。
-2. 每个树节点维护大小为 26 的子指针静态数组 `children[26]` 以及词尾布尔标记 `is_word`。
-3. `lower_trie_insert` 将新单词录入树中：若该单词此前已存在，设置 `*out_inserted = false`；若为全新录入，设置 `*out_inserted = true`。中途若发生内存分配失败，树结构必须保持一致性。
-4. `lower_trie_contains` 进行单词全字匹配；`lower_trie_starts_with` 检验是否存在以 `prefix` 为前缀的任何有效单词。
-5. 检索与插入的时间复杂度严格由字符串长度 $O(L)$ 决定，与树中已存储的单词总数 $N$ 完全无关。
+1. `insert` 复制并拥有节点存储；重复单词成功返回并设置 `*out_inserted = false`。
+2. 每个节点维护经过该节点的单词数量，使前缀查询时间复杂度为 $O(|prefix|)$。
+3. 字符非法、参数无效、分配失败或大小计算溢出时返回 `false`；失败时不得修改 Trie 和输出对象。
+4. 空单词可以插入并参与计数；长度为 0 时对应指针可以为 `NULL`。
+5. `destroy(NULL)` 安全，必须释放所有节点。
 
 </Exercise>
 
-<Exercise id="31902" :d="3">
+<Exercise id="31902" :d="5" :w="4">
 
-当字符集扩大为全量 256 字节（甚至 Unicode 字符集）时，若每个节点仍分配大小为 256 的静态指针数组，将引发巨大的内存浪费（每个节点占用 $256 \times 8 = 2048$ 字节，其中绝大多数槽位为空指针）。实现基于**动态子节点单向链表**的稀疏字典树 `SparseTrie`：
+在 Trie 上实现一个整数词典：每个单词关联一个 `uint64_t` 值，重复插入应更新旧值：
 
 ```c
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
-typedef struct SparseTrie SparseTrie;
+typedef struct LowerDictionary LowerDictionary;
 
-SparseTrie *sparse_trie_create(void);
-void sparse_trie_destroy(SparseTrie *trie);
-bool sparse_trie_insert(SparseTrie *trie, const unsigned char *bytes, size_t len, bool *out_inserted);
-bool sparse_trie_contains(const SparseTrie *trie, const unsigned char *bytes, size_t len, bool *out_found);
+LowerDictionary *lower_dictionary_create(void);
+void lower_dictionary_destroy(LowerDictionary *dictionary);
+bool lower_dictionary_put(
+    LowerDictionary *dictionary,
+    const unsigned char *word,
+    size_t length,
+    uint64_t value,
+    bool *out_replaced
+);
+bool lower_dictionary_get(
+    const LowerDictionary *dictionary,
+    const unsigned char *word,
+    size_t length,
+    uint64_t *out_value
+);
+bool lower_dictionary_remove(
+    LowerDictionary *dictionary,
+    const unsigned char *word,
+    size_t length,
+    bool *out_removed
+);
 ```
 
 要求：
 
-1. 能够存储包含任意 256 种字节（$[0, 255]$）的任意二进制数据序列，允许字节值为 `0x00`。
-2. 每个树节点严禁分配固定大小的 256 槽位数组，维护动态单向链表 `ChildLink`，仅为真实存在的分支分配子节点与关联指针。
-3. `sparse_trie_insert` 将长度为 `len` 的字节串插入树中，若已存在设置 `*out_inserted = false`；若出现新分支则动态追加链接节点。
-4. `sparse_trie_contains` 进行精确字节串匹配查询。
-5. 从空间占用与查找效率两个维度，深入量化对比“固定静态数组 Trie”与“动态链表 Trie”的工程权衡。
+1. 键仍限于 ASCII 小写字母；词典拥有节点，删除后应回收不再需要的尾部节点。
+2. `put` 的新键插入失败时不得留下半条路径；更新已有键时不得改变节点结构。
+3. `get` 找不到键时成功返回并将 `*out_value` 保持不变；参数无效或字符非法时返回 `false`。
+4. `remove` 删除不存在的键时成功返回并设置 `*out_removed = false`；所有输出对象在失败时保持不变。
+5. 查找、插入和删除的时间复杂度为 $O(|word|)$。
 
 </Exercise>
 
