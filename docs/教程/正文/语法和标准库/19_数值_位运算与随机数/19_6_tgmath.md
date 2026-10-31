@@ -55,7 +55,7 @@ double f(float x) {
 
 ## 3. 习题
 
-<Exercise id="11905" :d="3" :w="2">
+<Exercise id="11905" :d="2" :w="2">
 
 写一个程序：分别以 `float` 与 `double` 读入同一个数值，调用 `<tgmath.h>` 的 `sqrt` 并输出结果。
 

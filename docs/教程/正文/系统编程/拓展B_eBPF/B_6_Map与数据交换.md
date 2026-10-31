@@ -817,7 +817,7 @@ TIME     EVENT COMM             PID     PPID    FILENAME/EXIT CODE
 
 ### 8.1 巩固
 
-<Exercise id="46601" :d="1" :w="1" multi>
+<Exercise id="46601" :d="2" :w="1" multi>
 
 围绕本节示例中出现的三个显式 Map 声明与三个全局对象，整理一张对比表并回答以下问题：
 

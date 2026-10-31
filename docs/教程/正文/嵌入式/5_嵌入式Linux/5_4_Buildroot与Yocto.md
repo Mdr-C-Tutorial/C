@@ -524,7 +524,7 @@ Yocto 的首次构建比 Buildroot 慢得多：`core-image-minimal` 在 8 核机
 
 ### 8.1 巩固
 
-<Exercise id="60535" :d="1" :w="2">
+<Exercise id="60535" :d="1" :w="1">
 
 读 `code/嵌入式/5_嵌入式Linux/5_4_Buildroot与Yocto/br2-external/configs/mdr_qemu_defconfig`，不构建，只回答：
 

@@ -887,7 +887,7 @@ struct task_state_bpf {
 
 </Exercise>
 
-<Exercise id="46808" :d="6" :w="5">
+<Exercise id="46808" :d="4" :w="3">
 
 以 `task_state.bpf.c` 为起点，做一个展示 `___` 后缀规则的对照实验：定义 `struct task_struct___a`、`struct task_struct___2`、`struct task_struct__b` 三个类型，各选一个成员，编译后用 `bpftool gen skeleton` 和 `llvm-objdump -dr` 观察：
 

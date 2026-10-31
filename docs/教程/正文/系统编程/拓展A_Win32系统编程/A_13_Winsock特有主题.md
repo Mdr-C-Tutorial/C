@@ -729,7 +729,7 @@ if (s < 0) {
 
 </Exercise>
 
-<Exercise id="44302" :d="2" :w="2" multi>
+<Exercise id="44302" :d="3" :w="2" multi>
 
 (1) _[2.2]_ 把下面这段 POSIX 代码逐行改写成 Winsock，保持功能完全一致（包括非阻塞和 1 秒接收超时）：
 

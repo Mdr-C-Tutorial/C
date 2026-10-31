@@ -1144,7 +1144,7 @@ glibc 2.41
 
 ### 9.1 巩固
 
-<Exercise id="40101" :d="1" :w="2">
+<Exercise id="40101" :d="1" :w="1">
 
 写 `myuname`：用 `uname` 打印内核名、版本和机器架构，用 `sysconf` 打印页大小、可打开文件数上限、在线 CPU 数和每秒时钟滴答数，用 `confstr(_CS_GNU_LIBC_VERSION)` 打印 C 库版本。
 
@@ -1251,7 +1251,7 @@ if (errno != 0) {
 
 ### 9.3 综合与挑战
 
-<Exercise id="40107" :d="6" :w="4">
+<Exercise id="40107" :d="5" :w="3">
 
 写一个**不链接 C 库**的 hello：用 `gcc -nostdlib` 和自己的 `_start` 入口，只靠内联汇编发起的 `write` 和 `exit` 两个系统调用完成输出与退出。
 

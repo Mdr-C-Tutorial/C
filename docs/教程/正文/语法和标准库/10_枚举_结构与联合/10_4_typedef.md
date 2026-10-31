@@ -76,7 +76,7 @@ int main(void) {
 
 ## 4. 习题
 
-<Exercise id="11011" :d="1" :w="2">
+<Exercise id="11011" :d="3" :w="2">
 
 把下面的声明改写成 `typedef` 版本，使其更易读：
    1. `int (*fp)(int, int);`
@@ -84,7 +84,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="11012" :d="1" :w="2">
+<Exercise id="11012" :d="2" :w="2">
 
 解释：为什么 `typedef int* int_ptr; const int_ptr p;` 中 `p` 不是“指向 const int 的指针”？
 

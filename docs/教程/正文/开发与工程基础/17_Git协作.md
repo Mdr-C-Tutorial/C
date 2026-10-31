@@ -1413,7 +1413,7 @@ i/lf    w/lf    attr/text eol=lf      	run.sh
 
 ### 10.1 巩固
 
-<Exercise id="21701" :d="1" :w="2">
+<Exercise id="21701" :d="1" :w="1">
 
 在工作目录里运行 `code/开发与工程基础/17_Git协作/setup_demo.sh`，建出 `demo/` 下的服务器与两份克隆。照着第 2 节的过程让 bob 先推送一条 README 改动、alice 再提交一条不冲突的改动，然后完成下列各步并记录每条命令的输出：
 

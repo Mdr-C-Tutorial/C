@@ -246,7 +246,7 @@ int main(void){
 
 ## 4. 习题
 
-<Exercise id="11701" :d="3" :w="2">
+<Exercise id="11701" :d="2" :w="1">
 
 阅读下面的宏：
 

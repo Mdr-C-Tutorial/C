@@ -791,7 +791,7 @@ void itm_log_printf(const char *fmt, ...);
 
 </Exercise>
 
-<Exercise id="60145" :d="6" :w="4" scope="*">
+<Exercise id="60145" :d="3" :w="2" scope="*">
 
 本页讲了 `openocd -c "program ... verify reset exit"` 与 GDB 两条路径。把烧录这件事做成一个可以在 CI 里跑的检查工具。
 

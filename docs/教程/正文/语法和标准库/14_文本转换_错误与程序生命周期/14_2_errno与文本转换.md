@@ -122,7 +122,7 @@ fopen: No such file or directory
 
 ## 5. 习题
 
-<Exercise id="11407" :d="1" :w="2">
+<Exercise id="11407" :d="1" :w="1">
 
 编写函数 `int parse_i32(const char* s, int* out);`，要求：
    1. 输入为十进制，允许前导空白与正负号。
@@ -131,7 +131,7 @@ fopen: No such file or directory
 
 </Exercise>
 
-<Exercise id="11408" :d="1" :w="2">
+<Exercise id="11408" :d="2" :w="2">
 
 写一个小程序：读入一个文件路径，尝试打开并读取第一行；当打开失败时，使用 `perror` 输出原因。
 

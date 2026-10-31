@@ -84,7 +84,7 @@ search finished
 
 ## 5. 习题
 
-<Exercise id="10530" :d="2" :w="2">
+<Exercise id="10530" :d="2" :w="1">
 
 阅读下面的程序，写出输出，并验证 C17 与 C23 对末尾标号及跳过初始化的诊断差异：
 
@@ -111,7 +111,7 @@ skip_init:
 
 </Exercise>
 
-<Exercise id="10531" :d="3" :w="3">
+<Exercise id="10531" :d="2" :w="2">
 
 编写一个程序，在 $1 \le a \le b \le c \le 30$ 的整数范围内寻找字典序最小的一组勾股数 $(a, b, c)$，使得 $a^2 + b^2 = c^2$ 且 $a + b + c = 30$。要求：
 

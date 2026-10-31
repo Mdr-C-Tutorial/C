@@ -601,13 +601,13 @@ int handle_tp(void *ctx)
 
 </Exercise>
 
-<Exercise id="46307" :d="6" :w="4">
+<Exercise id="46307" :d="3" :w="2">
 
 写一份排查清单：程序启动成功、`trace_pipe` 也打开了，但是一行输出都没有。按可能性从高到低列出至少五条原因，每条给出一个可以当场执行的检查命令或判断方法。然后故意制造其中一种情形（例如把 `my_pid` 写成 1），打开 libbpf 的调试日志运行一次，从日志里找出能指向问题的那几行，抄下来并解释。
 
 </Exercise>
 
-<Exercise id="46308" :d="6" :w="5">
+<Exercise id="46308" :d="3" :w="2">
 
 把 `hello.bpf.c` 分别用 `-O2` 和 `-O0` 编译，用 `llvm-objdump -d` 对比两份反汇编：
 

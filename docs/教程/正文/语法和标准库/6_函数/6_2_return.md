@@ -64,7 +64,7 @@ int main(void) {
 
 ### 6.1 巩固
 
-<Exercise id="10610" :d="2" :w="3">
+<Exercise id="10610" :d="2" :w="2">
 
 下面的程序里，`grade` 有一条路径走不到 `return`，`report` 用 `return;` 提前结束。
 
@@ -115,7 +115,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="10611" :d="2" :w="3">
+<Exercise id="10611" :d="2" :w="2">
 
 `main` 的返回值就是进程的退出状态，调用它的脚本靠这个数字判断成败。
 
@@ -130,7 +130,7 @@ int main(void) {
 
 ### 6.2 编程
 
-<Exercise id="10612" :d="3" :w="3">
+<Exercise id="10612" :d="2" :w="2">
 
 下面的函数判断三角形种类：`3` 为等边，`2` 为等腰，`1` 为普通三角形，`0` 为不能构成三角形。`classify` 有嵌套，`report` 已经用了卫语句。
 
@@ -182,7 +182,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="10613" :d="3" :w="3">
+<Exercise id="10613" :d="2" :w="2">
 
 四个函数都只返回一个值，其中两个返回的地址在函数返回后失效。
 
@@ -228,7 +228,7 @@ int fourth(void) {
 
 ### 6.3 综合与挑战
 
-<Exercise id="10614" :d="4" :w="4" scope="**">
+<Exercise id="10614" :d="3" :w="3" scope="**">
 
 同一件事有两种接口：返回结构体，或者返回状态、用指针形参输出结果。结构体在第 10 章才正式讲，这里只按下面的定义使用。
 

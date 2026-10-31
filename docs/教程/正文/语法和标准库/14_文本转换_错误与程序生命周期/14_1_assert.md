@@ -121,7 +121,7 @@ const char* color_name(enum color c) {
 
 ## 5. 习题
 
-<Exercise id="11403" :d="1" :w="2">
+<Exercise id="11403" :d="2" :w="1">
 
 阅读下面代码，分别说明在“启用断言”和“禁用断言（定义 `NDEBUG`）”时程序的输出与行为差异：
 
@@ -153,7 +153,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="11404" :d="1" :w="2">
+<Exercise id="11404" :d="2" :w="2">
 
 在你自己的项目中实现一个宏 `MDR_ASSERT(cond)`：
    1. 默认行为与 `assert` 类似。
@@ -162,7 +162,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="11405" :d="1" :w="2">
+<Exercise id="11405" :d="2" :w="2">
 
 写一个函数 `int pop(stack* s, int* out);`：
    1. 哪些条件适合用 `assert`，哪些条件必须通过返回值向调用者报告错误？
@@ -170,7 +170,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="11406" :d="1" :w="2">
+<Exercise id="11406" :d="1" :w="1">
 
 编写一个包含 `assert(denominator != 0)` 的最小程序，让断言分别成立和失败，并比较两次执行结果。
 

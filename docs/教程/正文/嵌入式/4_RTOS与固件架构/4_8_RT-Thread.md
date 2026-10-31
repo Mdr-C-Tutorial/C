@@ -505,7 +505,7 @@ RT-Thread Studio 是基于 Eclipse 的图形 IDE，把 Env、构建、下载、�
 
 ### 10.1 巩固
 
-<Exercise id="60463" :d="1" :w="2">
+<Exercise id="60463" :d="1" :w="1">
 
 `rtconfig.h` 里 `RT_ALIGN_SIZE` 为 4、`RT_TICK_PER_SECOND` 为 1000。读下面两行创建代码，回答问题：
 

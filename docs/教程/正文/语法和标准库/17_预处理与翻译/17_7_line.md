@@ -50,7 +50,7 @@ struct person {
 
 ## 5. 习题
 
-<Exercise id="11726" :d="2" :w="2">
+<Exercise id="11726" :d="2" :w="1">
 
 阅读程序，先不运行，写出五行输出：
 
@@ -78,7 +78,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="11727" :d="3" :w="3">
+<Exercise id="11727" :d="2" :w="2">
 
 下面是一段「由模板生成」的代码：`stats.model` 里写着生成的函数，`main` 在真正的源文件里。
 
@@ -113,7 +113,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="11728" :d="3" :w="3">
+<Exercise id="11728" :d="2" :w="2">
 
 `__FILE__`、`__LINE__` 是预定义宏，`__func__` 是函数内的标识符。`#line` 只改前两个：
 
@@ -140,7 +140,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="11729" :d="5" :w="4">
+<Exercise id="11729" :d="4" :w="3">
 
 写一个最小的代码生成器，把一张表的数据变成 C 初始化器，并让所有诊断指回数据文件。
 

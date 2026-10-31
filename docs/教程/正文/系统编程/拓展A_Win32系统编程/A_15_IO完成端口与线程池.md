@@ -815,7 +815,7 @@ epoll 是就绪通知：`epoll_wait` 告诉你某个描述符现在可读，接�
 
 </Exercise>
 
-<Exercise id="44509" :d="7" :w="4" scope="*">
+<Exercise id="44509" :d="4" :w="2" scope="*">
 
 阅读[第 12 章](/教程/正文/系统编程/12_事件循环)的 `lecho_evl.c` 与本页的 `iocp_echo.c`，写一份对照说明，回答三个问题：
 

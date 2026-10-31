@@ -1084,7 +1084,7 @@ gcc  -o build/wordfreq build/main.o -Lbuild -lwf
 
 ### 10.1 巩固
 
-<Exercise id="20801" :d="2" :w="3">
+<Exercise id="20801" :d="2" :w="2">
 
 `code/开发与工程基础/8_构建图与Make/exercises/three_files/` 下有三个源文件与一个共用头文件，没有任何构建文件，手工构建的命令写在它的 README 里。从零为它写一个 `Makefile`：
 

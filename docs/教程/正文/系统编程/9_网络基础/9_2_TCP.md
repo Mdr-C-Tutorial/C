@@ -67,7 +67,7 @@ TCP 采用以字节为基本刻度的双向序号体系。序列号（Sequence N
 
 下面的题用到 `setsockopt`、`getsockopt`、`shutdown` 和 `TCP_INFO`。`TCP_INFO` 与 `TCP_MAXSEG` 在 Linux 的 `netinet/tcp.h` 里，取完整的 `struct tcp_info` 需要定义 `_DEFAULT_SOURCE`（`_POSIX_C_SOURCE` 不够）。服务器一律绑 `127.0.0.1`，端口自己挑一个空闲的。
 
-<Exercise id="40914" :d="2" :w="1" multi>
+<Exercise id="40914" :d="2" :w="2" multi>
 
 本章反复说 TCP 是字节流，不保留 `send` 的边界。先写下预测，再写程序验证：
 

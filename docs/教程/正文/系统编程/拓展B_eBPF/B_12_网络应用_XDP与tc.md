@@ -1026,7 +1026,7 @@ $ sudo ip netns exec xdp_test ./xdp_count -i veth1
 
 ### 7.1 巩固
 
-<Exercise id="47201" :d="1" :w="2">
+<Exercise id="47201" :d="1" :w="1">
 
 把第 2 节最小的 XDP 程序改成 `return XDP_DROP;`，编译后用 `llvm-objdump -d` 看反汇编。改动前后指令数是否相同？返回值的数值是多少？
 

@@ -870,7 +870,7 @@ MDR_API int stats_max(const int *a, size_t n);
 
 </Exercise>
 
-<Exercise id="43709" :d="6" :w="5" scope="*">
+<Exercise id="43709" :d="4" :w="3" scope="*">
 
 设计一个跨模块的字符串接口，把所有权完全封在 DLL 里：
 

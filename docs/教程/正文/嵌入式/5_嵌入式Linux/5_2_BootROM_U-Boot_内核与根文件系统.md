@@ -395,7 +395,7 @@ Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(179,5)
 
 ### 7.1 巩固
 
-<Exercise id="60518" :d="1" :w="2">
+<Exercise id="60518" :d="1" :w="1">
 
 下面是一段启动日志，行首的编号只是为了引用：
 

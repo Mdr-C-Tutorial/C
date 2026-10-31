@@ -727,24 +727,24 @@
 
 ## 5. 习题
 
-<Exercise id="10904" :d="3" :w="5">
+<Exercise id="10904" :d="6" :w="5">
 
 有机物的命名有一套完整的规则。以下是烃的部分命名规则：
-   1. 甲烷到癸烷的名称分别为：`methane` `ethane` `propane` `butane` `pentane` `hexane` `heptane` `octane` `nonane` `decane`。
-   2. 烷基的名称是将对应烷烃词尾的 `ane` 替换为 `yl`。同理，烯烃替换成 `ene`，炔烃替换成 `yne`，烯基替换成 `enyl`，炔基替换成 `ynyl`。例如：乙基 `ethyl`，乙烯 `ethene`，乙炔 `ethyne`，乙烯基 `ethenyl`，乙炔基 `ethynyl`。
-   3. 苯，萘，蒽，菲的名称分别为：`benzene`, `naphthalene`, `anthracene`, `phenanthrene`。例如，甲基乙苯 `methylethylbenzene`，9-甲基菲 `9-methylphenanthrene`。
-   4. “环”用 `cyclo` 开头，例如：环丙烷 `cyclopropane`, 环丁烷 `cyclobutane`。
-   5. 标识取代基个数的“二 三 四 五 六”分别用 `di`，`tri`，`tetra`，`penta`，`hexa` 开头。例如：1,2,3-三甲苯 `1,2,3-trimethylbenzene`。
+1. 甲烷到癸烷的名称分别为：`methane` `ethane` `propane` `butane` `pentane` `hexane` `heptane` `octane` `nonane` `decane`。
+2. 烷基的名称是将对应烷烃词尾的 `ane` 替换为 `yl`。同理，烯烃替换成 `ene`，炔烃替换成 `yne`，烯基替换成 `enyl`，炔基替换成 `ynyl`。例如：乙基 `ethyl`，乙烯 `ethene`，乙炔 `ethyne`，乙烯基 `ethenyl`，乙炔基 `ethynyl`。
+3. 苯，萘，蒽，菲的名称分别为：`benzene`, `naphthalene`, `anthracene`, `phenanthrene`。例如，甲基乙苯 `methylethylbenzene`，9-甲基菲 `9-methylphenanthrene`。
+4. “环”用 `cyclo` 开头，例如：环丙烷 `cyclopropane`, 环丁烷 `cyclobutane`。
+5. 标识取代基个数的“二 三 四 五 六”分别用 `di`，`tri`，`tetra`，`penta`，`hexa` 开头。例如：1,2,3-三甲苯 `1,2,3-trimethylbenzene`。
 
-   设计程序，输入有机物名称，输出其碳原子和氢原子个数。
+设计程序，输入有机物名称，输出其碳原子和氢原子个数。
 
-   例：输入 `benzene`，输出 `6 6`；输入 `2-methylpropane`，输出 `4 10`；输入 `4,5-dipropynylnaphthalene`，输出 `16 12`；输入 `2,3,5-trimethyl-4-propyloctane`，输出 `14 30`。
+例：输入 `benzene`，输出 `6 6`；输入 `2-methylpropane`，输出 `4 10`；输入 `4,5-dipropynylnaphthalene`，输出 `16 12`；输入 `2,3,5-trimethyl-4-propyloctane`，输出 `14 30`。
 
-   保证有机物名称满足上述规则。
+保证有机物名称满足上述规则。
 
 </Exercise>
 
-<Exercise id="10905" :d="5" :w="4">
+<Exercise id="10905" :d="4" :w="3">
 
 实现游程编码与解码：
 
@@ -808,7 +808,7 @@ bool order_lines(
 
 </Exercise>
 
-<Exercise id="10907" :d="1" :w="2">
+<Exercise id="10907" :d="3" :w="2">
 
 仅使用指针或下标、循环和比较运算，实现：
 
@@ -822,7 +822,7 @@ size_t mdr_strlen(const char *s);
 
 </Exercise>
 
-<Exercise id="10908" :d="2" :w="2">
+<Exercise id="10908" :d="2" :w="1">
 
 仅使用 C 语言本身提供的操作，实现：
 

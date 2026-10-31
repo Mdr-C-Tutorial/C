@@ -142,7 +142,7 @@ int main(void) {
 
 ## 9. 习题
 
-<Exercise id="31101" :d="4" :w="4">
+<Exercise id="31101" :d="3" :w="3">
 
 使用不透明类型实现整数栈 ADT。公开头文件只能包含以下接口，不得暴露栈的表示：
 
@@ -177,7 +177,7 @@ size_t int_stack_size(const IntStack *stack);
 
 </Exercise>
 
-<Exercise id="31102" :d="6" :w="5" scope="**">
+<Exercise id="31102" :d="4" :w="3">
 
 实现采用开放寻址和线性探测的字符串集合。公开接口不得暴露槽数组：
 
@@ -213,7 +213,7 @@ size_t string_set_size(const StringSet *set);
 
 </Exercise>
 
-<Exercise id="31103" :d="6" :w="5" scope="**">
+<Exercise id="31103" :d="4" :w="3">
 
 为同一个整数序列 ADT 编写动态数组和双向链表两种可替换实现。公开头文件固定为：
 
@@ -262,7 +262,7 @@ size_t int_sequence_size(const IntSequence *sequence);
 
 </Exercise>
 
-<Exercise id="31104" :d="1" :w="1">
+<Exercise id="31104" :d="2" :w="2">
 
 设计并实现不可变有理数抽象数据类型（Rational ADT），支持值语义的代数运算与前置条件/代数不变式契约约束：
 
@@ -292,7 +292,7 @@ int rational_compare(Rational a, Rational b);
 
 </Exercise>
 
-<Exercise id="31105" :d="2" :w="2">
+<Exercise id="31105" :d="4" :w="3">
 
 实现零动态内存分配的定长滑动窗口打点限流器抽象数据类型（RateLimiter ADT），内部以环形缓冲维护单调递增的时间戳序列：
 
@@ -333,7 +333,7 @@ size_t rate_limiter_current_load(RateLimiter *limiter, uint64_t now_ms);
 
 </Exercise>
 
-<Exercise id="31106" :d="4" :w="4">
+<Exercise id="31106" :d="3" :w="2">
 
 实现支持在 $O(1)$ 时间复杂度内获取当前最小元素的整数最小栈抽象数据类型（MinStack ADT）：
 
@@ -362,7 +362,7 @@ size_t min_stack_size(const MinStack *stack);
 
 </Exercise>
 
-<Exercise id="31107" :d="4" :w="4">
+<Exercise id="31107" :d="4" :w="3">
 
 为不透明字符串键值字典设计独立的只读游标（游标/迭代器 ADT），实现字典封装与遍历机制的彻底解耦：
 
@@ -397,7 +397,7 @@ const char *prop_cursor_value(const PropertyCursor *cursor);
 
 </Exercise>
 
-<Exercise id="31108" :d="7" :w="5" scope="**">
+<Exercise id="31108" :d="5" :w="4" scope="**">
 
 在 C 语言中基于虚函数表（Virtual Method Table, VTable）模拟面向对象多态分派机制，设计并实现通用多态字节流抽象数据类型（ByteStream ADT）：
 

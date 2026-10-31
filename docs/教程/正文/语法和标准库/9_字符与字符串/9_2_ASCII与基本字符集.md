@@ -216,7 +216,7 @@ char newline = '\n';
 
 ## 5. 习题
 
-<Exercise id="10914" :d="2" :w="2">
+<Exercise id="10914" :d="2" :w="1">
 
 下面的程序用 `%d` 打印字符常量（按整数输出），用 `%c` 打印整数运算的结果（按字符输出）。先写出四行输出，不要编译；再回答后面的问题。
 
@@ -248,7 +248,7 @@ C7y
 
 </Exercise>
 
-<Exercise id="10915" :d="2" :w="3">
+<Exercise id="10915" :d="2" :w="2">
 
 正文只列出了控制字符的名字，它们在终端上的效果要跑一次才看得清。写一个程序，依次打印下面五个字符串，并在每个字符串后面按 `tag: 十进制码 ...` 的格式列出它的字节值：
 
@@ -284,7 +284,7 @@ pad: 108 111 97 100 105 110 103 32 49 48 48 37 13 100 111 110 101 32 32 32 32 32
 
 </Exercise>
 
-<Exercise id="10916" :d="3" :w="3">
+<Exercise id="10916" :d="2" :w="2">
 
 写一个打印 ASCII 表的程序，逐字符输出的函数为：
 
@@ -326,7 +326,7 @@ printable 95
 
 </Exercise>
 
-<Exercise id="10917" :d="5" :w="3" multi>
+<Exercise id="10917" :d="4" :w="2" multi>
 
 下面的程序想按 16 字节一行打印任意字节的十六进制和可打印字符，却把一段含空字符的数据当成了字符串。先按原样编译运行。
 
@@ -382,7 +382,7 @@ int main(void) {
 
 (1) _[2.1]_ 用 `-std=c17 -Wall -Wextra` 编译并运行，记下诊断与输出（本机字节栏只有 `41 53 43 49 49 20` 六项，右栏是 `|ASCII |`）。`sample` 有 12 个字节，为什么只打印出 6 个？`hexdump` 的样子不变时，调用处怎么写都解决不了这个问题，原因是什么？
 
-(2) _[5.3]_ 只改一半的版本最容易骗人。给 `hexdump` 加一个 `size_t n` 参数并照传 `sizeof sample`，`byte_count` 删掉，其余不动。本机运行后字节栏变成：
+(2) _[4.2]_ 只改一半的版本最容易骗人。给 `hexdump` 加一个 `size_t n` 参数并照传 `sizeof sample`，`byte_count` 删掉，其余不动。本机运行后字节栏变成：
 
 ```text
 41 53 43 49 49 20 00 1F 7F FFFFFFE4 6F 6B
@@ -396,7 +396,7 @@ for (char c = 0; c < 128; c++) {
 }
 ```
 
-(3) _[4.3]_ 全部改对：`hexdump` 接受 `(const char *data, size_t n)`，取字节时逐个转成 `unsigned char`，`is_printable` 的参数也改成 `unsigned char` 并把上界改成可打印字符的最后一个码值，`main` 用 `sizeof sample` 传长度。改完后同一份数据应输出：
+(3) _[3.2]_ 全部改对：`hexdump` 接受 `(const char *data, size_t n)`，取字节时逐个转成 `unsigned char`，`is_printable` 的参数也改成 `unsigned char` 并把上界改成可打印字符的最后一个码值，`main` 用 `sizeof sample` 传长度。改完后同一份数据应输出：
 
 ```text
 0000  41 53 43 49 49 20 00 1F  7F E4 6F 6B              |ASCII ....ok|

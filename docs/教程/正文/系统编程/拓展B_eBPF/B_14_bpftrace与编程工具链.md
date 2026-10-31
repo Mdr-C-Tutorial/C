@@ -983,7 +983,7 @@ Tracing openat for pid 12345...
 
 </Exercise>
 
-<Exercise id="47408" :d="6" :w="4">
+<Exercise id="47408" :d="4" :w="2">
 
 用 `bpftool gen object` 把 `openstat.bpf.o` 与 `syscallstat.bpf.o` 链接成一个目标文件，然后：
 
@@ -997,7 +997,7 @@ Tracing openat for pid 12345...
 
 </Exercise>
 
-<Exercise id="47409" :d="7" :w="5" scope="*">
+<Exercise id="47409" :d="4" :w="2" scope="*">
 
 有人写了下面这段脚本，想统计「哪些进程打开文件失败最多」。
 

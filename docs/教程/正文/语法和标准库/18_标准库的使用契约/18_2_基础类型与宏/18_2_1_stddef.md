@@ -146,7 +146,7 @@ score 成员的偏移量：24 字节
 
 ### 7.1 巩固
 
-<Exercise id="11819" :d="2" :w="3">
+<Exercise id="11819" :d="2" :w="2">
 
 下面的程序在查表失败时返回 `NULL`，但有两处把 `NULL` 用错了地方：
 
@@ -196,7 +196,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="11820" :d="3" :w="3">
+<Exercise id="11820" :d="2" :w="2">
 
 下面的程序用 `size_t` 保存数组长度、用 `ptrdiff_t` 保存指针差，但格式说明和循环写法都有问题：
 
@@ -255,7 +255,7 @@ n = 4
 
 ### 7.2 编程
 
-<Exercise id="11821" :d="3" :w="3">
+<Exercise id="11821" :d="2" :w="2">
 
 写一个探针程序 `wchar_probe.c`，把本机 `wchar_t` 的宽度和宽字符串的存储方式打印出来。被测字符串写成 `L"A中\U0001F600"`，同样内容的窄字符串写成 `"A中\U0001F600"`，分别取 `sizeof`、长度和每个元素的十六进制值。本机（MinGW-w64 GCC 13.2，`wchar_t` 为 16 位）的输出应为：
 
@@ -279,7 +279,7 @@ sizeof("中文") = 7
 
 </Exercise>
 
-<Exercise id="11822" :d="4" :w="4">
+<Exercise id="11822" :d="3" :w="3">
 
 写一个按成员描述结构体内存布局的小工具。被测结构体为：
 
@@ -370,7 +370,7 @@ void dump_object(const void *obj, size_t object_size, const struct field_desc *f
 
 ### 7.3 综合与挑战
 
-<Exercise id="11823" :d="5" :w="4">
+<Exercise id="11823" :d="4" :w="3">
 
 实现一个定长分配区，把一块事先取得的存储切成若干大小不一的对象，每个对象的起始地址都要满足最严格的对齐要求。接口如下：
 
@@ -412,7 +412,7 @@ size_t arena_used(const struct arena *a);
 
 </Exercise>
 
-<Exercise id="11824" :d="6" :w="4">
+<Exercise id="11824" :d="5" :w="3">
 
 `offsetof` 最有名的用法是用成员地址反推外层对象的地址。内核和各种容器库把它写成 `container_of`。已知链表节点和两种宿主记录：
 

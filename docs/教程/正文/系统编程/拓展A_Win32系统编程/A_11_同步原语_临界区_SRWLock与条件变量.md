@@ -650,7 +650,7 @@ waiter: woke up, state = 1
 
 ### 8.1 巩固
 
-<Exercise id="44101" :d="1" :w="2" multi>
+<Exercise id="44101" :d="2" :w="2" multi>
 
 (1) _[1.1]_ `race.c` 里把 `counter++` 换成 `InterlockedIncrement(&counter)` 之后结果正确；如果改写成 `InterlockedExchangeAdd(&counter, 2)` 也正确，而写成 `counter = counter + 2` 仍然会出错，为什么？
 

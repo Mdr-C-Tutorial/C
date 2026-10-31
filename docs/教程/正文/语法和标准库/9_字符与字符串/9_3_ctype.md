@@ -150,7 +150,7 @@ Character   isalnum   isalpha   islower   isupper   isdigit   isxdigit  isspace 
 
 ## 3. 习题
 
-<Exercise id="10902" :d="0" :w="1">
+<Exercise id="10902" :d="1" :w="1">
 
 基本大小写转换：输入一个字符：如果是小写字母，输出其对应的大写字母；如果是大写字母，输出其对应的小写字母；如果是其他字符，原样输出。
 

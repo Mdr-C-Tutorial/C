@@ -132,7 +132,7 @@ int main(void) {
 
 `gcc -std=c17 -Wall -Wextra mkdata.c -o mkdata` 后运行，当前目录就有 `blob.bin`、`payload.bin`（4 字节）、`empty.bin`（0 字节）与 `greeting.txt`（5 字节）。`#embed` 要求编译器支持 C23；本机 GCC 13.2 不认，下面的题目用 Clang 19 加 `-std=c23` 编译。
 
-<Exercise id="11718" :d="2" :w="2">
+<Exercise id="11718" :d="2" :w="1">
 
 阅读程序，先不编译，写出下面的三个分支各打印哪一行：
 
@@ -171,7 +171,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="11719" :d="3" :w="3">
+<Exercise id="11719" :d="2" :w="2">
 
 `greeting.txt` 里是 5 个字节的 `hello`，没有换行。把四个数组放进同一个程序，打印各自的 `sizeof`，再对 `terminated` 与 `first3` 打印 `strlen` 和字符串：
 
@@ -199,7 +199,7 @@ static const char suffixed[] = {
 
 </Exercise>
 
-<Exercise id="11720" :d="3" :w="3">
+<Exercise id="11720" :d="2" :w="2">
 
 `payload.bin` 里有 4 个字节 `DE AD BE EF`。下面的 `frame` 与 `tag` 各占多少字节，初始值分别是什么？
 
@@ -232,7 +232,7 @@ static const unsigned char fallback[] = {
 
 </Exercise>
 
-<Exercise id="11721" :d="4" :w="4">
+<Exercise id="11721" :d="3" :w="3">
 
 `#embed` 出现之前，把二进制资源放进程序要靠工具把字节转成 C 数组源码。这个练习把两条路放在一起比。
 

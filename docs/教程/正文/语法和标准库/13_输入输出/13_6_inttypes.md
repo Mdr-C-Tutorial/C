@@ -90,7 +90,7 @@ wprintf(L"%" PRId32 L"\n", a);
 
 ### 5.1 巩固
 
-<Exercise id="11316" :d="1" :w="2" multi>
+<Exercise id="11316" :d="3" :w="3" multi>
 
 下面的程序在 64 位 Windows（LLP64，`long` 为 32 位）与 64 位 Linux（LP64，`long` 为 64 位）上表现不同：
 
@@ -150,7 +150,7 @@ int main(void)
 
 ### 5.2 编程
 
-<Exercise id="11317" :d="3" :w="3">
+<Exercise id="11317" :d="2" :w="2">
 
 写一个程序 `dump_records.c`：从标准输入读入若干行「地址 值」，每行是一个十六进制地址和一个十进制有符号 64 位整数，输出对齐的表格。输入文件 `records.txt`：
 
@@ -184,7 +184,7 @@ FFFF 9223372036854775807
 
 </Exercise>
 
-<Exercise id="11318" :d="4" :w="3">
+<Exercise id="11318" :d="2" :w="1">
 
 实现一个与 `snprintf` 用法相同的进制转换函数，只处理 `intmax_t`：
 
@@ -224,7 +224,7 @@ size_t fmt_imax(intmax_t v, unsigned base, char *buf, size_t n);
 
 ### 5.3 综合与挑战
 
-<Exercise id="11319" :d="2" :w="2" multi>
+<Exercise id="11319" :d="5" :w="4" multi>
 
 (1) _[2.2]_ 下面这段程序想把一个 `int64_t` 写到宽字符流上：
 

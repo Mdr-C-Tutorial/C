@@ -975,7 +975,7 @@ gcc -std=c17 -Wall -Wextra -Wno-int-to-pointer-cast -DSTM32F103xB \
 
 ### 9.3 综合与挑战
 
-<Exercise id="60309" :d="6" :w="3">
+<Exercise id="60309" :d="3" :w="2">
 
 下面这段 `board_init` 能编译、能烧写，串口上也确实有波形，但 `printf` 出来全是乱码：
 

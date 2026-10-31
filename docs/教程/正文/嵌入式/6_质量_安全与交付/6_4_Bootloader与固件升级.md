@@ -582,7 +582,7 @@ Bootloader 安装一份 40 KiB 的应用时，看门狗为什么必须在擦写�
 
 ### 8.1 巩固
 
-<Exercise id="60625" :d="1" :w="2">
+<Exercise id="60625" :d="1" :w="1">
 
 正文把 64 KiB Flash 划成 16 KiB Bootloader、47 KiB 应用槽与 1 KiB 配置页，映像头 0x200 字节。下面五组参数都想放进从 0x08004000 开始的应用槽：
 
@@ -766,7 +766,7 @@ static void jump_to_app(uint32_t vt) {
 
 ### 8.3 综合与挑战
 
-<Exercise id="60633" :d="6" :w="4" scope="*">
+<Exercise id="60633" :d="3" :w="2" scope="*">
 
 64 KiB 的 F103C8 上，团队在「继续用暂存加备份」与「改用 MCUboot」之间选择。用空间与测试成本做一次定量比较。
 

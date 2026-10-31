@@ -780,7 +780,7 @@ XMake 则代表了现代化敏捷构建的演进方向。其语法短小精悍�
 
 ### 9.1 巩固
 
-<Exercise id="20901" :d="1" :w="3">
+<Exercise id="20901" :d="1" :w="1">
 
 第 1 节那份缓存来自 Windows 上的一次配置，节选如下：
 
@@ -933,7 +933,7 @@ target_link_libraries(chain PRIVATE mid)
 
 </Exercise>
 
-<Exercise id="20907" :d="4" :w="4">
+<Exercise id="20907" :d="3" :w="3">
 
 wordfreq 有四个常用构建类型。
 
@@ -965,7 +965,7 @@ wordfreq 有四个常用构建类型。
 
 </Exercise>
 
-<Exercise id="20909" :d="5" :w="5">
+<Exercise id="20909" :d="4" :w="4">
 
 一个只提供 CMake 支持的库 `greet`，已经在本机建成 Git 仓库并打上标签 `v1.0`。用两种方式把它接进 hello 项目。
 
@@ -990,7 +990,7 @@ git tag v1.0
 
 </Exercise>
 
-<Exercise id="20910" :d="6" :w="4">
+<Exercise id="20910" :d="4" :w="3">
 
 下面的 `CMakeLists.txt` 属于小项目 `unitconv`：库 `unit` 提供 `double unit_f_to_c(double f)`，`app/main.c` 打印 212 华氏度对应的摄氏度，`tools/scale.c` 按 `%3d F = %6.1f C` 打印 0、50、100 三个值的换算表。文件里有几处问题，依次表现为：配置时多找一个编译器；构建时报头文件找不到；按 `option()` 里写的名字传 `-D` 时可选目标不出现；C 标准没有传给编译器。
 

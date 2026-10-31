@@ -1055,7 +1055,7 @@ Windows 的头文件可以从 eBPF for Windows 仓库的 `include` 目录取，�
 
 </Exercise>
 
-<Exercise id="47608" :d="6" :w="5">
+<Exercise id="47608" :d="3" :w="2">
 
 给两个平台的 `bpf_sock_addr` 写一个编译期校验头文件 `ctx_check.h`：
 

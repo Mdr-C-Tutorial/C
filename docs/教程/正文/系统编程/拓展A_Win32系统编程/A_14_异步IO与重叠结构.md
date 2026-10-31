@@ -868,7 +868,7 @@ server: done
 
 </Exercise>
 
-<Exercise id="44407" :d="5" :w="4">
+<Exercise id="44407" :d="5" :w="4" multi>
 
 下面这个函数试图在主线程里读一个文件的两块，然后分别处理。它有三处与重叠 I/O 有关的缺陷：
 

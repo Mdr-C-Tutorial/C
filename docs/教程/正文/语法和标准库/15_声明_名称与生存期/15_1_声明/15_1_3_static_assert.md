@@ -74,7 +74,7 @@ static_assert(sizeof(struct header) == 4, "header layout mismatch");
 
 ## 5. 习题
 
-<Exercise id="11510" :d="1" :w="2">
+<Exercise id="11510" :d="2" :w="1">
 
 为你项目里的一个结构体写 `static_assert`：约束 `sizeof` 与 `alignof`；并解释约束的依据是什么。
 

@@ -62,7 +62,7 @@ struct hdr {
 
 ## 4. 习题
 
-<Exercise id="11722" :d="2" :w="3">
+<Exercise id="11722" :d="2" :w="2">
 
 下面五个结构体的字段完全相同，只有外面的 `#pragma pack` 不同：
 
@@ -104,7 +104,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="11723" :d="3" :w="3">
+<Exercise id="11723" :d="2" :w="2">
 
 正文给出了 `DO_PRAGMA` 与 `DISABLE_UNUSED_WARNING` 两个宏。下面把这个思路做成一对可嵌套的开关：
 
@@ -123,7 +123,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="11724" :d="4" :w="3">
+<Exercise id="11724" :d="3" :w="2">
 
 某二进制格式的记录头是 `tag` 2 字节、`len` 4 字节、`flags` 2 字节、`crc` 4 字节，按小端存放，共 12 字节。下面两个程序分别按「加 `pack`」与「不加 `pack`」打印布局：
 
@@ -157,7 +157,7 @@ int main(void) {
 
 </Exercise>
 
-<Exercise id="11725" :d="5" :w="4">
+<Exercise id="11725" :d="4" :w="3">
 
 `#pragma STDC FP_CONTRACT` 说「允许把 `a * b + c` 收缩成一条融合乘加」。这句话的实际效果取决于编译器与命令行选项，这一题用实验把它量出来。
 

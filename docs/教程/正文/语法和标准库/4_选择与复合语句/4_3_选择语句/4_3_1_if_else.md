@@ -330,7 +330,7 @@ static int is_upper(char ch) {
 
 </Exercise>
 
-<Exercise id="10419" :d="2" :w="2">
+<Exercise id="10419" :d="2" :w="1">
 
 下面的程序判断三角形，但条件顺序有问题。
 
@@ -375,7 +375,7 @@ int main(void) {
 
 ### 3.2 编程
 
-<Exercise id="10420" :d="4" :w="3">
+<Exercise id="10420" :d="3" :w="2">
 
 下面的函数用六层嵌套处理下单，逻辑正确但难以阅读。
 
@@ -430,7 +430,7 @@ int main(void) {
 
 ### 3.3 综合与挑战
 
-<Exercise id="10421" :d="5" :w="4">
+<Exercise id="10421" :d="4" :w="3">
 
 下面这段告警判定编译通过，但输出不对。
 

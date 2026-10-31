@@ -687,7 +687,7 @@ GetConsoleOutputCP() = 65001
 
 ### 8.1 巩固
 
-<Exercise id="43201" :d="1" :w="2" multi>
+<Exercise id="43201" :d="2" :w="2" multi>
 
 (1) _[1.1]_ `CreateFileW` 与 `CreateFileA` 谁的参数是 UTF-16？不写后缀的 `CreateFile` 在不定义 `UNICODE` 时指向哪一个？
 

@@ -580,7 +580,7 @@ for (;;) { sample(); xTaskDelayUntil(&w, 10); }
 
 ### 8.1 巩固
 
-<Exercise id="60401" :d="1" :w="2" multi>
+<Exercise id="60401" :d="2" :w="2" multi>
 
 下面五段共享数据，写者与读者各不相同。
 

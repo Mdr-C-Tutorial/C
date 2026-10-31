@@ -873,7 +873,7 @@ mdr,serial
 
 ### 8.1 巩固
 
-<Exercise id="60572" :d="1" :w="2">
+<Exercise id="60572" :d="1" :w="1">
 
 第 2 节的发送循环用 UARTFR 的 TXFF 位决定能不能写 UARTDR。
 

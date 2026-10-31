@@ -41,7 +41,7 @@ Hello, world!
 
 ## 4. 习题
 
-<Exercise id="11714" :d="2" :w="2">
+<Exercise id="11714" :d="2" :w="1">
 
 下面三段小程序用来观察 `#error` 与 `#warning` 的差别。先写出预期（能否生成 `.o`、退出码是 0 还是非 0、诊断出现在哪一步），再用 `gcc -std=c17 -c` 逐个验证。
 
@@ -77,7 +77,7 @@ int main(void) { return 0; }
 
 </Exercise>
 
-<Exercise id="11715" :d="3" :w="3">
+<Exercise id="11715" :d="2" :w="2">
 
 为一个库写构建期检查头 `bc.h`，把「这个库只在什么环境下能编」写成一组 `#error`。
 
@@ -112,7 +112,7 @@ gcc -std=c89 -Wall -Wextra -c use.c
 
 </Exercise>
 
-<Exercise id="11716" :d="4" :w="3">
+<Exercise id="11716" :d="3" :w="2">
 
 `#warning` 在 C17 下是扩展，在 C23 下才是标准。写一个 `bw.h`，让调用方无论用哪种标准、加上什么警告选项，都能得到一条「构建期提示」。
 
@@ -145,7 +145,7 @@ gcc -std=c17 -Wall -Wextra -Werror -Wno-cpp -c a.c
 
 </Exercise>
 
-<Exercise id="11717" :d="5" :w="3">
+<Exercise id="11717" :d="4" :w="2">
 
 `#error` 最适合放在「用错就一定编不出来」的地方，`#warning` 最适合放在「能编但最好别这样用」的地方。下面把两者放进同一个配置头，观察它们的相互作用，以及 `#error` 之后剩余的检查会怎样。
 

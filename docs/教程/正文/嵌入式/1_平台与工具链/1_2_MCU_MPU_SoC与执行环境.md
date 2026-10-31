@@ -476,7 +476,7 @@ int _write(int fd, const void *buf, size_t count) {
 
 ### 7.1 巩固
 
-<Exercise id="60107" :d="1" :w="2">
+<Exercise id="60107" :d="1" :w="1">
 
 写一个主机端程序 `classify_chip.c`，把下面五颗芯片按本节的判据分类，只依据片内 Flash、SRAM 与有无 MMU 三个字段：
 

@@ -802,7 +802,7 @@ user=Ada
 
 ## 9. 习题
 
-<Exercise id="22001" :d="5" :w="4">
+<Exercise id="22001" :d="4" :w="3">
 
 为本章完整 JSON parser 增加嵌套深度限制，新增入口：
 

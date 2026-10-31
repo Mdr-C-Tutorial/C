@@ -614,7 +614,7 @@ HAL 的轮询版在超时之后返回 `HAL_TIMEOUT`，代码里照常检查。�
 
 ### 9.1 巩固
 
-<Exercise id="60278" :d="1" :w="2">
+<Exercise id="60278" :d="1" :w="1">
 
 第 2.2 节的转换时间表给出了 ADCCLK 为 12 MHz 与 14 MHz 时八档采样时间的结果。不运行程序，回答：
 
@@ -822,7 +822,7 @@ static void dma1_mem2mem_copy(volatile uint32_t *dst, const uint32_t *src,
 
 </Exercise>
 
-<Exercise id="60287" :d="6" :w="3">
+<Exercise id="60287" :d="4" :w="2">
 
 一个用 C8T6 的数据采集节点要做三件事：电位器位置以 1 kHz 连续采样、每批 64 点求平均；电池电压每秒读一次；按键按下时软件触发一次 PA1 的读数，用于自检。
 

@@ -1371,7 +1371,7 @@ nothing to commit, working tree clean
 
 ### 11.1 巩固
 
-<Exercise id="20401" :d="1" :w="2">
+<Exercise id="20401" :d="1" :w="1">
 
 把第 3 章写的单文件程序（含源文件和编译命令）放进一个新目录，为它建立 Git 仓库。要求：
 
@@ -1420,7 +1420,7 @@ nothing to commit, working tree clean
 
 </Exercise>
 
-<Exercise id="20405" :d="2" :w="3">
+<Exercise id="20405" :d="2" :w="2">
 
 在一个仓库里从 `main` 拉出两个分支，让它们修改同一个函数的同一行：
 

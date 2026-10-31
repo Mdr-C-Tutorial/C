@@ -641,7 +641,7 @@ collect2.exe: error: ld returned 1 exit status
 
 ### 10.1 巩固
 
-<Exercise id="60353" :d="1" :w="2">
+<Exercise id="60353" :d="1" :w="1">
 
 `frame_parse.c` 的最后一段把 `frame[22]` 翻转一位（TTL 字段），重新校验得到 `0xFEFF`。
 

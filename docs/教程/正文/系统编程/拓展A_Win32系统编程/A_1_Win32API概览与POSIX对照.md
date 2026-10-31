@@ -837,7 +837,7 @@ int wmain(int argc, wchar_t *argv[]) {
 
 </Exercise>
 
-<Exercise id="43108" :d="5" :w="4">
+<Exercise id="43108" :d="3" :w="2">
 
 写一个 `where.c`，在一个进程里回答「这些模块从哪来」：
 
@@ -852,7 +852,7 @@ int wmain(int argc, wchar_t *argv[]) {
 
 ### 8.3 综合与挑战
 
-<Exercise id="43109" :d="6" :w="4" scope="*">
+<Exercise id="43109" :d="3" :w="3" scope="*">
 
 把本页第 6 节的对照表做成一个可查询、可自检的小工具：
 

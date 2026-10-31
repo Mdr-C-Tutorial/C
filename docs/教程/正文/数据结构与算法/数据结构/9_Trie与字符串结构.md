@@ -146,7 +146,7 @@ prefix("app") = 3, prefix("appl") = 2, total = 3
 
 ## 4. 习题
 
-<Exercise id="31901" :d="4" :w="4">
+<Exercise id="31901" :d="4" :w="3">
 
 实现支持前缀计数的字节 Trie。为控制接口范围，单词只包含 ASCII 小写字母 `a` 到 `z`，不包含结尾空字节：
 
@@ -232,7 +232,7 @@ bool lower_dictionary_remove(
 
 </Exercise>
 
-<Exercise id="31903" :d="4">
+<Exercise id="31903" :d="4" :w="3">
 
 在字典树上实现单词前缀出现频次的高效聚合统计，并支持包含单个字符通配符 `.`（匹配任意一个有效小写字母）的模糊模式串检索：
 
@@ -255,11 +255,11 @@ bool wildcard_trie_search(const WildcardTrie *trie, const char *pattern);
 2. `wildcard_trie_insert`：将新单词插入树中，沿途每个节点的 `prefix_count` 均自增 1，词尾节点标记为单词结尾。
 3. `wildcard_trie_prefix_count`：在严格 $O(|prefix|)$ 时间内直接返回以 `prefix` 为前缀的已录入单词总数；若前缀在树中不存在则返回 0。
 4. `wildcard_trie_search`：模式串 `pattern` 中除小写字母外还可包含字符 `.`（点号）。点号可通配任意一个存在的分支。利用深度优先回溯遍历（DFS）进行多路分支探索，若存在任何一条完全匹配的单词路径则返回 `true`。
-5. 说明深度优先搜索在通配符递归剪枝中的终止条件与正确性保障。
+5. 详细说明深度优先搜索在通配符递归剪枝中的终止条件与正确性保障。
 
 </Exercise>
 
-<Exercise id="31904" :d="4">
+<Exercise id="31904" :d="5" :w="3">
 
 给定一个包含非负 32 位整数的无序数组，求数组中任意两个数按位异或（XOR）运算所能达到的最大值。实现基于二进制位分支的 **01-Trie（位前缀树）**，将暴力枚举的二次方时间复杂度 $O(n^2)$ 降低至线性时间 $O(32 \cdot n) = O(n)$：
 
@@ -281,13 +281,13 @@ bool find_maximum_xor_pair(const uint32_t *nums, size_t count, uint32_t *out_max
 
 1. 01-Trie 的字母表大小固定为 2（分支仅包含二进制位 `0` 与 `1`）。
 2. 树的高度严格固定为 32 层。插入数值时，必须从最高有效位（第 31 位 MSB）向下逐位扫描至最低位（第 0 位 LSB）。
-3. `bit_trie_query_max_xor` 采用贪心策略：对于待查询数 `val` 的当前第 $i$ 位二进制位 $b \in \{0, 1\}$，优先尝试走向相反位 $1 - b$ 的分支；若相反分支存在，异或结果的第 $i$ 位可置为 1；否则只能顺着相同位 $b$ 分支下行。
+3. `bit_trie_query_max_xor` 采用**贪心策略（Greedy Strategy）**：对于待查询数 `val` 的当前第 $i$ 位二进制位 $b \in \{0, 1\}$，优先尝试走向相反位 $1 - b$ 的分支；若相反分支存在，异或结果的第 $i$ 位可置为 1；否则只能顺着相同位 $b$ 分支下行。
 4. `find_maximum_xor_pair` 处理输入数组：当 `count < 2` 或指针非法时返回 `false`。
 5. 详细推导为什么贪心选择“从最高位向最低位优先走相反分支”能够严格保证得到全局最大的异或结果。
 
 </Exercise>
 
-<Exercise id="31905" :d="5">
+<Exercise id="31905" :d="5" :w="3" scope="*">
 
 给定一个非负整数数组，求解其所有非空连续子数组中，元素异或和（Subarray XOR Sum）的最大值。结合异或前缀和（Prefix XOR）的数学性质与 01-Trie 检索，实现在 $O(n)$ 时间内求解该问题：
 
@@ -305,14 +305,14 @@ bool max_subarray_xor(const uint32_t *nums, size_t count, uint32_t *out_max_xor)
    $$\text{XOR}(l, r) = \bigoplus_{i=l}^r nums[i]$$
    通过异或前缀和数学恒等式转化为两个前缀异或值之间的异或运算。
 2. 内部构建 01-Trie，支持 32 位无符号整数的高位贪心查询。
-3. 必须在插入任何前缀之前，首先向 01-Trie 中插入初始哨兵值 $0$（对应空前缀）；解释若缺少前缀 0 会导致何种边缘区间计算错误。
+3. 必须在插入任何前缀之前，**首先向 01-Trie 中插入初始哨兵值 $0$**（对应空前缀）；详细解释若缺少前缀 0 会导致何种边缘区间计算错误。
 4. 算法时间复杂度严格为 $O(32 \cdot n) = O(n)$，空间复杂度严格为 $O(32 \cdot n) = O(n)$。若输入数组为空或指针参数非法，返回 `false`。
 
 </Exercise>
 
-<Exercise id="31906" :d="5">
+<Exercise id="31906" :d="6" :w="4" scope="**">
 
-实现将单分支链条压缩为字符串标签的紧凑字典树——**基数树（Radix Tree / 压缩前缀树 / Compact Trie）**：
+普通字典树（Trie）的每条边只能承载单一字符，导致无分支的单词后缀会退化为深而狭窄的长单链（例如 `"international"` 产生深度为 13 的冗余节点链）。实现将单分支链条压缩为字符串标签的紧凑字典树——**基数树（Radix Tree / 压缩前缀树 / Compact Trie）**：
 
 ```c
 #include <stdbool.h>
@@ -329,12 +329,12 @@ bool radix_tree_contains(const RadixTree *tree, const char *word);
 要求：
 
 1. 树中的每条边不再只保存单一字符，而是保存一个以 `'\0'` 结尾的动态字符串标签 `label`。
-2. 插入新单词时，若与某条既有边的标签发生部分匹配，必须执行边分裂（Edge Splitting）：
+2. 插入新单词时，若与某条既有边的标签发生**部分匹配（Partial Match）**，必须执行**边分裂（Edge Splitting）**：
    - 将公共前缀部分留在原边，目标指向新分裂节点；
    - 将旧边的剩余后缀剥离为一条新边挂在分裂节点之下；
    - 将待插入单词的剩余后缀作为另一条分支挂在分裂节点之下。
 3. `radix_tree_contains` 沿边标签前缀逐段匹配，检索单词是否存在。
 4. 析构时必须递归释放所有节点及其持有的动态字符串标签，杜绝内存泄漏。
-5. 阐述 Linux 内核页缓存（Page Cache）、IP 路由表查找（LPM）等工业系统为什么普遍采用基数树而非普通 Trie。
+5. 详细阐述 Linux 内核页缓存（Page Cache）、IP 路由表查找（LPM）等工业系统为什么普遍采用基数树而非普通 Trie。
 
 </Exercise>
