@@ -19,6 +19,7 @@ import SolutionPageHeader from "./components/SolutionPageHeader.vue";
 import BitField from "./components/BitField.vue";
 import MemoryMap from "./components/MemoryMap.vue";
 import TimingDiagram from "./components/TimingDiagram.vue";
+import { useRunCode } from "./support/runCode.ts";
 
 const runtime = createGentorialRuntime({
   allowUnsafeHtml: course.rendering?.allowUnsafeHtml,
@@ -53,6 +54,7 @@ const runtime = createGentorialRuntime({
 const MdrCTutorialLayout = defineComponent({
   name: "MdrCTutorialLayout",
   setup(_, { slots }) {
+    useRunCode();
     return () =>
       h(Theme.Layout!, null, {
         ...slots,

@@ -5,7 +5,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Sidebar, Nav } from "./nscfg.mts";
-import { setupContainers, setupFootnotes } from "./markdown/index.ts";
+import { setupContainers, setupFootnotes, setupRunButton } from "./markdown/index.ts";
 
 const customElements: string[] = [""];
 const bnfLanguage = {
@@ -161,6 +161,7 @@ export default withPwa(
       config(md) {
         setupFootnotes(md);
         setupContainers(md);
+        setupRunButton(md);
         gentorialMarkdown(md);
       },
     },
